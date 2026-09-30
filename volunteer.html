@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Volunteer Registration | AAKASH EARTH</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(
+          circle at 10% 10%,
+          rgba(215,173,74,.13),
+          transparent 25%
+        ),
+        radial-gradient(
+          circle at 90% 80%,
+          rgba(20,125,100,.15),
+          transparent 30%
+        ),
+        #f6f0e3;
+    }
+
+    .vol-page {
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+
+    .vol-header {
+      min-height: 76px;
+      padding: 0 5%;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #061b29,
+          #0a3b42
+        );
+
+      border-bottom:
+        1px solid rgba(215,173,74,.22);
+    }
+
+    .vol-back {
+      padding: 10px 14px;
+
+      border:
+        1px solid rgba(215,173,74,.25);
+
+      border-radius: 10px;
+
+      color: var(--gold-light);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      text-decoration: none;
+    }
+
+    /* HERO */
+
+    .vol-hero {
+      padding: 65px 5% 115px;
+
+      position: relative;
+      overflow: hidden;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 85% 20%,
+          rgba(215,173,74,.16),
+          transparent 30%
+        ),
+        linear-gradient(
+          135deg,
+          #061b29,
+          #0c5047
+        );
+    }
+
+    .vol-hero::before {
+      content: "";
+
+      width: 430px;
+      height: 430px;
+
+      position: absolute;
+      top: -180px;
+      right: -100px;
+
+      border:
+        1px solid rgba(215,173,74,.13);
+
+      border-radius: 50%;
+    }
+
+    .vol-hero-content {
+      max-width: 750px;
+
+      position: relative;
+      z-index: 2;
+    }
+
+    .vol-label {
+      display: inline-flex;
+
+      padding: 8px 13px;
+
+      border:
+        1px solid rgba(215,173,74,.28);
+
+      border-radius: 30px;
+
+      background:
+        rgba(215,173,74,.07);
+
+      color: var(--gold-light);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+    }
+
+    .vol-hero h1 {
+      margin-top: 20px;
+
+      font-family: "Cinzel", serif;
+
+      font-size:
+        clamp(35px, 5vw, 62px);
+
+      line-height: 1.1;
+    }
+
+    .vol-hero h1 span {
+      color: var(--gold-light);
+    }
+
+    .vol-hero p {
+      max-width: 650px;
+
+      margin-top: 17px;
+
+      color:
+        rgba(255,255,255,.62);
+
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .vol-benefits {
+      margin-top: 28px;
+
+      display: flex;
+      flex-wrap: wrap;
+
+      gap: 9px;
+    }
+
+    .vol-benefit {
+      padding: 9px 12px;
+
+      border:
+        1px solid rgba(255,255,255,.1);
+
+      border-radius: 30px;
+
+      background:
+        rgba(255,255,255,.05);
+
+      color:
+        rgba(255,255,255,.75);
+
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    /* MAIN */
+
+    .vol-main {
+      width: min(1180px, 90%);
+
+      margin: -65px auto 70px;
+
+      position: relative;
+      z-index: 5;
+
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1.25fr)
+        minmax(280px, .75fr);
+
+      gap: 22px;
+    }
+
+    /* FORM CARD */
+
+    .vol-card {
+      padding: 32px;
+
+      border:
+        1px solid rgba(7,26,43,.09);
+
+      border-radius: 25px;
+
+      background:
+        rgba(255,255,255,.97);
+
+      box-shadow:
+        0 25px 65px
+        rgba(7,26,43,.13);
+    }
+
+    .vol-card-header {
+      margin-bottom: 27px;
+    }
+
+    .vol-card-header small {
+      color: var(--gold-dark);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 1.8px;
+    }
+
+    .vol-card-header h2 {
+      margin-top: 6px;
+
+      color: var(--navy);
+
+      font-family: "Cinzel", serif;
+
+      font-size: 25px;
+    }
+
+    .vol-card-header p {
+      margin-top: 8px;
+
+      color: var(--muted);
+
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    /* FORM */
+
+    .vol-form-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 16px;
+    }
+
+    .vol-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .vol-field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: var(--navy);
+
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .vol-field label span {
+      color: #a62e3c;
+    }
+
+    .vol-input {
+      width: 100%;
+      min-height: 48px;
+
+      padding: 12px 14px;
+
+      outline: none;
+
+      border:
+        1px solid rgba(7,26,43,.13);
+
+      border-radius: 11px;
+
+      background: #fffdfa;
+
+      color: var(--navy);
+
+      font-size: 11px;
+
+      transition: .2s;
+    }
+
+    .vol-input:focus {
+      border-color: var(--gold);
+
+      background: white;
+
+      box-shadow:
+        0 0 0 3px
+        rgba(215,173,74,.09);
+    }
+
+    textarea.vol-input {
+      min-height: 105px;
+      resize: vertical;
+    }
+
+    /* PHOTO */
+
+    .photo-upload {
+      padding: 20px;
+
+      display: grid;
+      grid-template-columns:
+        110px 1fr;
+
+      gap: 20px;
+      align-items: center;
+
+      border:
+        1px dashed rgba(7,26,43,.18);
+
+      border-radius: 16px;
+
+      background: #faf7f0;
+    }
+
+    .photo-preview {
+      width: 110px;
+      height: 110px;
+
+      overflow: hidden;
+
+      display: grid;
+      place-items: center;
+
+      border:
+        2px solid var(--gold);
+
+      border-radius: 50%;
+
+      background:
+        linear-gradient(
+          135deg,
+          #0d4e46,
+          #071a2b
+        );
+
+      color: var(--gold-light);
+
+      font-size: 38px;
+    }
+
+    .photo-preview img {
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+    }
+
+    .photo-upload-copy strong {
+      display: block;
+
+      color: var(--navy);
+
+      font-size: 11px;
+    }
+
+    .photo-upload-copy p {
+      margin-top: 6px;
+
+      color: var(--muted);
+
+      font-size: 9px;
+      line-height: 1.5;
+    }
+
+    .photo-file {
+      width: 100%;
+
+      margin-top: 12px;
+
+      font-size: 9px;
+    }
+
+    /* TERMS */
+
+    .vol-terms {
+      margin-top: 20px;
+
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+
+      color: var(--muted);
+
+      font-size: 9px;
+      line-height: 1.6;
+    }
+
+    .vol-terms input {
+      margin-top: 3px;
+    }
+
+    /* MESSAGE */
+
+    .vol-message {
+      display: none;
+
+      margin-top: 17px;
+      padding: 12px 14px;
+
+      border-radius: 10px;
+
+      font-size: 9px;
+      font-weight: 700;
+
+      line-height: 1.55;
+    }
+
+    .vol-message.show {
+      display: block;
+    }
+
+    .vol-message.error {
+      color: #862536;
+
+      background:
+        rgba(134,37,54,.08);
+
+      border:
+        1px solid rgba(134,37,54,.13);
+    }
+
+    .vol-message.success {
+      color: #08624d;
+
+      background:
+        rgba(8,98,77,.08);
+
+      border:
+        1px solid rgba(8,98,77,.13);
+    }
+
+    /* SUBMIT */
+
+    .vol-submit {
+      width: 100%;
+      min-height: 52px;
+
+      margin-top: 18px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      gap: 10px;
+
+      border: 0;
+      border-radius: 12px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #f0d27a,
+          #c89430
+        );
+
+      color: var(--navy);
+
+      font-size: 10px;
+      font-weight: 800;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 12px 28px
+        rgba(200,148,48,.2);
+    }
+
+    .vol-submit:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    /* RIGHT SIDE */
+
+    .vol-info-column {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .info-card {
+      padding: 25px;
+
+      border:
+        1px solid rgba(7,26,43,.08);
+
+      border-radius: 20px;
+
+      background: white;
+
+      box-shadow:
+        0 12px 35px
+        rgba(7,26,43,.07);
+    }
+
+    .info-icon {
+      width: 45px;
+      height: 45px;
+
+      margin-bottom: 15px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 12px;
+
+      background:
+        rgba(20,125,100,.09);
+
+      font-size: 20px;
+    }
+
+    .info-card h3 {
+      color: var(--navy);
+
+      font-family: "Cinzel", serif;
+
+      font-size: 15px;
+    }
+
+    .info-card p {
+      margin-top: 9px;
+
+      color: var(--muted);
+
+      font-size: 9px;
+      line-height: 1.65;
+    }
+
+    .process-list {
+      margin-top: 15px;
+
+      display: grid;
+      gap: 11px;
+    }
+
+    .process-item {
+      display: grid;
+      grid-template-columns:
+        28px 1fr;
+
+      gap: 10px;
+      align-items: center;
+    }
+
+    .process-number {
+      width: 28px;
+      height: 28px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background: var(--navy);
+
+      color: var(--gold-light);
+
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .process-item span {
+      color: #56636b;
+
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .login-card-small {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #071a2b,
+          #0c5047
+        );
+    }
+
+    .login-card-small h3 {
+      color: white;
+    }
+
+    .login-card-small p {
+      color:
+        rgba(255,255,255,.58);
+    }
+
+    .vol-login-link {
+      margin-top: 15px;
+      padding: 11px 14px;
+
+      display: inline-flex;
+
+      border:
+        1px solid rgba(215,173,74,.3);
+
+      border-radius: 10px;
+
+      color: var(--gold-light);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      text-decoration: none;
+    }
+
+    /* SUCCESS */
+
+    .registration-success {
+      display: none;
+
+      text-align: center;
+
+      padding: 20px 5px;
+    }
+
+    .registration-success.show {
+      display: block;
+    }
+
+    .registration-form-content.hidden {
+      display: none;
+    }
+
+    .success-circle {
+      width: 80px;
+      height: 80px;
+
+      margin: 0 auto 20px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background:
+        rgba(20,125,100,.1);
+
+      color: #0b765e;
+
+      font-size: 35px;
+    }
+
+    .registration-success h2 {
+      color: var(--navy);
+
+      font-family: "Cinzel", serif;
+
+      font-size: 25px;
+    }
+
+    .registration-success p {
+      max-width: 500px;
+
+      margin: 12px auto 0;
+
+      color: var(--muted);
+
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    .application-number {
+      margin: 20px auto;
+
+      padding: 15px;
+
+      max-width: 360px;
+
+      border:
+        1px solid rgba(215,173,74,.25);
+
+      border-radius: 13px;
+
+      background: #faf4e7;
+    }
+
+    .application-number small {
+      display: block;
+
+      color: var(--muted);
+
+      font-size: 8px;
+    }
+
+    .application-number strong {
+      display: block;
+
+      margin-top: 6px;
+
+      color: var(--gold-dark);
+
+      font-size: 13px;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 900px) {
+      .vol-main {
+        grid-template-columns: 1fr;
+      }
+
+      .vol-info-column {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+      .login-card-small {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .vol-header {
+        padding: 0 4%;
+      }
+
+      .vol-header .brand-text span {
+        display: none;
+      }
+
+      .vol-hero {
+        padding:
+          50px 5%
+          100px;
+      }
+
+      .vol-main {
+        width: 92%;
+
+        margin-top: -55px;
+      }
+
+      .vol-card {
+        padding: 24px 18px;
+      }
+
+      .vol-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .vol-field.full {
+        grid-column: auto;
+      }
+
+      .photo-upload {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .photo-preview {
+        margin: auto;
+      }
+
+      .vol-info-column {
+        grid-template-columns: 1fr;
+      }
+
+      .login-card-small {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+
+<body>
+
+<div class="vol-page">
+
+
+  <!-- HEADER -->
+  <header class="vol-header">
+
+    <a href="index.html" class="brand">
+
+      <div class="brand-emblem">
+        <span>AE</span>
+      </div>
+
+      <div class="brand-text">
+        <strong>AAKASH EARTH</strong>
+        <span>YUWA MANDAL</span>
+      </div>
+
+    </a>
+
+    <a
+      href="login.html"
+      class="vol-back"
+    >
+      Portal Login →
+    </a>
+
+  </header>
+
+
+  <!-- HERO -->
+  <section class="vol-hero">
+
+    <div class="vol-hero-content">
+
+      <span class="vol-label">
+        ✦ COMMUNITY SEVA
+      </span>
+
+      <h1>
+        Become an Aakash Earth
+        <span>Volunteer.</span>
+      </h1>
+
+      <p>
+        Join the Aakash Earth Yuwa Mandal volunteer team,
+        participate in community seva, complete assigned
+        tasks and contribute to festivals, events and
+        community activities.
+      </p>
+
+      <div class="vol-benefits">
+
+        <span class="vol-benefit">
+          ✓ Official Volunteer ID
+        </span>
+
+        <span class="vol-benefit">
+          ✓ Tasks & Points
+        </span>
+
+        <span class="vol-benefit">
+          ✓ Rating & Rank
+        </span>
+
+        <span class="vol-benefit">
+          ✓ Community Activities
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- MAIN -->
+  <main class="vol-main">
+
+
+    <!-- REGISTRATION FORM -->
+    <section class="vol-card">
+
+      <div
+        id="registrationFormContent"
+        class="registration-form-content"
+      >
+
+        <div class="vol-card-header">
+
+          <small>
+            VOLUNTEER APPLICATION
+          </small>
+
+          <h2>
+            Registration Form
+          </h2>
+
+          <p>
+            Fill in your correct details. Your application
+            will be reviewed by the Aakash Earth administrator.
+          </p>
+
+        </div>
+
+
+        <form
+          id="volunteerRegistrationForm"
+          autocomplete="off"
+        >
+
+          <div class="vol-form-grid">
+
+
+            <!-- NAME -->
+            <div class="vol-field">
+
+              <label for="volunteerName">
+                FULL NAME <span>*</span>
+              </label>
+
+              <input
+                type="text"
+                id="volunteerName"
+                class="vol-input"
+                maxlength="80"
+                placeholder="Enter full name"
+                required
+              >
+
+            </div>
+
+
+            <!-- MOBILE -->
+            <div class="vol-field">
+
+              <label for="volunteerMobile">
+                MOBILE NUMBER <span>*</span>
+              </label>
+
+              <input
+                type="tel"
+                id="volunteerMobile"
+                class="vol-input"
+                maxlength="10"
+                inputmode="numeric"
+                placeholder="10-digit mobile number"
+                required
+              >
+
+            </div>
+
+
+            <!-- DOB -->
+            <div class="vol-field">
+
+              <label for="volunteerDob">
+                DATE OF BIRTH
+              </label>
+
+              <input
+                type="date"
+                id="volunteerDob"
+                class="vol-input"
+              >
+
+            </div>
+
+
+            <!-- GENDER -->
+            <div class="vol-field">
+
+              <label for="volunteerGender">
+                GENDER
+              </label>
+
+              <select
+                id="volunteerGender"
+                class="vol-input"
+              >
+                <option value="">
+                  Select
+                </option>
+
+                <option value="male">
+                  Male
+                </option>
+
+                <option value="female">
+                  Female
+                </option>
+
+                <option value="other">
+                  Other
+                </option>
+              </select>
+
+            </div>
+
+
+            <!-- YEAR -->
+            <div class="vol-field">
+
+              <label for="volunteerYear">
+                VOLUNTEER YEAR <span>*</span>
+              </label>
+
+              <select
+                id="volunteerYear"
+                class="vol-input"
+                required
+              >
+                <option value="">
+                  Select year
+                </option>
+
+                <option value="2026">
+                  2026
+                </option>
+
+                <option value="2027">
+                  2027
+                </option>
+
+                <option value="2028">
+                  2028
+                </option>
+
+                <option value="2029">
+                  2029
+                </option>
+
+                <option value="2030">
+                  2030
+                </option>
+              </select>
+
+            </div>
+
+
+            <!-- AREA -->
+            <div class="vol-field">
+
+              <label for="volunteerArea">
+                AREA / SOCIETY
+              </label>
+
+              <input
+                type="text"
+                id="volunteerArea"
+                class="vol-input"
+                maxlength="100"
+                placeholder="Area / society"
+              >
+
+            </div>
+
+
+            <!-- ADDRESS -->
+            <div class="vol-field full">
+
+              <label for="volunteerAddress">
+                ADDRESS <span>*</span>
+              </label>
+
+              <textarea
+                id="volunteerAddress"
+                class="vol-input"
+                maxlength="350"
+                placeholder="Enter complete address"
+                required
+              ></textarea>
+
+            </div>
+
+
+            <!-- REASON -->
+            <div class="vol-field full">
+
+              <label for="volunteerReason">
+                WHY DO YOU WANT TO VOLUNTEER?
+              </label>
+
+              <textarea
+                id="volunteerReason"
+                class="vol-input"
+                maxlength="500"
+                placeholder="Tell us briefly..."
+              ></textarea>
+
+            </div>
+
+
+            <!-- PHOTO -->
+            <div class="vol-field full">
+
+              <label>
+                PROFILE PHOTO
+              </label>
+
+              <div class="photo-upload">
+
+                <div
+                  class="photo-preview"
+                  id="volunteerPhotoPreview"
+                >
+                  👤
+                </div>
+
+                <div class="photo-upload-copy">
+
+                  <strong>
+                    Select Your Photo
+                  </strong>
+
+                  <p>
+                    JPG, PNG or another image format.
+                    Maximum 5 MB.
+                  </p>
+
+                  <input
+                    type="file"
+                    id="volunteerPhoto"
+                    class="photo-file"
+                    accept="image/*"
+                  >
+
+                  <p>
+                    Photo preview will be shown before
+                    registration.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- TERMS -->
+          <label class="vol-terms">
+
+            <input
+              type="checkbox"
+              id="volunteerTerms"
+              required
+            >
+
+            <span>
+              I confirm that the information provided is correct
+              and understand that registration does not mean
+              automatic approval. The administrator will review
+              my application before activating my Volunteer ID.
+            </span>
+
+          </label>
+
+
+          <!-- MESSAGE -->
+          <div
+            id="volunteerMessage"
+            class="vol-message"
+            role="alert"
+          ></div>
+
+
+          <!-- SUBMIT -->
+          <button
+            type="submit"
+            id="volunteerSubmit"
+            class="vol-submit"
+          >
+            <span id="volunteerSubmitText">
+              Submit Volunteer Application
+            </span>
+
+            <span>→</span>
+          </button>
+
+        </form>
+
+      </div>
+
+
+      <!-- SUCCESS SCREEN -->
+      <div
+        id="registrationSuccess"
+        class="registration-success"
+      >
+
+        <div class="success-circle">
+          ✓
+        </div>
+
+        <h2>
+          Application Submitted
+        </h2>
+
+        <p>
+          Your volunteer application has been successfully
+          submitted. The administrator will review your
+          application before your Volunteer ID becomes active.
+        </p>
+
+        <div class="application-number">
+
+          <small>
+            APPLICATION NUMBER
+          </small>
+
+          <strong id="successApplicationId">
+            —
+          </strong>
+
+        </div>
+
+        <p>
+          After approval, use your
+          <strong>Volunteer ID + registered mobile number</strong>
+          to log in to the Volunteer Portal.
+        </p>
+
+        <a
+          href="login.html"
+          class="vol-login-link"
+          style="
+            background:#071a2b;
+            margin-top:20px;
+          "
+        >
+          Go to Portal Login →
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- RIGHT INFO -->
+    <aside class="vol-info-column">
+
+
+      <div class="info-card">
+
+        <div class="info-icon">
+          🤝
+        </div>
+
+        <h3>
+          Volunteer Seva
+        </h3>
+
+        <p>
+          Volunteers can receive tasks from administrators,
+          submit completed work and earn points and ratings.
+        </p>
+
+      </div>
+
+
+      <div class="info-card">
+
+        <div class="info-icon">
+          ✓
+        </div>
+
+        <h3>
+          Approval Process
+        </h3>
+
+        <div class="process-list">
+
+          <div class="process-item">
+
+            <span class="process-number">
+              1
+            </span>
+
+            <span>
+              Submit registration
+            </span>
+
+          </div>
+
+          <div class="process-item">
+
+            <span class="process-number">
+              2
+            </span>
+
+            <span>
+              Admin reviews application
+            </span>
+
+          </div>
+
+          <div class="process-item">
+
+            <span class="process-number">
+              3
+            </span>
+
+            <span>
+              Volunteer ID activated
+            </span>
+
+          </div>
+
+          <div class="process-item">
+
+            <span class="process-number">
+              4
+            </span>
+
+            <span>
+              Login & receive tasks
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="info-card login-card-small">
+
+        <div class="info-icon">
+          🔐
+        </div>
+
+        <h3>
+          Already Approved?
+        </h3>
+
+        <p>
+          Login using your Volunteer ID and the mobile
+          number registered with your application.
+        </p>
+
+        <a
+          href="login.html"
+          class="vol-login-link"
+        >
+          Volunteer Login →
+        </a>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+</div>
+
+
+<script
+  type="module"
+  src="volunteer.js"
+></script>
+
+</body>
+</html>

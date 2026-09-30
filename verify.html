@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#071A2B"
+  >
+
+  <title>
+    Verify Member / Volunteer | AAKASH EARTH
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <style>
+    :root {
+      --verify-navy: #071a2b;
+      --verify-blue: #123b63;
+      --verify-gold: #d6ad45;
+      --verify-gold-light: #f2d78b;
+      --verify-ivory: #fff8e7;
+      --verify-cream: #f6eedc;
+      --verify-green: #147d64;
+      --verify-red: #7a2430;
+      --verify-muted: #71808b;
+      --verify-border: rgba(7, 26, 43, .11);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      background:
+        radial-gradient(
+          circle at 90% 10%,
+          rgba(214, 173, 69, .13),
+          transparent 28%
+        ),
+        linear-gradient(
+          180deg,
+          #f8f2e5,
+          #eee4cf
+        );
+
+      color: var(--verify-navy);
+
+      font-family:
+        Inter,
+        Arial,
+        sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .verify-header {
+      min-height: 74px;
+
+      padding: 0 5%;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      position: relative;
+      z-index: 10;
+
+      background:
+        rgba(7, 26, 43, .98);
+
+      border-bottom:
+        1px solid rgba(214, 173, 69, .24);
+
+      box-shadow:
+        0 10px 35px rgba(0, 0, 0, .14);
+    }
+
+    .verify-brand {
+      display: flex;
+      align-items: center;
+
+      gap: 11px;
+
+      color: white;
+      text-decoration: none;
+    }
+
+    .verify-logo {
+      width: 46px;
+      height: 46px;
+
+      display: grid;
+      place-items: center;
+
+      border:
+        1px solid var(--verify-gold);
+
+      border-radius: 50%;
+
+      color: var(--verify-gold-light);
+
+      font-family:
+        Cinzel,
+        Georgia,
+        serif;
+
+      font-size: 12px;
+      font-weight: 800;
+
+      box-shadow:
+        inset 0 0 18px
+        rgba(214, 173, 69, .08);
+    }
+
+    .verify-brand-copy strong {
+      display: block;
+
+      font-family:
+        Cinzel,
+        Georgia,
+        serif;
+
+      font-size: 14px;
+
+      letter-spacing: .8px;
+    }
+
+    .verify-brand-copy span {
+      display: block;
+
+      margin-top: 3px;
+
+      color: var(--verify-gold-light);
+
+      font-size: 7px;
+      font-weight: 800;
+
+      letter-spacing: 1.8px;
+    }
+
+    .verify-home {
+      min-height: 39px;
+
+      padding: 0 14px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border:
+        1px solid rgba(214, 173, 69, .3);
+
+      border-radius: 9px;
+
+      color: white;
+
+      text-decoration: none;
+
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    /* =========================
+       HERO
+    ========================= */
+
+    .verify-hero {
+      min-height: 285px;
+
+      padding:
+        58px 5% 105px;
+
+      position: relative;
+      overflow: hidden;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 85% 20%,
+          rgba(214, 173, 69, .25),
+          transparent 25%
+        ),
+        linear-gradient(
+          135deg,
+          #071a2b,
+          #123b63 72%,
+          #7a2430
+        );
+    }
+
+    .verify-hero::before {
+      content: "";
+
+      width: 320px;
+      height: 320px;
+
+      position: absolute;
+
+      right: -130px;
+      bottom: -190px;
+
+      border:
+        1px solid rgba(214, 173, 69, .22);
+
+      border-radius: 50%;
+    }
+
+    .verify-hero-inner {
+      width: min(950px, 100%);
+
+      margin: auto;
+
+      position: relative;
+      z-index: 2;
+
+      text-align: center;
+    }
+
+    .verify-hero-icon {
+      width: 58px;
+      height: 58px;
+
+      margin:
+        0 auto 14px;
+
+      display: grid;
+      place-items: center;
+
+      border:
+        1px solid rgba(242, 215, 139, .42);
+
+      border-radius: 17px;
+
+      color: var(--verify-gold-light);
+
+      background:
+        rgba(255, 255, 255, .05);
+
+      font-size: 24px;
+    }
+
+    .verify-hero small {
+      color: var(--verify-gold-light);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+    }
+
+    .verify-hero h1 {
+      margin: 9px 0 0;
+
+      font-family:
+        Cinzel,
+        Georgia,
+        serif;
+
+      font-size:
+        clamp(29px, 5vw, 48px);
+
+      line-height: 1.1;
+    }
+
+    .verify-hero p {
+      max-width: 610px;
+
+      margin:
+        12px auto 0;
+
+      color:
+        rgba(255, 255, 255, .68);
+
+      font-size: 10px;
+      line-height: 1.8;
+    }
+
+    /* =========================
+       MAIN
+    ========================= */
+
+    .verify-main {
+      width: min(760px, 92%);
+
+      margin:
+        -60px auto 70px;
+
+      position: relative;
+      z-index: 5;
+    }
+
+    .verify-box {
+      padding: 28px;
+
+      border:
+        1px solid var(--verify-border);
+
+      border-radius: 23px;
+
+      background:
+        rgba(255, 248, 231, .98);
+
+      box-shadow:
+        0 25px 70px
+        rgba(7, 26, 43, .14);
+    }
+
+    .verify-box-title {
+      margin-bottom: 21px;
+
+      text-align: center;
+    }
+
+    .verify-box-title small {
+      color: #9d741e;
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 1.5px;
+    }
+
+    .verify-box-title h2 {
+      margin: 7px 0 0;
+
+      font-family:
+        Cinzel,
+        Georgia,
+        serif;
+
+      font-size: 25px;
+    }
+
+    .verify-box-title p {
+      max-width: 500px;
+
+      margin:
+        8px auto 0;
+
+      color: var(--verify-muted);
+
+      font-size: 9px;
+      line-height: 1.6;
+    }
+
+    /* =========================
+       FORM
+    ========================= */
+
+    .verify-form {
+      max-width: 590px;
+
+      margin: auto;
+    }
+
+    .verify-type-row {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 8px;
+
+      margin-bottom: 13px;
+    }
+
+    .verify-type {
+      min-height: 44px;
+
+      border:
+        1px solid var(--verify-border);
+
+      border-radius: 11px;
+
+      background: white;
+
+      color: #667680;
+
+      font-size: 8px;
+      font-weight: 800;
+
+      cursor: pointer;
+
+      transition: .2s ease;
+    }
+
+    .verify-type.active {
+      border-color:
+        rgba(214, 173, 69, .65);
+
+      color: var(--verify-navy);
+
+      background:
+        linear-gradient(
+          135deg,
+          #f4dda0,
+          #d6ad45
+        );
+
+      box-shadow:
+        0 8px 20px
+        rgba(214, 173, 69, .15);
+    }
+
+    .verify-field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: var(--verify-navy);
+
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .verify-input-wrap {
+      display: flex;
+
+      border:
+        1px solid rgba(7, 26, 43, .14);
+
+      border-radius: 12px;
+
+      overflow: hidden;
+
+      background: white;
+
+      transition: .2s ease;
+    }
+
+    .verify-input-wrap:focus-within {
+      border-color: var(--verify-gold);
+
+      box-shadow:
+        0 0 0 3px
+        rgba(214, 173, 69, .1);
+    }
+
+    .verify-input-icon {
+      width: 47px;
+
+      display: grid;
+      place-items: center;
+
+      color: #a77a20;
+
+      font-size: 16px;
+    }
+
+    .verify-input {
+      width: 100%;
+      min-height: 50px;
+
+      padding: 0 12px;
+
+      border: 0;
+      outline: 0;
+
+      color: var(--verify-navy);
+
+      background: transparent;
+
+      font-size: 10px;
+
+      text-transform: uppercase;
+    }
+
+    .verify-button {
+      width: 100%;
+      min-height: 48px;
+
+      margin-top: 14px;
+
+      border: 0;
+      border-radius: 11px;
+
+      color: var(--verify-navy);
+
+      background:
+        linear-gradient(
+          135deg,
+          #f2d78b,
+          #c99631
+        );
+
+      font-size: 9px;
+      font-weight: 900;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 10px 25px
+        rgba(167, 122, 32, .18);
+    }
+
+    .verify-button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    .verify-message {
+      display: none;
+
+      margin-top: 13px;
+      padding: 12px 14px;
+
+      border-radius: 10px;
+
+      font-size: 9px;
+      font-weight: 700;
+
+      line-height: 1.5;
+    }
+
+    .verify-message.show {
+      display: block;
+    }
+
+    .verify-message.error {
+      color: #8a2939;
+
+      background:
+        rgba(122, 36, 48, .1);
+    }
+
+    .verify-message.info {
+      color: #245777;
+
+      background:
+        rgba(18, 59, 99, .09);
+    }
+
+    /* =========================
+       RESULT
+    ========================= */
+
+    .verify-result {
+      display: none;
+
+      margin-top: 24px;
+
+      animation:
+        verifyResultIn .35s ease both;
+    }
+
+    .verify-result.show {
+      display: block;
+    }
+
+    @keyframes verifyResultIn {
+      from {
+        opacity: 0;
+        transform:
+          translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform:
+          translateY(0);
+      }
+    }
+
+    .verified-card {
+      position: relative;
+      overflow: hidden;
+
+      padding: 24px;
+
+      border:
+        1px solid
+        rgba(20, 125, 100, .22);
+
+      border-radius: 19px;
+
+      background:
+        linear-gradient(
+          145deg,
+          #ffffff,
+          #f7f1e3
+        );
+
+      box-shadow:
+        0 15px 40px
+        rgba(7, 26, 43, .08);
+    }
+
+    .verified-card::after {
+      content: "AE";
+
+      position: absolute;
+
+      right: -15px;
+      bottom: -40px;
+
+      color:
+        rgba(214, 173, 69, .07);
+
+      font-family:
+        Cinzel,
+        Georgia,
+        serif;
+
+      font-size: 140px;
+      font-weight: 900;
+    }
+
+    .verified-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+
+      gap: 15px;
+
+      position: relative;
+      z-index: 2;
+    }
+
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+
+      gap: 6px;
+
+      padding: 7px 11px;
+
+      border-radius: 999px;
+
+      color: #08705a;
+
+      background:
+        rgba(20, 125, 100, .11);
+
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .verified-type {
+      padding: 6px 9px;
+
+      border:
+        1px solid
+        rgba(214, 173, 69, .3);
+
+      border-radius: 8px;
+
+      color: #896317;
+
+      background:
+        rgba(214, 173, 69, .09);
+
+      font-size: 7px;
+      font-weight: 900;
+
+      text-transform: uppercase;
+    }
+
+    .verified-profile {
+      margin-top: 19px;
+
+      display: flex;
+      align-items: center;
+
+      gap: 15px;
+
+      position: relative;
+      z-index: 2;
+    }
+
+    .verified-photo {
+      width: 82px;
+      height: 82px;
+
+      flex: 0 0 auto;
+
+      display: grid;
+      place-items: center;
+
+      overflow: hidden;
+
+      border:
+        2px solid
+        rgba(214, 173, 69, .48);
+
+      border-radius: 50%;
+
+      color: var(--verify-gold-light);
+
+      background:
+        linear-gradient(
+          135deg,
+          #071a2b,
+          #123b63
+        );
+
+      font-family:
+        Cinzel,
+        Georgia,
+        serif;
+
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .verified-photo img {
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+    }
+
+    .verified-name {
+      min-width: 0;
+    }
+
+    .verified-name h3 {
+      margin: 0;
+
+      font-family:
+        Cinzel,
+        Georgia,
+        serif;
+
+      font-size: 22px;
+
+      word-break: break-word;
+    }
+
+    .verified-name p {
+      margin: 6px 0 0;
+
+      color: #9a711b;
+
+      font-size: 9px;
+      font-weight: 900;
+
+      letter-spacing: .5px;
+    }
+
+    .verified-grid {
+      margin-top: 20px;
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 10px;
+
+      position: relative;
+      z-index: 2;
+    }
+
+    .verified-detail {
+      padding: 13px;
+
+      border:
+        1px solid var(--verify-border);
+
+      border-radius: 11px;
+
+      background:
+        rgba(255, 255, 255, .72);
+    }
+
+    .verified-detail span {
+      display: block;
+
+      color: var(--verify-muted);
+
+      font-size: 7px;
+      font-weight: 800;
+
+      letter-spacing: .6px;
+    }
+
+    .verified-detail strong {
+      display: block;
+
+      margin-top: 5px;
+
+      color: var(--verify-navy);
+
+      font-size: 10px;
+
+      word-break: break-word;
+    }
+
+    .verified-footer {
+      margin-top: 17px;
+      padding-top: 15px;
+
+      position: relative;
+      z-index: 2;
+
+      border-top:
+        1px solid var(--verify-border);
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .verified-footer p {
+      margin: 0;
+
+      color: var(--verify-muted);
+
+      font-size: 8px;
+      line-height: 1.5;
+    }
+
+    .verified-id-btn {
+      min-height: 37px;
+
+      padding: 0 12px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 0;
+      border-radius: 9px;
+
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #123b63,
+          #071a2b
+        );
+
+      text-decoration: none;
+
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    /* =========================
+       PRIVACY
+    ========================= */
+
+    .verify-privacy {
+      margin-top: 17px;
+
+      padding: 14px 16px;
+
+      border:
+        1px solid
+        rgba(214, 173, 69, .2);
+
+      border-radius: 12px;
+
+      color: #687780;
+
+      background:
+        rgba(255, 255, 255, .48);
+
+      font-size: 8px;
+      line-height: 1.7;
+
+      text-align: center;
+    }
+
+    /* =========================
+       FOOTER
+    ========================= */
+
+    .verify-footer-page {
+      padding: 28px 5%;
+
+      color:
+        rgba(255, 255, 255, .55);
+
+      background: var(--verify-navy);
+
+      text-align: center;
+
+      font-size: 8px;
+      line-height: 1.7;
+    }
+
+    .verify-footer-page strong {
+      color: var(--verify-gold-light);
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 600px) {
+      .verify-header {
+        padding: 0 4%;
+      }
+
+      .verify-brand-copy {
+        display: none;
+      }
+
+      .verify-hero {
+        padding:
+          45px 5% 95px;
+      }
+
+      .verify-main {
+        width: 94%;
+
+        margin-top: -55px;
+      }
+
+      .verify-box {
+        padding: 20px 16px;
+      }
+
+      .verified-profile {
+        align-items: flex-start;
+      }
+
+      .verified-photo {
+        width: 68px;
+        height: 68px;
+
+        font-size: 21px;
+      }
+
+      .verified-name h3 {
+        font-size: 18px;
+      }
+
+      .verified-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       HEADER
+  ========================== -->
+
+  <header class="verify-header">
+
+    <a
+      href="index.html"
+      class="verify-brand"
+    >
+
+      <div class="verify-logo">
+        AE
+      </div>
+
+      <div class="verify-brand-copy">
+
+        <strong>
+          AAKASH EARTH
+        </strong>
+
+        <span>
+          YUWA MANDAL
+        </span>
+
+      </div>
+
+    </a>
+
+
+    <a
+      href="index.html"
+      class="verify-home"
+    >
+      ← Main Website
+    </a>
+
+  </header>
+
+
+  <!-- =========================
+       HERO
+  ========================== -->
+
+  <section class="verify-hero">
+
+    <div class="verify-hero-inner">
+
+      <div class="verify-hero-icon">
+        ✓
+      </div>
+
+      <small>
+        OFFICIAL PUBLIC VERIFICATION
+      </small>
+
+      <h1>
+        Verify Identity
+      </h1>
+
+      <p>
+        Check whether a Member or Volunteer ID
+        belongs to an active and officially
+        approved AAKASH EARTH record.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       MAIN
+  ========================== -->
+
+  <main class="verify-main">
+
+    <section class="verify-box">
+
+      <div class="verify-box-title">
+
+        <small>
+          MEMBER / VOLUNTEER LOOKUP
+        </small>
+
+        <h2>
+          Verification Portal
+        </h2>
+
+        <p>
+          Select the record type and enter the
+          official ID exactly as shown on the
+          AAKASH EARTH I-Card.
+        </p>
+
+      </div>
+
+
+      <form
+        id="verifyForm"
+        class="verify-form"
+        autocomplete="off"
+      >
+
+        <!-- TYPE -->
+
+        <div class="verify-type-row">
+
+          <button
+            type="button"
+            class="verify-type active"
+            data-verify-type="member"
+          >
+            👤 MEMBER
+          </button>
+
+
+          <button
+            type="button"
+            class="verify-type"
+            data-verify-type="volunteer"
+          >
+            🤝 VOLUNTEER
+          </button>
+
+        </div>
+
+
+        <!-- ID -->
+
+        <div class="verify-field">
+
+          <label
+            id="verifyIdLabel"
+            for="verifyId"
+          >
+            MEMBER ID
+          </label>
+
+
+          <div class="verify-input-wrap">
+
+            <div class="verify-input-icon">
+              #
+            </div>
+
+            <input
+              type="text"
+              id="verifyId"
+              class="verify-input"
+              maxlength="40"
+              placeholder="AE-MEM-2026-XXXXXX"
+              required
+              spellcheck="false"
+            >
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="verifyMessage"
+          class="verify-message"
+        ></div>
+
+
+        <button
+          type="submit"
+          id="verifyButton"
+          class="verify-button"
+        >
+          Verify Official Record →
+        </button>
+
+      </form>
+
+
+      <!-- =========================
+           RESULT
+      ========================== -->
+
+      <section
+        id="verifyResult"
+        class="verify-result"
+      >
+
+        <article class="verified-card">
+
+          <div class="verified-top">
+
+            <div class="verified-badge">
+              ✓ VERIFIED RECORD
+            </div>
+
+            <div
+              class="verified-type"
+              id="verifiedPersonType"
+            >
+              MEMBER
+            </div>
+
+          </div>
+
+
+          <div class="verified-profile">
+
+            <div
+              class="verified-photo"
+              id="verifiedPhoto"
+            >
+              AE
+            </div>
+
+
+            <div class="verified-name">
+
+              <h3 id="verifiedName">
+                Member Name
+              </h3>
+
+              <p id="verifiedId">
+                AE-MEM-2026-XXXXXX
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="verified-grid">
+
+            <div class="verified-detail">
+
+              <span>
+                OFFICIAL STATUS
+              </span>
+
+              <strong id="verifiedStatus">
+                Active
+              </strong>
+
+            </div>
+
+
+            <div class="verified-detail">
+
+              <span id="verifiedRoleLabel">
+                POSITION
+              </span>
+
+              <strong id="verifiedRole">
+                Member
+              </strong>
+
+            </div>
+
+
+            <div class="verified-detail">
+
+              <span>
+                YEAR
+              </span>
+
+              <strong id="verifiedYear">
+                —
+              </strong>
+
+            </div>
+
+
+            <div class="verified-detail">
+
+              <span id="verifiedExtraLabel">
+                MEMBERSHIP
+              </span>
+
+              <strong id="verifiedExtra">
+                Verified
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="verified-footer">
+
+            <p>
+              This verification displays only
+              public identity information.
+              Mobile number, address and login
+              details remain private.
+            </p>
+
+
+            <a
+              href="#"
+              id="verifiedIdCardLink"
+              class="verified-id-btn"
+            >
+              View Official I-Card
+            </a>
+
+          </div>
+
+        </article>
+
+      </section>
+
+
+      <div class="verify-privacy">
+        🔒 For privacy and security, this page does
+        not display mobile number, address,
+        username, password, date of birth or other
+        private account information.
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =========================
+       FOOTER
+  ========================== -->
+
+  <footer class="verify-footer-page">
+
+    <strong>
+      AAKASH EARTH YUWA MANDAL
+    </strong>
+
+    <br>
+
+    Official Member & Volunteer Verification System
+
+  </footer>
+
+
+  <script
+    type="module"
+    src="verify.js"
+  ></script>
+
+</body>
+</html>

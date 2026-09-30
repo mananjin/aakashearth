@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Member Dashboard | AAKASH EARTH</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      background: #f5f0e5;
+    }
+
+    .member-app {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+
+    .member-sidebar {
+      width: 275px;
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 1000;
+      overflow-y: auto;
+
+      background:
+        radial-gradient(circle at 20% 5%, rgba(215,173,74,.14), transparent 25%),
+        linear-gradient(180deg, #071a2b, #092b45 55%, #061725);
+
+      border-right: 1px solid rgba(215,173,74,.22);
+      color: white;
+    }
+
+    .sidebar-brand {
+      padding: 25px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .sidebar-profile {
+      padding: 25px 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .sidebar-photo {
+      width: 82px;
+      height: 82px;
+      margin: auto;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+
+      background: #123b63;
+      color: var(--gold-light);
+      font-size: 34px;
+
+      box-shadow: 0 0 0 6px rgba(215,173,74,.07);
+    }
+
+    .sidebar-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .sidebar-profile h3 {
+      margin-top: 14px;
+      font-family: "Cinzel", serif;
+      font-size: 15px;
+    }
+
+    .sidebar-profile p {
+      margin-top: 5px;
+      color: var(--gold-light);
+      font-size: 9px;
+      letter-spacing: 1px;
+    }
+
+    .member-nav {
+      padding: 16px 12px 30px;
+    }
+
+    .member-link {
+      width: 100%;
+      min-height: 45px;
+      margin-bottom: 5px;
+      padding: 0 13px;
+
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      border-radius: 11px;
+      background: transparent;
+      color: rgba(255,255,255,.68);
+
+      font-size: 11px;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      transition: .25s;
+    }
+
+    .member-link:hover {
+      background: rgba(255,255,255,.06);
+      color: white;
+    }
+
+    .member-link.active {
+      color: var(--navy);
+      background: linear-gradient(135deg, #f1d887, #c89632);
+      box-shadow: 0 9px 24px rgba(215,173,74,.15);
+    }
+
+    .member-link.danger {
+      margin-top: 15px;
+      color: #ffc1c8;
+    }
+
+    .nav-icon {
+      width: 22px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    /* MAIN */
+
+    .member-main {
+      width: calc(100% - 275px);
+      min-height: 100vh;
+      margin-left: 275px;
+    }
+
+    .member-topbar {
+      min-height: 74px;
+      padding: 0 4%;
+
+      position: sticky;
+      top: 0;
+      z-index: 900;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      background: rgba(255,250,240,.93);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(7,26,43,.08);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .member-menu-btn {
+      width: 42px;
+      height: 42px;
+      display: none;
+      border-radius: 11px;
+      background: var(--navy);
+      color: var(--gold-light);
+      cursor: pointer;
+    }
+
+    .topbar-title small {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--gold-dark);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 1.7px;
+    }
+
+    .topbar-title h1 {
+      color: var(--navy);
+      font-family: "Cinzel", serif;
+      font-size: 20px;
+    }
+
+    .top-member {
+      padding: 9px 14px;
+      border: 1px solid rgba(7,26,43,.08);
+      border-radius: 12px;
+      background: white;
+      color: var(--navy);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .member-content {
+      padding: 32px 4% 60px;
+    }
+
+    /* PANEL ANIMATION */
+
+    .member-panel {
+      display: none;
+    }
+
+    .member-panel.active {
+      display: block;
+      animation: panelEnter .4s ease both;
+    }
+
+    @keyframes panelEnter {
+      from {
+        opacity: 0;
+        transform: translateX(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* WELCOME */
+
+    .welcome-card {
+      position: relative;
+      overflow: hidden;
+      padding: 36px;
+
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 25px;
+
+      border-radius: 25px;
+      color: white;
+
+      background:
+        radial-gradient(circle at 90% 20%, rgba(215,173,74,.2), transparent 30%),
+        linear-gradient(135deg, #071a2b, #123b63);
+
+      box-shadow: 0 18px 45px rgba(7,26,43,.15);
+    }
+
+    .welcome-card::after {
+      content: "";
+      width: 250px;
+      height: 250px;
+      position: absolute;
+      right: -100px;
+      bottom: -150px;
+      border: 1px solid rgba(215,173,74,.16);
+      border-radius: 50%;
+    }
+
+    .welcome-label {
+      color: var(--gold-light);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 2px;
+    }
+
+    .welcome-card h2 {
+      margin-top: 9px;
+      font-family: "Cinzel", serif;
+      font-size: clamp(25px, 3vw, 38px);
+    }
+
+    .welcome-card p {
+      max-width: 620px;
+      margin-top: 10px;
+      color: rgba(255,255,255,.62);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .welcome-id {
+      min-width: 190px;
+      padding: 17px;
+      position: relative;
+      z-index: 2;
+      text-align: center;
+
+      border: 1px solid rgba(215,173,74,.3);
+      border-radius: 17px;
+      background: rgba(255,255,255,.06);
+    }
+
+    .welcome-id small {
+      display: block;
+      color: rgba(255,255,255,.5);
+      font-size: 8px;
+    }
+
+    .welcome-id strong {
+      display: block;
+      margin-top: 6px;
+      color: var(--gold-light);
+      font-size: 11px;
+    }
+
+    /* STATS */
+
+    .member-stats {
+      margin-top: 22px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+
+    .member-stat {
+      padding: 21px;
+      border: 1px solid rgba(7,26,43,.08);
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 10px 28px rgba(7,26,43,.06);
+    }
+
+    .member-stat-icon {
+      width: 39px;
+      height: 39px;
+      margin-bottom: 15px;
+      display: grid;
+      place-items: center;
+      border-radius: 11px;
+      background: #f6efdf;
+    }
+
+    .member-stat strong {
+      display: block;
+      color: var(--navy);
+      font-family: "Cinzel", serif;
+      font-size: 22px;
+    }
+
+    .member-stat span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    /* COMMON */
+
+    .dashboard-section {
+      margin-top: 25px;
+    }
+
+    .panel-header {
+      margin-bottom: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 15px;
+    }
+
+    .panel-header small {
+      color: var(--gold-dark);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 1.6px;
+    }
+
+    .panel-header h2 {
+      margin-top: 5px;
+      color: var(--navy);
+      font-family: "Cinzel", serif;
+      font-size: 25px;
+    }
+
+    .panel-header p {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .dashboard-card {
+      padding: 23px;
+      border: 1px solid rgba(7,26,43,.08);
+      border-radius: 20px;
+      background: white;
+      box-shadow: 0 10px 30px rgba(7,26,43,.05);
+    }
+
+    .shortcut-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .shortcut-card {
+      min-height: 125px;
+      padding: 20px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      border: 1px solid rgba(7,26,43,.08);
+      border-radius: 18px;
+      background: white;
+      color: var(--navy);
+
+      text-align: left;
+      cursor: pointer;
+      transition: .25s;
+    }
+
+    .shortcut-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(215,173,74,.45);
+      box-shadow: 0 14px 32px rgba(7,26,43,.1);
+    }
+
+    .shortcut-icon {
+      font-size: 24px;
+    }
+
+    .shortcut-card strong {
+      font-family: "Cinzel", serif;
+      font-size: 12px;
+    }
+
+    .shortcut-card span {
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    /* PROFILE */
+
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+    }
+
+    .profile-card {
+      padding: 28px;
+      text-align: center;
+    }
+
+    .profile-photo {
+      width: 125px;
+      height: 125px;
+      margin: auto;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+
+      border: 3px solid var(--gold);
+      border-radius: 50%;
+      background: var(--navy);
+      color: var(--gold-light);
+      font-size: 48px;
+    }
+
+    .profile-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-card h3 {
+      margin-top: 17px;
+      color: var(--navy);
+      font-family: "Cinzel", serif;
+    }
+
+    .profile-card .profile-id {
+      margin-top: 6px;
+      color: var(--gold-dark);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .profile-card .profile-position {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 13px;
+    }
+
+    .detail-box {
+      padding: 16px;
+      border-radius: 13px;
+      background: #faf7f0;
+    }
+
+    .detail-box small {
+      display: block;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+    .detail-box strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--navy);
+      font-size: 11px;
+      word-break: break-word;
+    }
+
+    /* FILTERS */
+
+    .filter-row {
+      margin-bottom: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .task-filter {
+      padding: 9px 13px;
+      border: 1px solid rgba(7,26,43,.1);
+      border-radius: 10px;
+      background: white;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .task-filter.active {
+      border-color: var(--navy);
+      background: var(--navy);
+      color: var(--gold-light);
+    }
+
+    /* TASKS */
+
+    .task-list {
+      display: grid;
+      gap: 13px;
+    }
+
+    .empty-state {
+      min-height: 160px;
+      padding: 25px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+
+      border: 1px dashed rgba(7,26,43,.15);
+      border-radius: 17px;
+      background: rgba(255,255,255,.55);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    /* POINTS */
+
+    .points-layout {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 300px));
+      gap: 16px;
+    }
+
+    .big-score {
+      min-height: 190px;
+      padding: 30px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border-radius: 22px;
+      color: white;
+      background: linear-gradient(135deg, #071a2b, #123b63);
+    }
+
+    .big-score.gold {
+      background: linear-gradient(135deg, #a87820, #d5aa45);
+      color: var(--navy);
+    }
+
+    .big-score strong {
+      display: block;
+      font-family: "Cinzel", serif;
+      font-size: 36px;
+    }
+
+    .big-score span {
+      display: block;
+      margin-top: 7px;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    /* ORGANIZE */
+
+    .organize-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, .8fr) minmax(0, 1.2fr);
+      gap: 20px;
+    }
+
+    .member-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .member-form-group {
+      margin-bottom: 14px;
+    }
+
+    .member-form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .member-form-group label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--navy);
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .member-input {
+      width: 100%;
+      min-height: 45px;
+      padding: 11px 13px;
+
+      outline: none;
+      border: 1px solid rgba(7,26,43,.13);
+      border-radius: 10px;
+
+      background: #fffdfa;
+      color: var(--navy);
+      font-size: 11px;
+    }
+
+    .member-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(215,173,74,.09);
+    }
+
+    textarea.member-input {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .member-submit {
+      min-height: 46px;
+      padding: 0 18px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      border-radius: 11px;
+      background: linear-gradient(135deg, #f0d27a, #c89430);
+      color: var(--navy);
+
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .form-message {
+      display: none;
+      margin-top: 12px;
+      padding: 11px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .form-message.show {
+      display: block;
+    }
+
+    .form-message.success {
+      color: #08624d;
+      background: rgba(20,125,100,.08);
+    }
+
+    .form-message.error {
+      color: #862536;
+      background: rgba(122,36,48,.08);
+    }
+
+    /* COMPLAINTS */
+
+    .privacy-note {
+      margin-bottom: 17px;
+      padding: 13px 15px;
+      border-left: 4px solid var(--emerald);
+      border-radius: 9px;
+      background: rgba(20,125,100,.07);
+      color: #42655c;
+      font-size: 9px;
+      line-height: 1.6;
+    }
+
+    /* TABLES */
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .member-table {
+      width: 100%;
+      min-width: 700px;
+      border-collapse: collapse;
+    }
+
+    .member-table th {
+      padding: 12px;
+      text-align: left;
+      background: #f5efdf;
+      color: var(--navy);
+      font-size: 8px;
+      letter-spacing: .7px;
+    }
+
+    .member-table td {
+      padding: 13px 12px;
+      border-bottom: 1px solid rgba(7,26,43,.07);
+      color: #58646c;
+      font-size: 9px;
+    }
+
+    /* CONTENT PLACEHOLDERS */
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    /* MODAL */
+
+    .member-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+
+      padding: 20px;
+      align-items: center;
+      justify-content: center;
+
+      background: rgba(2,12,20,.72);
+      backdrop-filter: blur(8px);
+    }
+
+    .member-modal.open {
+      display: flex;
+    }
+
+    .member-modal-card {
+      width: min(100%, 540px);
+      max-height: 90vh;
+      overflow-y: auto;
+
+      padding: 26px;
+      border: 1px solid rgba(215,173,74,.25);
+      border-radius: 22px;
+      background: #fffaf0;
+      box-shadow: 0 30px 80px rgba(0,0,0,.28);
+    }
+
+    .modal-header {
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 15px;
+    }
+
+    .modal-header h3 {
+      color: var(--navy);
+      font-family: "Cinzel", serif;
+    }
+
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--navy);
+      color: white;
+      cursor: pointer;
+    }
+
+    .proof-preview {
+      width: 100%;
+      max-height: 230px;
+      margin-top: 12px;
+      display: none;
+      object-fit: contain;
+      border-radius: 12px;
+      background: #eee8dc;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 1150px) {
+      .member-stats {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .shortcut-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .module-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .member-sidebar {
+        transform: translateX(-100%);
+        transition: transform .3s ease;
+        box-shadow: 20px 0 50px rgba(0,0,0,.25);
+      }
+
+      .member-sidebar.open {
+        transform: translateX(0);
+      }
+
+      .member-main {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .member-menu-btn {
+        display: grid;
+        place-items: center;
+      }
+
+      .profile-layout,
+      .organize-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .member-content {
+        padding: 22px 4% 50px;
+      }
+
+      .top-member {
+        display: none;
+      }
+
+      .welcome-card {
+        padding: 25px;
+        grid-template-columns: 1fr;
+      }
+
+      .welcome-id {
+        min-width: 0;
+        text-align: left;
+      }
+
+      .member-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .shortcut-grid,
+      .module-grid,
+      .detail-grid,
+      .member-form-grid,
+      .points-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header h2 {
+        font-size: 21px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="member-app">
+
+  <!-- SIDEBAR -->
+  <aside class="member-sidebar" id="memberSidebar">
+
+    <div class="sidebar-brand">
+      <a href="index.html" class="brand">
+        <div class="brand-emblem">
+          <span>AE</span>
+        </div>
+
+        <div class="brand-text">
+          <strong>AAKASH EARTH</strong>
+          <span>YUWA MANDAL</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="sidebar-profile">
+
+      <div class="sidebar-photo" id="sidebarMemberPhoto">
+        👤
+      </div>
+
+      <h3 id="sidebarMemberName">
+        Member
+      </h3>
+
+      <p id="sidebarMemberId">
+        Loading...
+      </p>
+
+    </div>
+
+    <nav class="member-nav">
+
+      <button class="member-link active" data-panel="dashboard">
+        <span class="nav-icon">⌂</span>
+        Dashboard
+      </button>
+
+      <button class="member-link" data-panel="profile">
+        <span class="nav-icon">👤</span>
+        My Profile
+      </button>
+
+      <button class="member-link" data-panel="idcard">
+        <span class="nav-icon">🪪</span>
+        My I-Card
+      </button>
+
+      <button class="member-link" data-panel="tasks">
+        <span class="nav-icon">✓</span>
+        My Tasks
+      </button>
+
+      <button class="member-link" data-panel="points">
+        <span class="nav-icon">★</span>
+        Points & Rating
+      </button>
+
+      <button class="member-link" data-panel="history">
+        <span class="nav-icon">◷</span>
+        Task History
+      </button>
+
+      <button class="member-link" data-panel="organize">
+        <span class="nav-icon">✦</span>
+        Organize & Manage
+      </button>
+
+      <button class="member-link" data-panel="complaints">
+        <span class="nav-icon">!</span>
+        Complaints Against Me
+      </button>
+
+      <button class="member-link" data-panel="receipts">
+        <span class="nav-icon">₹</span>
+        Receipts / Vargani
+      </button>
+
+      <button class="member-link" data-panel="volunteers">
+        <span class="nav-icon">🤝</span>
+        Volunteers
+      </button>
+
+      <button class="member-link" data-panel="festivals">
+        <span class="nav-icon">🪔</span>
+        Festivals
+      </button>
+
+      <button class="member-link" data-panel="sports">
+        <span class="nav-icon">🏆</span>
+        Sports
+      </button>
+
+      <button class="member-link" data-panel="updates">
+        <span class="nav-icon">📢</span>
+        Updates
+      </button>
+
+      <button class="member-link" data-panel="gallery">
+        <span class="nav-icon">▣</span>
+        Gallery
+      </button>
+
+      <button class="member-link danger" id="memberLogout">
+        <span class="nav-icon">↪</span>
+        Logout
+      </button>
+
+    </nav>
+
+  </aside>
+
+
+  <!-- MAIN -->
+  <main class="member-main">
+
+    <header class="member-topbar">
+
+      <div class="topbar-left">
+
+        <button
+          type="button"
+          class="member-menu-btn"
+          id="memberMenuBtn"
+        >
+          ☰
+        </button>
+
+        <div class="topbar-title">
+          <small>MEMBER PORTAL</small>
+          <h1 id="memberPageTitle">
+            Dashboard
+          </h1>
+        </div>
+
+      </div>
+
+      <div class="top-member">
+        Welcome,
+        <span id="topMemberName">Member</span>
+      </div>
+
+    </header>
+
+
+    <div class="member-content">
+
+      <!-- DASHBOARD -->
+      <section
+        class="member-panel active"
+        data-panel-content="dashboard"
+      >
+
+        <div class="welcome-card">
+
+          <div>
+            <span class="welcome-label">
+              ✦ AAKASH EARTH MEMBER
+            </span>
+
+            <h2>
+              Welcome,
+              <span id="welcomeMemberName">
+                Member
+              </span>
+            </h2>
+
+            <p>
+              View your tasks, points, community activities,
+              proposals and official member information from
+              your dashboard.
+            </p>
+          </div>
+
+          <div class="welcome-id">
+            <small>OFFICIAL MEMBER ID</small>
+            <strong id="dashboardMemberId">—</strong>
+          </div>
+
+        </div>
+
+
+        <div class="member-stats">
+
+          <div class="member-stat">
+            <div class="member-stat-icon">✓</div>
+            <strong id="memberTotalTasks">0</strong>
+            <span>Total Tasks</span>
+          </div>
+
+          <div class="member-stat">
+            <div class="member-stat-icon">🏆</div>
+            <strong id="memberCompletedTasks">0</strong>
+            <span>Completed</span>
+          </div>
+
+          <div class="member-stat">
+            <div class="member-stat-icon">★</div>
+            <strong id="memberPoints">0</strong>
+            <span>Points</span>
+          </div>
+
+          <div class="member-stat">
+            <div class="member-stat-icon">⭐</div>
+            <strong id="memberRating">-</strong>
+            <span>Rating</span>
+          </div>
+
+          <div class="member-stat">
+            <div class="member-stat-icon">!</div>
+            <strong id="memberComplaintCount">0</strong>
+            <span>Complaints</span>
+          </div>
+
+        </div>
+
+
+        <div class="dashboard-section">
+
+          <div class="panel-header">
+            <div>
+              <small>QUICK ACCESS</small>
+              <h2>Member Services</h2>
+            </div>
+          </div>
+
+          <div class="shortcut-grid">
+
+            <button class="shortcut-card" data-open-panel="tasks">
+              <span class="shortcut-icon">✓</span>
+              <strong>My Tasks</strong>
+              <span>View assigned tasks</span>
+            </button>
+
+            <button
+              class="shortcut-card"
+              id="dashboardViewIdCard"
+            >
+              <span class="shortcut-icon">🪪</span>
+              <strong>Official I-Card</strong>
+              <span>Open member ID card</span>
+            </button>
+
+            <button class="shortcut-card" data-open-panel="organize">
+              <span class="shortcut-icon">✦</span>
+              <strong>Organize</strong>
+              <span>Submit an activity proposal</span>
+            </button>
+
+            <button class="shortcut-card" data-open-panel="complaints">
+              <span class="shortcut-icon">!</span>
+              <strong>Complaints</strong>
+              <span>Complaints against your ID</span>
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div class="dashboard-section dashboard-card">
+
+          <div class="detail-grid">
+
+            <div class="detail-box">
+              <small>POSITION</small>
+              <strong id="dashboardMemberPosition">—</strong>
+            </div>
+
+            <div class="detail-box">
+              <small>MEMBERSHIP YEAR</small>
+              <strong id="dashboardMemberYear">—</strong>
+            </div>
+
+            <div class="detail-box">
+              <small>ACCOUNT STATUS</small>
+              <strong id="dashboardMemberStatus">—</strong>
+            </div>
+
+            <div class="detail-box">
+              <small>PORTAL</small>
+              <strong>Member Dashboard</strong>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- PROFILE -->
+      <section class="member-panel" data-panel-content="profile">
+
+        <div class="panel-header">
+          <div>
+            <small>MEMBERSHIP</small>
+            <h2>My Profile</h2>
+            <p>Your official membership information.</p>
+          </div>
+        </div>
+
+        <div class="profile-layout">
+
+          <div class="dashboard-card profile-card">
+
+            <div class="profile-photo" id="profileMemberPhoto">
+              👤
+            </div>
+
+            <h3 id="profileMemberName">Member</h3>
+
+            <div class="profile-id" id="profileMemberId">
+              —
+            </div>
+
+            <div class="profile-position" id="profileMemberPosition">
+              —
+            </div>
+
+          </div>
+
+
+          <div class="dashboard-card">
+
+            <div class="detail-grid">
+
+              <div class="detail-box">
+                <small>MEMBER ID</small>
+                <strong id="detailMemberId">—</strong>
+              </div>
+
+              <div class="detail-box">
+                <small>FULL NAME</small>
+                <strong id="detailMemberName">—</strong>
+              </div>
+
+              <div class="detail-box">
+                <small>MOBILE</small>
+                <strong id="detailMemberMobile">—</strong>
+              </div>
+
+              <div class="detail-box">
+                <small>POSITION</small>
+                <strong id="detailMemberPosition">—</strong>
+              </div>
+
+              <div class="detail-box">
+                <small>USERNAME</small>
+                <strong id="detailMemberUsername">—</strong>
+              </div>
+
+              <div class="detail-box">
+                <small>YEAR</small>
+                <strong id="detailMemberYear">—</strong>
+              </div>
+
+              <div class="detail-box">
+                <small>STATUS</small>
+                <strong id="detailMemberStatus">—</strong>
+              </div>
+
+              <div class="detail-box">
+                <small>ADDRESS</small>
+                <strong id="detailMemberAddress">—</strong>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ID CARD -->
+      <section class="member-panel" data-panel-content="idcard">
+
+        <div class="panel-header">
+          <div>
+            <small>OFFICIAL IDENTITY</small>
+            <h2>My I-Card</h2>
+            <p>Open your official Aakash Earth Member ID Card.</p>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+
+          <div class="empty-state">
+            <div>
+              <div style="font-size:50px;margin-bottom:15px;">🪪</div>
+
+              <strong style="display:block;color:#071a2b;font-family:Cinzel,serif;font-size:18px;">
+                Official Member I-Card
+              </strong>
+
+              <p style="margin:10px 0 18px;">
+                Your card includes your official Member ID and verification QR.
+              </p>
+
+              <button
+                type="button"
+                class="member-submit"
+                id="viewMemberIdCard"
+              >
+                Open My I-Card →
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- TASKS -->
+      <section class="member-panel" data-panel-content="tasks">
+
+        <div class="panel-header">
+          <div>
+            <small>TASK MANAGEMENT</small>
+            <h2>My Tasks</h2>
+            <p>Complete tasks assigned by the administrator.</p>
+          </div>
+        </div>
+
+        <div class="filter-row">
+
+          <button class="task-filter active" data-task-filter="all">
+            All
+          </button>
+
+          <button class="task-filter" data-task-filter="assigned">
+            Assigned
+          </button>
+
+          <button class="task-filter" data-task-filter="pending_review">
+            Pending Review
+          </button>
+
+          <button class="task-filter" data-task-filter="completed">
+            Completed
+          </button>
+
+          <button class="task-filter" data-task-filter="rejected">
+            Rejected
+          </button>
+
+        </div>
+
+        <div class="task-list" id="memberTaskList">
+
+          <div class="empty-state">
+            Loading your tasks...
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- POINTS -->
+      <section class="member-panel" data-panel-content="points">
+
+        <div class="panel-header">
+          <div>
+            <small>PERFORMANCE</small>
+            <h2>Points & Rating</h2>
+            <p>Points earned from approved task completion.</p>
+          </div>
+        </div>
+
+        <div class="points-layout">
+
+          <div class="big-score">
+            <div>
+              <strong id="pointsPageTotal">0</strong>
+              <span>TOTAL POINTS</span>
+            </div>
+          </div>
+
+          <div class="big-score gold">
+            <div>
+              <strong id="pointsPageRating">-</strong>
+              <span>MEMBER RATING</span>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- HISTORY -->
+      <section class="member-panel" data-panel-content="history">
+
+        <div class="panel-header">
+          <div>
+            <small>ACTIVITY RECORD</small>
+            <h2>Task History</h2>
+            <p>Your completed and reviewed task records.</p>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+
+          <div id="memberTaskHistory">
+            <div class="empty-state">
+              No task history available.
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ORGANIZE -->
+      <section class="member-panel" data-panel-content="organize">
+
+        <div class="panel-header">
+          <div>
+            <small>MEMBER PARTICIPATION</small>
+            <h2>Organize & Manage</h2>
+            <p>
+              Submit a festival, event, sports or update proposal.
+              Admin approval is required before public publishing.
+            </p>
+          </div>
+        </div>
+
+        <div class="organize-layout">
+
+          <div class="dashboard-card">
+
+            <form id="memberOrganizeForm">
+
+              <div class="member-form-grid">
+
+                <div class="member-form-group full">
+                  <label for="organizeType">
+                    PROPOSAL TYPE
+                  </label>
+
+                  <select
+                    id="organizeType"
+                    class="member-input"
+                    required
+                  >
+                    <option value="">Select type</option>
+                    <option value="event">Event</option>
+                    <option value="festival">Festival</option>
+                    <option value="sports">Sports</option>
+                    <option value="update">Community Update</option>
+                    <option value="gallery">Gallery Proposal</option>
+                  </select>
+                </div>
+
+                <div class="member-form-group full">
+                  <label for="organizeTitle">
+                    TITLE
+                  </label>
+
+                  <input
+                    type="text"
+                    id="organizeTitle"
+                    class="member-input"
+                    maxlength="100"
+                    required
+                  >
+                </div>
+
+                <div class="member-form-group">
+                  <label for="organizeDate">
+                    DATE
+                  </label>
+
+                  <input
+                    type="date"
+                    id="organizeDate"
+                    class="member-input"
+                  >
+                </div>
+
+                <div class="member-form-group">
+                  <label for="organizeTime">
+                    TIME
+                  </label>
+
+                  <input
+                    type="time"
+                    id="organizeTime"
+                    class="member-input"
+                  >
+                </div>
+
+                <div class="member-form-group full">
+                  <label for="organizeVenue">
+                    VENUE
+                  </label>
+
+                  <input
+                    type="text"
+                    id="organizeVenue"
+                    class="member-input"
+                    maxlength="150"
+                  >
+                </div>
+
+                <div class="member-form-group full">
+                  <label for="organizeDescription">
+                    DESCRIPTION
+                  </label>
+
+                  <textarea
+                    id="organizeDescription"
+                    class="member-input"
+                    maxlength="1000"
+                    required
+                  ></textarea>
+                </div>
+
+              </div>
+
+              <button type="submit" class="member-submit">
+                Submit For Admin Approval →
+              </button>
+
+              <div
+                id="organizeFormMessage"
+                class="form-message"
+              ></div>
+
+            </form>
+
+          </div>
+
+
+          <div class="dashboard-card">
+
+            <div class="panel-header">
+              <div>
+                <small>MY SUBMISSIONS</small>
+                <h2 style="font-size:19px;">
+                  My Proposals
+                </h2>
+              </div>
+            </div>
+
+            <div id="memberOrganizeList">
+              <div class="empty-state">
+                No proposals submitted yet.
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- COMPLAINTS -->
+      <section class="member-panel" data-panel-content="complaints">
+
+        <div class="panel-header">
+          <div>
+            <small>COMPLAINT RECORD</small>
+            <h2>Complaints Against Me</h2>
+            <p>
+              Complaints linked to your official Member ID.
+            </p>
+          </div>
+        </div>
+
+        <div class="privacy-note">
+          For privacy, the complainant's mobile number and address
+          are not displayed in the Member Portal. Complaint records
+          cannot be edited or deleted by members.
+        </div>
+
+        <div class="dashboard-card">
+
+          <div class="table-wrap">
+
+            <table class="member-table">
+
+              <thead>
+                <tr>
+                  <th>Complaint ID</th>
+                  <th>Reason</th>
+                  <th>Incident</th>
+                  <th>Status</th>
+                  <th>Admin Reply</th>
+                </tr>
+              </thead>
+
+              <tbody id="memberComplaintList">
+                <tr>
+                  <td colspan="5">
+                    Loading complaints...
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- RECEIPTS -->
+      <section class="member-panel" data-panel-content="receipts">
+
+        <div class="panel-header">
+          <div>
+            <small>VARGANI RECORD</small>
+            <h2>Receipts / Vargani</h2>
+            <p>View your available receipt activity.</p>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+
+          <div id="memberReceiptList">
+            <div class="empty-state">
+              Receipt module will display your records here.
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- VOLUNTEERS -->
+      <section class="member-panel" data-panel-content="volunteers">
+
+        <div class="panel-header">
+          <div>
+            <small>COMMUNITY SEVA</small>
+            <h2>Volunteers</h2>
+            <p>Approved Aakash Earth volunteers.</p>
+          </div>
+        </div>
+
+        <div class="module-grid" id="memberVolunteerList">
+          <div class="empty-state">
+            Volunteer information will appear here.
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- FESTIVALS -->
+      <section class="member-panel" data-panel-content="festivals">
+
+        <div class="panel-header">
+          <div>
+            <small>CELEBRATIONS</small>
+            <h2>Festivals</h2>
+            <p>Upcoming and approved community festivals.</p>
+          </div>
+        </div>
+
+        <div class="module-grid" id="memberFestivalList">
+          <div class="empty-state">
+            Festival information will appear here.
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- SPORTS -->
+      <section class="member-panel" data-panel-content="sports">
+
+        <div class="panel-header">
+          <div>
+            <small>TEAMWORK</small>
+            <h2>Sports</h2>
+            <p>Community matches and sporting activities.</p>
+          </div>
+        </div>
+
+        <div class="module-grid" id="memberSportsList">
+          <div class="empty-state">
+            Sports activities will appear here.
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- UPDATES -->
+      <section class="member-panel" data-panel-content="updates">
+
+        <div class="panel-header">
+          <div>
+            <small>COMMUNITY NEWS</small>
+            <h2>Updates</h2>
+            <p>Latest announcements from Aakash Earth.</p>
+          </div>
+        </div>
+
+        <div class="module-grid" id="memberUpdatesList">
+          <div class="empty-state">
+            Community updates will appear here.
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- GALLERY -->
+      <section class="member-panel" data-panel-content="gallery">
+
+        <div class="panel-header">
+          <div>
+            <small>MEMORIES</small>
+            <h2>Gallery</h2>
+            <p>Approved community photos and memories.</p>
+          </div>
+        </div>
+
+        <div class="module-grid" id="memberGalleryList">
+          <div class="empty-state">
+            Gallery will appear here.
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+</div>
+
+
+<!-- TASK PROOF MODAL -->
+<div class="member-modal" id="memberTaskModal">
+
+  <div class="member-modal-card">
+
+    <div class="modal-header">
+
+      <div>
+        <small
+          style="color:#a77a20;font-size:8px;font-weight:800;letter-spacing:1.5px;"
+        >
+          TASK SUBMISSION
+        </small>
+
+        <h3 id="memberTaskModalTitle">
+          Complete Task
+        </h3>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        id="closeMemberTaskModal"
+      >
+        ×
+      </button>
+
+    </div>
+
+    <div class="detail-grid">
+
+      <div class="detail-box" style="grid-column:1/-1;">
+        <small>DESCRIPTION</small>
+        <strong id="memberTaskModalDescription">—</strong>
+      </div>
+
+      <div class="detail-box">
+        <small>DEADLINE</small>
+        <strong id="memberTaskModalDeadline">—</strong>
+      </div>
+
+      <div class="detail-box">
+        <small>POINTS</small>
+        <strong id="memberTaskModalPoints">0</strong>
+      </div>
+
+    </div>
+
+    <div class="member-form-group" style="margin-top:20px;">
+
+      <label for="memberTaskProofPhoto">
+        TASK PROOF PHOTO
+      </label>
+
+      <input
+        type="file"
+        id="memberTaskProofPhoto"
+        class="member-input"
+        accept="image/*"
+      >
+
+      <img
+        id="memberTaskProofPreview"
+        class="proof-preview"
+        alt="Task proof preview"
+      >
+
+      <small
+        style="display:block;margin-top:8px;color:#7a858c;font-size:8px;line-height:1.5;"
+      >
+        Photo upload to Firebase Storage is temporarily disabled.
+        The selected image will be previewed and its filename will
+        be recorded for admin review.
+      </small>
+
+    </div>
+
+    <div
+      id="memberTaskFormMessage"
+      class="form-message"
+    ></div>
+
+    <button
+      type="button"
+      class="member-submit"
+      id="submitMemberTaskProof"
+      style="width:100%;margin-top:15px;"
+    >
+      Submit Task For Review →
+    </button>
+
+  </div>
+
+</div>
+
+
+<script type="module" src="member.js"></script>
+
+</body>
+</html>

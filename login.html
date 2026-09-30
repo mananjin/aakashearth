@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Portal Login | AAKASH EARTH</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* =====================================================
+       LOGIN PAGE
+    ====================================================== */
+
+    body.login-page {
+      min-height: 100vh;
+
+      background:
+        radial-gradient(
+          circle at 15% 20%,
+          rgba(215, 173, 74, 0.16),
+          transparent 28%
+        ),
+        radial-gradient(
+          circle at 90% 80%,
+          rgba(25, 105, 145, 0.24),
+          transparent 32%
+        ),
+        linear-gradient(
+          135deg,
+          #04131f,
+          #092942 55%,
+          #0b3857
+        );
+
+      color: white;
+    }
+
+    .login-shell {
+      min-height: 100vh;
+
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1fr)
+        minmax(430px, 0.72fr);
+    }
+
+
+    /* =====================================================
+       LEFT SIDE
+    ====================================================== */
+
+    .login-showcase {
+      min-height: 100vh;
+
+      position: relative;
+      overflow: hidden;
+
+      padding: 55px 7%;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      border-right:
+        1px solid rgba(215, 173, 74, 0.17);
+    }
+
+    .login-showcase::before {
+      content: "";
+
+      position: absolute;
+
+      width: 520px;
+      height: 520px;
+
+      top: 50%;
+      left: 50%;
+
+      transform:
+        translate(-50%, -50%);
+
+      border:
+        1px solid rgba(215, 173, 74, 0.08);
+
+      border-radius: 50%;
+    }
+
+    .login-showcase::after {
+      content: "";
+
+      position: absolute;
+
+      width: 380px;
+      height: 380px;
+
+      top: 50%;
+      left: 50%;
+
+      transform:
+        translate(-50%, -50%);
+
+      border:
+        1px solid rgba(215, 173, 74, 0.1);
+
+      border-radius: 50%;
+    }
+
+    .login-brand {
+      position: relative;
+      z-index: 5;
+    }
+
+    .login-brand .brand {
+      width: fit-content;
+    }
+
+    .login-home-link {
+      margin-top: 25px;
+
+      display: inline-flex;
+      align-items: center;
+
+      gap: 9px;
+
+      color:
+        rgba(255, 255, 255, 0.65);
+
+      font-size: 11px;
+      font-weight: 700;
+
+      transition: 0.2s;
+    }
+
+    .login-home-link:hover {
+      color: var(--gold-light);
+    }
+
+
+    /* =====================================================
+       SHOWCASE CENTER
+    ====================================================== */
+
+    .showcase-center {
+      position: relative;
+      z-index: 5;
+
+      max-width: 690px;
+
+      padding: 60px 0;
+    }
+
+    .showcase-badge {
+      display: inline-flex;
+
+      padding: 8px 14px;
+
+      border:
+        1px solid rgba(215, 173, 74, 0.3);
+
+      border-radius: 50px;
+
+      background:
+        rgba(215, 173, 74, 0.07);
+
+      color: var(--gold-light);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+    }
+
+    .showcase-center h1 {
+      margin-top: 22px;
+
+      font-family: "Cinzel", serif;
+
+      font-size:
+        clamp(40px, 5vw, 68px);
+
+      line-height: 1.08;
+    }
+
+    .showcase-center h1 span {
+      display: block;
+
+      background:
+        linear-gradient(
+          90deg,
+          #f4df9e,
+          #c99431
+        );
+
+      -webkit-background-clip: text;
+      background-clip: text;
+
+      color: transparent;
+    }
+
+    .showcase-center > p {
+      max-width: 620px;
+
+      margin-top: 20px;
+
+      color:
+        rgba(255, 255, 255, 0.58);
+
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+
+    /* =====================================================
+       PORTAL TYPE CARDS
+    ====================================================== */
+
+    .showcase-portals {
+      margin-top: 35px;
+
+      display: grid;
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 12px;
+    }
+
+    .showcase-portal {
+      min-height: 125px;
+
+      padding: 18px;
+
+      position: relative;
+      overflow: hidden;
+
+      border:
+        1px solid rgba(255, 255, 255, 0.1);
+
+      border-radius: 18px;
+
+      background:
+        rgba(255, 255, 255, 0.05);
+
+      backdrop-filter: blur(10px);
+    }
+
+    .showcase-portal::after {
+      content: "";
+
+      width: 80px;
+      height: 80px;
+
+      position: absolute;
+
+      top: -35px;
+      right: -35px;
+
+      border:
+        1px solid rgba(215, 173, 74, 0.15);
+
+      border-radius: 50%;
+    }
+
+    .showcase-portal-icon {
+      margin-bottom: 17px;
+
+      font-size: 23px;
+    }
+
+    .showcase-portal strong {
+      display: block;
+
+      color: white;
+
+      font-family: "Cinzel", serif;
+
+      font-size: 12px;
+    }
+
+    .showcase-portal span {
+      display: block;
+
+      margin-top: 5px;
+
+      color:
+        rgba(255, 255, 255, 0.45);
+
+      font-size: 9px;
+    }
+
+    .showcase-portal.member {
+      border-bottom:
+        3px solid #2a7eae;
+    }
+
+    .showcase-portal.volunteer {
+      border-bottom:
+        3px solid var(--emerald);
+    }
+
+    .showcase-portal.admin {
+      border-bottom:
+        3px solid var(--gold);
+    }
+
+
+    /* =====================================================
+       LEFT FOOTER
+    ====================================================== */
+
+    .showcase-footer {
+      position: relative;
+      z-index: 5;
+
+      display: flex;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      color:
+        rgba(255, 255, 255, 0.34);
+
+      font-size: 9px;
+
+      letter-spacing: 0.5px;
+    }
+
+
+    /* =====================================================
+       LOGIN PANEL
+    ====================================================== */
+
+    .login-panel {
+      min-height: 100vh;
+
+      padding: 45px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255, 250, 240, 0.99),
+          rgba(247, 239, 221, 0.99)
+        );
+
+      color: var(--text);
+    }
+
+    .login-card {
+      width: min(100%, 490px);
+
+      padding: 36px;
+
+      position: relative;
+      overflow: hidden;
+
+      border:
+        1px solid rgba(215, 173, 74, 0.25);
+
+      border-radius: 28px;
+
+      background:
+        rgba(255, 255, 255, 0.92);
+
+      box-shadow:
+        0 28px 70px
+        rgba(4, 20, 32, 0.15);
+    }
+
+    .login-card::before {
+      content: "";
+
+      width: 150px;
+      height: 150px;
+
+      position: absolute;
+
+      top: -80px;
+      right: -70px;
+
+      border:
+        1px solid rgba(215, 173, 74, 0.15);
+
+      border-radius: 50%;
+    }
+
+
+    /* =====================================================
+       LOGIN CARD HEADER
+    ====================================================== */
+
+    .login-card-header {
+      position: relative;
+      z-index: 2;
+    }
+
+    .login-card-label {
+      color: var(--gold-dark);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+    }
+
+    .login-card-header h2 {
+      margin-top: 8px;
+
+      color: var(--navy);
+
+      font-family: "Cinzel", serif;
+
+      font-size: 29px;
+    }
+
+    .login-card-header p {
+      margin-top: 9px;
+
+      color: var(--muted);
+
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+
+    /* =====================================================
+       ROLE TABS
+    ====================================================== */
+
+    .login-tabs {
+      margin-top: 27px;
+      margin-bottom: 26px;
+
+      padding: 5px;
+
+      display: grid;
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 5px;
+
+      border-radius: 14px;
+
+      background: #f1eadc;
+    }
+
+    .login-tab {
+      min-height: 43px;
+
+      padding: 8px;
+
+      border-radius: 10px;
+
+      background: transparent;
+
+      color: #68737b;
+
+      font-size: 10px;
+      font-weight: 800;
+
+      cursor: pointer;
+
+      transition: 0.25s;
+    }
+
+    .login-tab:hover {
+      color: var(--navy);
+    }
+
+    .login-tab.active {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #123f68,
+          #071b2c
+        );
+
+      box-shadow:
+        0 7px 18px
+        rgba(7, 27, 44, 0.18);
+    }
+
+    .login-tab[data-role="member"].active {
+      background:
+        linear-gradient(
+          135deg,
+          #1e6595,
+          #0c3655
+        );
+    }
+
+    .login-tab[data-role="volunteer"].active {
+      background:
+        linear-gradient(
+          135deg,
+          #168069,
+          #0a4c40
+        );
+    }
+
+
+    /* =====================================================
+       LOGIN FORM
+    ====================================================== */
+
+    .login-form {
+      position: relative;
+      z-index: 2;
+    }
+
+    .login-field {
+      margin-bottom: 17px;
+    }
+
+    .login-field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: var(--navy);
+
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .login-input-wrap {
+      position: relative;
+    }
+
+    .login-input {
+      width: 100%;
+      min-height: 50px;
+
+      padding: 13px 15px;
+
+      outline: none;
+
+      border:
+        1px solid rgba(8, 36, 58, 0.14);
+
+      border-radius: 12px;
+
+      background: #fffdfa;
+
+      color: var(--navy);
+
+      font-size: 12px;
+
+      transition:
+        border-color 0.2s,
+        box-shadow 0.2s,
+        background 0.2s;
+    }
+
+    .login-input:focus {
+      border-color: var(--gold);
+
+      background: white;
+
+      box-shadow:
+        0 0 0 3px
+        rgba(215, 173, 74, 0.1);
+    }
+
+    .login-input::placeholder {
+      color: #a0a7ab;
+    }
+
+    .password-input {
+      padding-right: 55px;
+    }
+
+    .password-toggle {
+      width: 45px;
+      height: 40px;
+
+      position: absolute;
+
+      top: 5px;
+      right: 5px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 9px;
+
+      background: transparent;
+
+      color: var(--muted);
+
+      font-size: 15px;
+
+      cursor: pointer;
+    }
+
+    .password-toggle:hover {
+      background: var(--cream);
+    }
+
+
+    /* =====================================================
+       LOGIN MESSAGE
+    ====================================================== */
+
+    .login-message {
+      display: none;
+
+      margin-bottom: 15px;
+
+      padding: 11px 13px;
+
+      border-radius: 10px;
+
+      font-size: 10px;
+      font-weight: 700;
+
+      line-height: 1.5;
+    }
+
+    .login-message.show {
+      display: block;
+    }
+
+    .login-message.error {
+      color: #8c2535;
+
+      border:
+        1px solid rgba(140, 37, 53, 0.17);
+
+      background:
+        rgba(140, 37, 53, 0.07);
+    }
+
+    .login-message.success {
+      color: #0b6b54;
+
+      border:
+        1px solid rgba(11, 107, 84, 0.17);
+
+      background:
+        rgba(11, 107, 84, 0.07);
+    }
+
+    .login-message.info {
+      color: #15577c;
+
+      border:
+        1px solid rgba(21, 87, 124, 0.17);
+
+      background:
+        rgba(21, 87, 124, 0.07);
+    }
+
+
+    /* =====================================================
+       LOGIN BUTTON
+    ====================================================== */
+
+    .login-submit {
+      width: 100%;
+      min-height: 51px;
+
+      margin-top: 3px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      gap: 11px;
+
+      border-radius: 12px;
+
+      color: var(--navy);
+
+      background:
+        linear-gradient(
+          135deg,
+          #f1d783,
+          #c6932d
+        );
+
+      font-size: 11px;
+      font-weight: 800;
+
+      cursor: pointer;
+
+      box-shadow:
+        0 12px 30px
+        rgba(198, 147, 45, 0.19);
+
+      transition:
+        transform 0.25s,
+        box-shadow 0.25s,
+        opacity 0.25s;
+    }
+
+    .login-submit:hover {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 16px 35px
+        rgba(198, 147, 45, 0.28);
+    }
+
+    .login-submit:disabled {
+      opacity: 0.6;
+
+      cursor: not-allowed;
+
+      transform: none;
+    }
+
+
+    /* =====================================================
+       VOLUNTEER REGISTER
+    ====================================================== */
+
+    .volunteer-register-box {
+      display: none;
+
+      margin-top: 20px;
+      padding: 17px;
+
+      border:
+        1px solid rgba(19, 116, 95, 0.16);
+
+      border-radius: 14px;
+
+      background:
+        rgba(19, 116, 95, 0.06);
+
+      text-align: center;
+    }
+
+    .volunteer-register-box.show {
+      display: block;
+    }
+
+    .volunteer-register-box p {
+      color: var(--muted);
+
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .volunteer-register-box a {
+      display: inline-block;
+
+      margin-top: 8px;
+
+      color: var(--emerald);
+
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+
+    /* =====================================================
+       SECURITY NOTE
+    ====================================================== */
+
+    .login-security {
+      margin-top: 21px;
+      padding-top: 18px;
+
+      border-top:
+        1px solid rgba(8, 36, 58, 0.08);
+
+      display: flex;
+      align-items: flex-start;
+
+      gap: 10px;
+
+      color: #7b858b;
+
+      font-size: 9px;
+      line-height: 1.55;
+    }
+
+    .security-icon {
+      width: 28px;
+      height: 28px;
+
+      flex-shrink: 0;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 8px;
+
+      background: var(--cream);
+    }
+
+
+    /* =====================================================
+       MOBILE
+    ====================================================== */
+
+    @media (max-width: 950px) {
+
+      .login-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .login-showcase {
+        min-height: auto;
+
+        padding: 35px 6% 45px;
+
+        border-right: 0;
+
+        border-bottom:
+          1px solid rgba(215, 173, 74, 0.15);
+      }
+
+      .showcase-center {
+        padding: 60px 0 35px;
+
+        text-align: center;
+
+        margin: auto;
+      }
+
+      .showcase-center > p {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .showcase-portals {
+        max-width: 600px;
+
+        margin:
+          30px auto 0;
+      }
+
+      .showcase-footer {
+        display: none;
+      }
+
+      .login-panel {
+        min-height: auto;
+
+        padding: 55px 6%;
+      }
+
+    }
+
+
+    @media (max-width: 600px) {
+
+      .login-showcase {
+        padding: 25px 5% 35px;
+      }
+
+      .login-brand .brand {
+        margin: auto;
+      }
+
+      .login-home-link {
+        width: 100%;
+
+        justify-content: center;
+      }
+
+      .showcase-center {
+        padding: 45px 0 20px;
+      }
+
+      .showcase-center h1 {
+        font-size: 37px;
+      }
+
+      .showcase-center > p {
+        font-size: 11px;
+      }
+
+      .showcase-portals {
+        grid-template-columns: 1fr;
+      }
+
+      .showcase-portal {
+        min-height: 90px;
+
+        text-align: left;
+      }
+
+      .showcase-portal-icon {
+        margin-bottom: 8px;
+      }
+
+      .login-panel {
+        padding: 40px 4%;
+      }
+
+      .login-card {
+        padding: 27px 20px;
+
+        border-radius: 22px;
+      }
+
+      .login-card-header h2 {
+        font-size: 25px;
+      }
+
+      .login-tab {
+        padding: 7px 3px;
+
+        font-size: 9px;
+      }
+
+    }
+
+  </style>
+</head>
+
+
+<body class="login-page">
+
+  <div class="login-shell">
+
+
+    <!-- ===================================================
+         LEFT SHOWCASE
+    ==================================================== -->
+    <section class="login-showcase">
+
+      <div class="login-brand">
+
+        <a href="index.html" class="brand">
+
+          <div class="brand-emblem">
+            <span>AE</span>
+          </div>
+
+          <div class="brand-text">
+            <strong>AAKASH EARTH</strong>
+            <span>YUWA MANDAL</span>
+          </div>
+
+        </a>
+
+        <a
+          href="index.html"
+          class="login-home-link"
+        >
+          ← Back to Official Website
+        </a>
+
+      </div>
+
+
+      <div class="showcase-center">
+
+        <span class="showcase-badge">
+          ✦ OFFICIAL DIGITAL PORTAL
+        </span>
+
+        <h1>
+          Our Community.
+          <span>Connected.</span>
+        </h1>
+
+        <p>
+          A single digital platform for Aakash Earth members,
+          volunteers and administrators — built for community
+          activities, seva, events, tasks and communication.
+        </p>
+
+
+        <div class="showcase-portals">
+
+          <div class="showcase-portal admin">
+
+            <div class="showcase-portal-icon">
+              👑
+            </div>
+
+            <strong>Admin Portal</strong>
+
+            <span>
+              Community management
+            </span>
+
+          </div>
+
+
+          <div class="showcase-portal member">
+
+            <div class="showcase-portal-icon">
+              👤
+            </div>
+
+            <strong>Member Portal</strong>
+
+            <span>
+              Activities & tasks
+            </span>
+
+          </div>
+
+
+          <div class="showcase-portal volunteer">
+
+            <div class="showcase-portal-icon">
+              🤝
+            </div>
+
+            <strong>Volunteer Portal</strong>
+
+            <span>
+              Seva & contribution
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="showcase-footer">
+
+        <span>
+          Unity • Seva • Sanskar
+        </span>
+
+        <span>
+          AAKASH EARTH Yuwa Mandal
+        </span>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         RIGHT LOGIN PANEL
+    ==================================================== -->
+    <section class="login-panel">
+
+      <div class="login-card">
+
+
+        <!-- HEADER -->
+        <div class="login-card-header">
+
+          <span class="login-card-label">
+            SECURE PORTAL ACCESS
+          </span>
+
+          <h2>
+            Welcome Back
+          </h2>
+
+          <p id="loginDescription">
+            Sign in to the Admin Portal.
+          </p>
+
+        </div>
+
+
+        <!-- ROLE TABS -->
+        <div class="login-tabs">
+
+          <button
+            type="button"
+            class="login-tab active"
+            data-role="admin"
+          >
+            👑 Admin
+          </button>
+
+          <button
+            type="button"
+            class="login-tab"
+            data-role="member"
+          >
+            👤 Member
+          </button>
+
+          <button
+            type="button"
+            class="login-tab"
+            data-role="volunteer"
+          >
+            🤝 Volunteer
+          </button>
+
+        </div>
+
+
+        <!-- LOGIN FORM -->
+        <form
+          id="loginForm"
+          class="login-form"
+          autocomplete="off"
+        >
+
+          <!-- USERNAME / ID -->
+          <div class="login-field">
+
+            <label
+              id="usernameLabel"
+              for="loginUsername"
+            >
+              Admin Username
+            </label>
+
+            <div class="login-input-wrap">
+
+              <input
+                type="text"
+                id="loginUsername"
+                class="login-input"
+                placeholder="Enter admin username"
+                autocomplete="username"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+          <!-- PASSWORD / MOBILE -->
+          <div class="login-field">
+
+            <label
+              id="passwordLabel"
+              for="loginPassword"
+            >
+              Password
+            </label>
+
+            <div class="login-input-wrap">
+
+              <input
+                type="password"
+                id="loginPassword"
+                class="login-input password-input"
+                placeholder="Enter password"
+                autocomplete="current-password"
+                required
+              >
+
+              <button
+                type="button"
+                id="togglePassword"
+                class="password-toggle"
+                aria-label="Show or hide password"
+              >
+                👁
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- MESSAGE -->
+          <div
+            id="loginMessage"
+            class="login-message"
+            role="alert"
+          ></div>
+
+
+          <!-- LOGIN BUTTON -->
+          <button
+            type="submit"
+            id="loginButton"
+            class="login-submit"
+          >
+            <span id="loginButtonText">
+              Login to Admin Portal
+            </span>
+
+            <span>
+              →
+            </span>
+          </button>
+
+        </form>
+
+
+        <!-- VOLUNTEER REGISTRATION -->
+        <div
+          id="volunteerRegisterBox"
+          class="volunteer-register-box"
+        >
+
+          <p>
+            Not registered as a volunteer yet?
+          </p>
+
+          <a href="volunteer.html">
+            Register as Volunteer →
+          </a>
+
+        </div>
+
+
+        <!-- NOTE -->
+        <div class="login-security">
+
+          <div class="security-icon">
+            🔒
+          </div>
+
+          <div>
+            This portal is intended for authorized Aakash Earth
+            administrators, members and approved volunteers.
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <!-- EXISTING LOGIN JAVASCRIPT -->
+  <script
+    type="module"
+    src="login.js"
+  ></script>
+
+</body>
+</html>

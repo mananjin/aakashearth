@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta name="theme-color" content="#071A2B">
+
+  <title>Official I-Card | AAKASH EARTH</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    :root {
+      --card-navy: #071a2b;
+      --card-blue: #123b63;
+      --card-gold: #d6ad45;
+      --card-gold-light: #f2d78b;
+      --card-ivory: #fff8e7;
+      --card-green: #147d64;
+      --card-red: #7a2430;
+      --card-muted: #6d7b84;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+
+      font-family: Inter, Arial, sans-serif;
+
+      color: var(--card-navy);
+
+      background:
+        radial-gradient(
+          circle at 10% 10%,
+          rgba(214, 173, 69, .16),
+          transparent 25%
+        ),
+        linear-gradient(
+          135deg,
+          #e9e0cc,
+          #f8f2e5
+        );
+    }
+
+    button,
+    a {
+      font: inherit;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .id-header {
+      min-height: 72px;
+
+      padding: 0 5%;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 15px;
+
+      background: var(--card-navy);
+
+      border-bottom:
+        1px solid rgba(214, 173, 69, .25);
+
+      box-shadow:
+        0 10px 30px rgba(0, 0, 0, .14);
+    }
+
+    .id-brand {
+      display: flex;
+      align-items: center;
+
+      gap: 10px;
+
+      color: white;
+      text-decoration: none;
+    }
+
+    .id-brand-logo {
+      width: 43px;
+      height: 43px;
+
+      display: grid;
+      place-items: center;
+
+      border:
+        1px solid var(--card-gold);
+
+      border-radius: 50%;
+
+      color: var(--card-gold-light);
+
+      font-family: Cinzel, Georgia, serif;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .id-brand strong {
+      display: block;
+
+      font-family: Cinzel, Georgia, serif;
+
+      font-size: 13px;
+
+      letter-spacing: .8px;
+    }
+
+    .id-brand span {
+      display: block;
+
+      margin-top: 2px;
+
+      color: var(--card-gold-light);
+
+      font-size: 7px;
+      font-weight: 800;
+
+      letter-spacing: 1.5px;
+    }
+
+    .id-header-link {
+      min-height: 38px;
+
+      padding: 0 13px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border:
+        1px solid rgba(214, 173, 69, .3);
+
+      border-radius: 9px;
+
+      color: white;
+
+      text-decoration: none;
+
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    /* =========================
+       PAGE
+    ========================= */
+
+    .id-page {
+      width: min(1000px, 94%);
+
+      margin: 45px auto 70px;
+
+      text-align: center;
+    }
+
+    .id-heading small {
+      color: #997018;
+
+      font-size: 8px;
+      font-weight: 900;
+
+      letter-spacing: 1.7px;
+    }
+
+    .id-heading h1 {
+      margin: 7px 0 0;
+
+      font-family: Cinzel, Georgia, serif;
+
+      font-size:
+        clamp(28px, 5vw, 42px);
+    }
+
+    .id-heading p {
+      max-width: 580px;
+
+      margin: 9px auto 0;
+
+      color: var(--card-muted);
+
+      font-size: 9px;
+      line-height: 1.7;
+    }
+
+    /* =========================
+       LOADING / ERROR
+    ========================= */
+
+    .id-status {
+      max-width: 480px;
+
+      margin: 30px auto;
+
+      padding: 18px;
+
+      border:
+        1px solid rgba(7, 26, 43, .1);
+
+      border-radius: 14px;
+
+      background: white;
+
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .id-status.error {
+      color: #8a2939;
+
+      background: #fff2f3;
+    }
+
+    /* =========================
+       CARD AREA
+    ========================= */
+
+    .id-card-area {
+      display: none;
+
+      margin-top: 30px;
+    }
+
+    .id-card-area.show {
+      display: block;
+    }
+
+    .official-id-card {
+      width: 340px;
+      min-height: 535px;
+
+      margin: auto;
+
+      position: relative;
+      overflow: hidden;
+
+      border:
+        1px solid rgba(214, 173, 69, .7);
+
+      border-radius: 24px;
+
+      color: var(--card-navy);
+
+      background:
+        linear-gradient(
+          160deg,
+          #fffdf7,
+          #f7eed9
+        );
+
+      box-shadow:
+        0 30px 80px rgba(7, 26, 43, .2);
+
+      text-align: left;
+    }
+
+    .official-id-card::before {
+      content: "";
+
+      width: 230px;
+      height: 230px;
+
+      position: absolute;
+
+      right: -125px;
+      bottom: 55px;
+
+      border:
+        1px solid rgba(214, 173, 69, .13);
+
+      border-radius: 50%;
+    }
+
+    .official-id-card::after {
+      content: "AE";
+
+      position: absolute;
+
+      right: -20px;
+      bottom: -40px;
+
+      color: rgba(214, 173, 69, .07);
+
+      font-family: Cinzel, Georgia, serif;
+      font-size: 130px;
+      font-weight: 900;
+    }
+
+    /* =========================
+       CARD TOP
+    ========================= */
+
+    .id-card-top {
+      min-height: 115px;
+
+      padding: 18px 20px;
+
+      position: relative;
+      z-index: 2;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 90% 10%,
+          rgba(214, 173, 69, .25),
+          transparent 32%
+        ),
+        linear-gradient(
+          135deg,
+          #071a2b,
+          #123b63
+        );
+
+      border-bottom:
+        3px solid var(--card-gold);
+    }
+
+    .id-card-brand {
+      display: flex;
+      align-items: center;
+
+      gap: 9px;
+    }
+
+    .id-card-mini-logo {
+      width: 39px;
+      height: 39px;
+
+      display: grid;
+      place-items: center;
+
+      border:
+        1px solid var(--card-gold);
+
+      border-radius: 50%;
+
+      color: var(--card-gold-light);
+
+      font-family: Cinzel, Georgia, serif;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .id-card-brand strong {
+      display: block;
+
+      font-family: Cinzel, Georgia, serif;
+
+      font-size: 12px;
+      letter-spacing: .6px;
+    }
+
+    .id-card-brand span {
+      display: block;
+
+      margin-top: 2px;
+
+      color: var(--card-gold-light);
+
+      font-size: 6px;
+      font-weight: 800;
+
+      letter-spacing: 1.3px;
+    }
+
+    .id-card-type {
+      margin-top: 13px;
+
+      display: inline-flex;
+
+      padding: 5px 9px;
+
+      border:
+        1px solid rgba(242, 215, 139, .3);
+
+      border-radius: 999px;
+
+      color: var(--card-gold-light);
+
+      background:
+        rgba(255, 255, 255, .05);
+
+      font-size: 7px;
+      font-weight: 900;
+
+      letter-spacing: .7px;
+    }
+
+    /* =========================
+       PHOTO
+    ========================= */
+
+    .id-photo-wrap {
+      margin-top: -41px;
+
+      position: relative;
+      z-index: 4;
+
+      display: flex;
+      justify-content: center;
+    }
+
+    .id-photo {
+      width: 94px;
+      height: 94px;
+
+      display: grid;
+      place-items: center;
+
+      overflow: hidden;
+
+      border:
+        4px solid var(--card-ivory);
+
+      outline:
+        2px solid var(--card-gold);
+
+      border-radius: 50%;
+
+      color: var(--card-gold-light);
+
+      background:
+        linear-gradient(
+          135deg,
+          #071a2b,
+          #123b63
+        );
+
+      font-family: Cinzel, Georgia, serif;
+      font-size: 28px;
+      font-weight: 900;
+
+      box-shadow:
+        0 10px 25px rgba(7, 26, 43, .18);
+    }
+
+    .id-photo img {
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+    }
+
+    /* =========================
+       PERSON
+    ========================= */
+
+    .id-person {
+      padding: 13px 20px 0;
+
+      position: relative;
+      z-index: 3;
+
+      text-align: center;
+    }
+
+    .id-person h2 {
+      margin: 0;
+
+      font-family: Cinzel, Georgia, serif;
+
+      font-size: 20px;
+
+      line-height: 1.25;
+    }
+
+    .id-person-id {
+      margin-top: 5px;
+
+      color: #9a7019;
+
+      font-size: 9px;
+      font-weight: 900;
+
+      letter-spacing: .4px;
+    }
+
+    .id-active-badge {
+      margin-top: 8px;
+
+      display: inline-flex;
+      align-items: center;
+
+      gap: 5px;
+
+      padding: 5px 9px;
+
+      border-radius: 999px;
+
+      color: #08705a;
+
+      background:
+        rgba(20, 125, 100, .1);
+
+      font-size: 7px;
+      font-weight: 900;
+    }
+
+    /* =========================
+       DETAILS
+    ========================= */
+
+    .id-details {
+      margin: 17px 20px 0;
+
+      position: relative;
+      z-index: 3;
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 8px;
+    }
+
+    .id-detail {
+      padding: 10px;
+
+      border:
+        1px solid rgba(7, 26, 43, .09);
+
+      border-radius: 10px;
+
+      background:
+        rgba(255, 255, 255, .65);
+    }
+
+    .id-detail span {
+      display: block;
+
+      color: var(--card-muted);
+
+      font-size: 6px;
+      font-weight: 900;
+
+      letter-spacing: .5px;
+    }
+
+    .id-detail strong {
+      display: block;
+
+      margin-top: 4px;
+
+      font-size: 9px;
+
+      word-break: break-word;
+    }
+
+    /* =========================
+       QR
+    ========================= */
+
+    .id-verify-row {
+      margin: 16px 20px 0;
+
+      padding: 11px;
+
+      position: relative;
+      z-index: 3;
+
+      display: flex;
+      align-items: center;
+
+      gap: 11px;
+
+      border:
+        1px dashed rgba(7, 26, 43, .16);
+
+      border-radius: 11px;
+
+      background:
+        rgba(255, 255, 255, .56);
+    }
+
+    .id-qr {
+      width: 74px;
+      height: 74px;
+
+      flex: 0 0 auto;
+
+      display: grid;
+      place-items: center;
+
+      overflow: hidden;
+
+      border-radius: 7px;
+
+      background: white;
+    }
+
+    .id-qr img,
+    .id-qr canvas {
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    .id-verify-copy strong {
+      display: block;
+
+      font-size: 8px;
+    }
+
+    .id-verify-copy p {
+      margin: 5px 0 0;
+
+      color: var(--card-muted);
+
+      font-size: 6.5px;
+      line-height: 1.5;
+    }
+
+    /* =========================
+       CARD FOOTER
+    ========================= */
+
+    .id-card-footer {
+      margin-top: 14px;
+      padding: 10px 20px 14px;
+
+      position: relative;
+      z-index: 3;
+
+      border-top:
+        1px solid rgba(7, 26, 43, .08);
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      gap: 8px;
+
+      color: var(--card-muted);
+
+      font-size: 6px;
+      font-weight: 700;
+    }
+
+    .id-card-footer strong {
+      color: #997018;
+    }
+
+    /* =========================
+       ACTIONS
+    ========================= */
+
+    .id-actions {
+      margin-top: 24px;
+
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+
+      gap: 9px;
+    }
+
+    .id-action {
+      min-height: 42px;
+
+      padding: 0 16px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 0;
+      border-radius: 10px;
+
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #123b63,
+          #071a2b
+        );
+
+      text-decoration: none;
+
+      font-size: 8px;
+      font-weight: 900;
+
+      cursor: pointer;
+    }
+
+    .id-action.gold {
+      color: var(--card-navy);
+
+      background:
+        linear-gradient(
+          135deg,
+          #f2d78b,
+          #c99531
+        );
+    }
+
+    /* =========================
+       INFO
+    ========================= */
+
+    .id-info {
+      max-width: 600px;
+
+      margin: 22px auto 0;
+
+      padding: 13px 15px;
+
+      border:
+        1px solid rgba(214, 173, 69, .2);
+
+      border-radius: 11px;
+
+      color: var(--card-muted);
+
+      background:
+        rgba(255, 255, 255, .45);
+
+      font-size: 8px;
+      line-height: 1.7;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 500px) {
+      .id-header {
+        padding: 0 4%;
+      }
+
+      .id-brand-copy {
+        display: none;
+      }
+
+      .id-page {
+        width: 96%;
+
+        margin-top: 30px;
+      }
+
+      .official-id-card {
+        width: min(340px, 94vw);
+      }
+    }
+
+    /* =========================
+       PRINT
+    ========================= */
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 12mm;
+      }
+
+      body {
+        background: white !important;
+      }
+
+      .id-header,
+      .id-heading,
+      .id-actions,
+      .id-info,
+      #idCardStatus {
+        display: none !important;
+      }
+
+      .id-page {
+        width: 100%;
+        margin: 0;
+      }
+
+      .id-card-area {
+        display: block !important;
+        margin: 0;
+      }
+
+      .official-id-card {
+        margin: 15mm auto 0;
+
+        box-shadow: none;
+
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+
+  <header class="id-header">
+
+    <a
+      href="index.html"
+      class="id-brand"
+    >
+
+      <div class="id-brand-logo">
+        AE
+      </div>
+
+      <div class="id-brand-copy">
+
+        <strong>
+          AAKASH EARTH
+        </strong>
+
+        <span>
+          YUWA MANDAL
+        </span>
+
+      </div>
+
+    </a>
+
+
+    <a
+      href="verify.html"
+      class="id-header-link"
+    >
+      Verify ID
+    </a>
+
+  </header>
+
+
+  <!-- PAGE -->
+
+  <main class="id-page">
+
+    <div class="id-heading">
+
+      <small>
+        OFFICIAL DIGITAL IDENTITY
+      </small>
+
+      <h1>
+        AAKASH EARTH I-Card
+      </h1>
+
+      <p>
+        Official digital identity card for registered
+        Members and approved Volunteers.
+      </p>
+
+    </div>
+
+
+    <!-- STATUS -->
+
+    <div
+      id="idCardStatus"
+      class="id-status"
+    >
+      Loading official record...
+    </div>
+
+
+    <!-- CARD AREA -->
+
+    <section
+      id="idCardArea"
+      class="id-card-area"
+    >
+
+      <article
+        class="official-id-card"
+        id="officialIdCard"
+      >
+
+        <!-- TOP -->
+
+        <div class="id-card-top">
+
+          <div class="id-card-brand">
+
+            <div class="id-card-mini-logo">
+              AE
+            </div>
+
+            <div>
+
+              <strong>
+                AAKASH EARTH
+              </strong>
+
+              <span>
+                YUWA MANDAL
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div
+            class="id-card-type"
+            id="idCardType"
+          >
+            OFFICIAL MEMBER
+          </div>
+
+        </div>
+
+
+        <!-- PHOTO -->
+
+        <div class="id-photo-wrap">
+
+          <div
+            class="id-photo"
+            id="idCardPhoto"
+          >
+            AE
+          </div>
+
+        </div>
+
+
+        <!-- NAME -->
+
+        <div class="id-person">
+
+          <h2 id="idCardName">
+            Member Name
+          </h2>
+
+          <div
+            class="id-person-id"
+            id="idCardOfficialId"
+          >
+            AE-MEM-2026-XXXXXX
+          </div>
+
+          <div class="id-active-badge">
+            ✓
+            <span id="idCardStatusText">
+              ACTIVE
+            </span>
+          </div>
+
+        </div>
+
+
+        <!-- DETAILS -->
+
+        <div class="id-details">
+
+          <div class="id-detail">
+
+            <span id="idCardRoleLabel">
+              POSITION
+            </span>
+
+            <strong id="idCardRole">
+              Member
+            </strong>
+
+          </div>
+
+
+          <div class="id-detail">
+
+            <span>
+              YEAR
+            </span>
+
+            <strong id="idCardYear">
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="id-detail">
+
+            <span id="idCardExtraLabel">
+              MEMBERSHIP
+            </span>
+
+            <strong id="idCardExtra">
+              Verified
+            </strong>
+
+          </div>
+
+
+          <div class="id-detail">
+
+            <span>
+              AUTHORITY
+            </span>
+
+            <strong>
+              AAKASH EARTH
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- QR -->
+
+        <div class="id-verify-row">
+
+          <div
+            class="id-qr"
+            id="idCardQR"
+          >
+            QR
+          </div>
+
+
+          <div class="id-verify-copy">
+
+            <strong>
+              Scan to Verify
+            </strong>
+
+            <p>
+              Scan this QR code to verify
+              this ID on the official public
+              verification page.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="id-card-footer">
+
+          <span>
+            DIGITAL IDENTITY CARD
+          </span>
+
+          <strong id="idCardFooterType">
+            MEMBER
+          </strong>
+
+        </div>
+
+      </article>
+
+
+      <!-- ACTIONS -->
+
+      <div class="id-actions">
+
+        <button
+          type="button"
+          class="id-action gold"
+          id="printIdCard"
+        >
+          🖨 Print / Save PDF
+        </button>
+
+
+        <a
+          href="#"
+          class="id-action"
+          id="openVerificationLink"
+        >
+          ✓ Open Verification
+        </a>
+
+      </div>
+
+
+      <div class="id-info">
+        🔒 This I-Card intentionally does not show
+        private information such as mobile number,
+        home address, password or login username.
+        Verification is performed using the official
+        Member/Volunteer ID.
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- QR LIBRARY -->
+
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+  ></script>
+
+
+  <script
+    type="module"
+    src="id-card.js"
+  ></script>
+
+</body>
+</html>

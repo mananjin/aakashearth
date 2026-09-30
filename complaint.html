@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Complaint Portal | AAKASH EARTH</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      min-height: 100vh;
+
+      background:
+        radial-gradient(
+          circle at 10% 10%,
+          rgba(215,173,74,.12),
+          transparent 25%
+        ),
+        radial-gradient(
+          circle at 90% 80%,
+          rgba(122,36,48,.08),
+          transparent 28%
+        ),
+        #f7f1e5;
+    }
+
+    .complaint-page {
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+
+    .complaint-header {
+      min-height: 76px;
+
+      padding: 0 5%;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #061725,
+          #123b63
+        );
+
+      border-bottom:
+        1px solid rgba(215,173,74,.22);
+    }
+
+    .complaint-back {
+      padding: 10px 14px;
+
+      border:
+        1px solid rgba(215,173,74,.3);
+
+      border-radius: 10px;
+
+      color: var(--gold-light);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      text-decoration: none;
+    }
+
+    /* HERO */
+
+    .complaint-hero {
+      padding:
+        65px 5%
+        120px;
+
+      position: relative;
+      overflow: hidden;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 88% 20%,
+          rgba(215,173,74,.17),
+          transparent 28%
+        ),
+        linear-gradient(
+          135deg,
+          #061725,
+          #123b63 60%,
+          #551c26
+        );
+    }
+
+    .complaint-hero::after {
+      content: "";
+
+      width: 430px;
+      height: 430px;
+
+      position: absolute;
+
+      top: -220px;
+      right: -100px;
+
+      border:
+        1px solid rgba(215,173,74,.15);
+
+      border-radius: 50%;
+    }
+
+    .complaint-hero-content {
+      max-width: 760px;
+
+      position: relative;
+      z-index: 2;
+    }
+
+    .complaint-label {
+      display: inline-flex;
+
+      padding: 8px 13px;
+
+      border:
+        1px solid rgba(215,173,74,.28);
+
+      border-radius: 30px;
+
+      background:
+        rgba(215,173,74,.07);
+
+      color: var(--gold-light);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+    }
+
+    .complaint-hero h1 {
+      margin-top: 20px;
+
+      font-family:
+        "Cinzel", serif;
+
+      font-size:
+        clamp(35px, 5vw, 60px);
+
+      line-height: 1.1;
+    }
+
+    .complaint-hero h1 span {
+      color: var(--gold-light);
+    }
+
+    .complaint-hero p {
+      max-width: 650px;
+
+      margin-top: 16px;
+
+      color:
+        rgba(255,255,255,.65);
+
+      font-size: 11px;
+
+      line-height: 1.8;
+    }
+
+    /* MAIN */
+
+    .complaint-main {
+      width: min(1180px, 90%);
+
+      margin:
+        -65px auto 70px;
+
+      position: relative;
+      z-index: 5;
+
+      display: grid;
+
+      grid-template-columns:
+        minmax(0, 1.25fr)
+        minmax(300px, .75fr);
+
+      gap: 22px;
+    }
+
+    .complaint-card {
+      padding: 31px;
+
+      border:
+        1px solid rgba(7,26,43,.08);
+
+      border-radius: 24px;
+
+      background:
+        rgba(255,255,255,.98);
+
+      box-shadow:
+        0 25px 65px
+        rgba(7,26,43,.12);
+    }
+
+    .complaint-card-header {
+      margin-bottom: 26px;
+    }
+
+    .complaint-card-header small {
+      color: var(--gold-dark);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 1.7px;
+    }
+
+    .complaint-card-header h2 {
+      margin-top: 6px;
+
+      color: var(--navy);
+
+      font-family:
+        "Cinzel", serif;
+
+      font-size: 25px;
+    }
+
+    .complaint-card-header p {
+      margin-top: 8px;
+
+      color: #748087;
+
+      font-size: 10px;
+
+      line-height: 1.6;
+    }
+
+    /* FORM */
+
+    .complaint-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 16px;
+    }
+
+    .complaint-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .complaint-field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: var(--navy);
+
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .complaint-field label span {
+      color: var(--maroon);
+    }
+
+    .complaint-input {
+      width: 100%;
+      min-height: 48px;
+
+      padding: 12px 14px;
+
+      outline: none;
+
+      border:
+        1px solid rgba(7,26,43,.13);
+
+      border-radius: 11px;
+
+      background: #fffdfa;
+
+      color: var(--navy);
+
+      font-size: 11px;
+
+      transition: .2s;
+    }
+
+    .complaint-input:focus {
+      border-color: var(--gold);
+
+      background: white;
+
+      box-shadow:
+        0 0 0 3px
+        rgba(215,173,74,.09);
+    }
+
+    textarea.complaint-input {
+      min-height: 110px;
+
+      resize: vertical;
+    }
+
+    .complaint-note {
+      margin-top: 18px;
+
+      padding: 13px 15px;
+
+      border-left:
+        4px solid var(--gold);
+
+      border-radius: 9px;
+
+      background:
+        rgba(215,173,74,.08);
+
+      color: #665b43;
+
+      font-size: 9px;
+
+      line-height: 1.6;
+    }
+
+    /* PHOTO */
+
+    .complaint-photo-box {
+      padding: 18px;
+
+      border:
+        1px dashed rgba(7,26,43,.18);
+
+      border-radius: 14px;
+
+      background: #faf7f0;
+    }
+
+    .complaint-photo-box strong {
+      display: block;
+
+      color: var(--navy);
+
+      font-size: 10px;
+    }
+
+    .complaint-photo-box p {
+      margin-top: 5px;
+
+      color: #77838a;
+
+      font-size: 9px;
+
+      line-height: 1.5;
+    }
+
+    .complaint-photo-preview {
+      width: 100%;
+
+      max-height: 260px;
+
+      margin-top: 13px;
+
+      display: none;
+
+      object-fit: contain;
+
+      border-radius: 12px;
+
+      background: #eee8dc;
+    }
+
+    /* MESSAGE */
+
+    .complaint-message {
+      display: none;
+
+      margin-top: 17px;
+
+      padding: 12px 14px;
+
+      border-radius: 10px;
+
+      font-size: 9px;
+      font-weight: 700;
+
+      line-height: 1.55;
+    }
+
+    .complaint-message.show {
+      display: block;
+    }
+
+    .complaint-message.error {
+      color: #862536;
+
+      border:
+        1px solid rgba(134,37,54,.13);
+
+      background:
+        rgba(134,37,54,.08);
+    }
+
+    .complaint-message.success {
+      color: #08624d;
+
+      border:
+        1px solid rgba(8,98,77,.13);
+
+      background:
+        rgba(8,98,77,.08);
+    }
+
+    .complaint-submit {
+      width: 100%;
+      min-height: 52px;
+
+      margin-top: 18px;
+
+      border: 0;
+      border-radius: 12px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #f0d27a,
+          #c89430
+        );
+
+      color: var(--navy);
+
+      font-size: 10px;
+      font-weight: 800;
+
+      cursor: pointer;
+    }
+
+    .complaint-submit:disabled {
+      opacity: .6;
+
+      cursor: not-allowed;
+    }
+
+    /* RIGHT */
+
+    .complaint-side {
+      display: grid;
+
+      gap: 18px;
+
+      align-content: start;
+    }
+
+    .complaint-info {
+      padding: 25px;
+
+      border:
+        1px solid rgba(7,26,43,.08);
+
+      border-radius: 20px;
+
+      background: white;
+
+      box-shadow:
+        0 12px 35px
+        rgba(7,26,43,.07);
+    }
+
+    .complaint-info-icon {
+      width: 46px;
+      height: 46px;
+
+      margin-bottom: 14px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 12px;
+
+      background:
+        rgba(122,36,48,.08);
+
+      font-size: 20px;
+    }
+
+    .complaint-info h3 {
+      color: var(--navy);
+
+      font-family:
+        "Cinzel", serif;
+
+      font-size: 15px;
+    }
+
+    .complaint-info p {
+      margin-top: 8px;
+
+      color: #748087;
+
+      font-size: 9px;
+
+      line-height: 1.65;
+    }
+
+    /* TRACK */
+
+    .track-card {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #071a2b,
+          #123b63
+        );
+    }
+
+    .track-card h3 {
+      color: white;
+    }
+
+    .track-card p {
+      color:
+        rgba(255,255,255,.6);
+    }
+
+    .track-form {
+      margin-top: 17px;
+
+      display: grid;
+
+      gap: 10px;
+    }
+
+    .track-input {
+      width: 100%;
+      min-height: 44px;
+
+      padding: 10px 12px;
+
+      outline: none;
+
+      border:
+        1px solid rgba(255,255,255,.13);
+
+      border-radius: 10px;
+
+      background:
+        rgba(255,255,255,.07);
+
+      color: white;
+
+      font-size: 10px;
+    }
+
+    .track-input::placeholder {
+      color:
+        rgba(255,255,255,.4);
+    }
+
+    .track-input:focus {
+      border-color: var(--gold);
+    }
+
+    .track-button {
+      min-height: 44px;
+
+      border: 0;
+      border-radius: 10px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #f0d27a,
+          #c89430
+        );
+
+      color: var(--navy);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      cursor: pointer;
+    }
+
+    .track-result {
+      display: none;
+
+      margin-top: 15px;
+
+      padding: 14px;
+
+      border:
+        1px solid rgba(255,255,255,.1);
+
+      border-radius: 12px;
+
+      background:
+        rgba(255,255,255,.06);
+    }
+
+    .track-result.show {
+      display: block;
+    }
+
+    .track-row {
+      padding: 8px 0;
+
+      border-bottom:
+        1px solid rgba(255,255,255,.08);
+    }
+
+    .track-row:last-child {
+      border-bottom: 0;
+    }
+
+    .track-row small {
+      display: block;
+
+      color:
+        rgba(255,255,255,.45);
+
+      font-size: 7px;
+      font-weight: 800;
+    }
+
+    .track-row strong {
+      display: block;
+
+      margin-top: 4px;
+
+      color: white;
+
+      font-size: 9px;
+
+      line-height: 1.5;
+    }
+
+    /* SUCCESS */
+
+    .complaint-success {
+      display: none;
+
+      padding: 30px 10px;
+
+      text-align: center;
+    }
+
+    .complaint-success.show {
+      display: block;
+    }
+
+    .complaint-form-content.hidden {
+      display: none;
+    }
+
+    .complaint-success-icon {
+      width: 82px;
+      height: 82px;
+
+      margin: auto;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background:
+        rgba(20,125,100,.1);
+
+      color: var(--emerald);
+
+      font-size: 35px;
+    }
+
+    .complaint-success h2 {
+      margin-top: 18px;
+
+      color: var(--navy);
+
+      font-family:
+        "Cinzel", serif;
+
+      font-size: 25px;
+    }
+
+    .complaint-success p {
+      max-width: 530px;
+
+      margin: 10px auto 0;
+
+      color: #748087;
+
+      font-size: 10px;
+
+      line-height: 1.7;
+    }
+
+    .complaint-id-box {
+      max-width: 380px;
+
+      margin: 20px auto;
+
+      padding: 17px;
+
+      border:
+        1px solid rgba(215,173,74,.3);
+
+      border-radius: 13px;
+
+      background: #faf4e7;
+    }
+
+    .complaint-id-box small {
+      display: block;
+
+      color: #7c7c76;
+
+      font-size: 8px;
+    }
+
+    .complaint-id-box strong {
+      display: block;
+
+      margin-top: 6px;
+
+      color: var(--gold-dark);
+
+      font-size: 14px;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 900px) {
+      .complaint-main {
+        grid-template-columns: 1fr;
+      }
+
+      .complaint-side {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+      .track-card {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .complaint-header {
+        padding: 0 4%;
+      }
+
+      .complaint-header
+      .brand-text span {
+        display: none;
+      }
+
+      .complaint-hero {
+        padding:
+          50px 5%
+          100px;
+      }
+
+      .complaint-main {
+        width: 92%;
+
+        margin-top: -55px;
+      }
+
+      .complaint-card {
+        padding: 23px 18px;
+      }
+
+      .complaint-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .complaint-field.full {
+        grid-column: auto;
+      }
+
+      .complaint-side {
+        grid-template-columns: 1fr;
+      }
+
+      .track-card {
+        grid-column: auto;
+      }
+    }
+  </style>
+</head>
+
+
+<body>
+
+<div class="complaint-page">
+
+
+  <!-- HEADER -->
+  <header class="complaint-header">
+
+    <a
+      href="index.html"
+      class="brand"
+    >
+
+      <div class="brand-emblem">
+        <span>AE</span>
+      </div>
+
+      <div class="brand-text">
+        <strong>
+          AAKASH EARTH
+        </strong>
+
+        <span>
+          YUWA MANDAL
+        </span>
+      </div>
+
+    </a>
+
+
+    <a
+      href="index.html"
+      class="complaint-back"
+    >
+      ← Home
+    </a>
+
+  </header>
+
+
+  <!-- HERO -->
+  <section class="complaint-hero">
+
+    <div class="complaint-hero-content">
+
+      <span class="complaint-label">
+        ✦ PUBLIC COMPLAINT PORTAL
+      </span>
+
+      <h1>
+        Submit & Track
+        <span>Your Complaint.</span>
+      </h1>
+
+      <p>
+        This public portal allows community members to submit
+        a complaint regarding a Member, Volunteer, Admin or
+        another matter. No login is required to submit or
+        track a complaint.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- MAIN -->
+  <main class="complaint-main">
+
+
+    <!-- FORM CARD -->
+    <section class="complaint-card">
+
+      <div
+        id="complaintFormContent"
+        class="complaint-form-content"
+      >
+
+        <div class="complaint-card-header">
+
+          <small>
+            SUBMIT COMPLAINT
+          </small>
+
+          <h2>
+            Complaint Form
+          </h2>
+
+          <p>
+            Please provide correct information so the
+            administrator can review the complaint properly.
+          </p>
+
+        </div>
+
+
+        <form
+          id="complaintForm"
+          autocomplete="off"
+        >
+
+          <div class="complaint-grid">
+
+
+            <!-- NAME -->
+            <div class="complaint-field">
+
+              <label for="complainantName">
+                YOUR NAME
+                <span>*</span>
+              </label>
+
+              <input
+                type="text"
+                id="complainantName"
+                class="complaint-input"
+                maxlength="80"
+                placeholder="Enter your full name"
+                required
+              >
+
+            </div>
+
+
+            <!-- MOBILE -->
+            <div class="complaint-field">
+
+              <label for="complainantMobile">
+                MOBILE NUMBER
+                <span>*</span>
+              </label>
+
+              <input
+                type="tel"
+                id="complainantMobile"
+                class="complaint-input"
+                maxlength="10"
+                inputmode="numeric"
+                placeholder="10-digit mobile number"
+                required
+              >
+
+            </div>
+
+
+            <!-- ADDRESS -->
+            <div class="complaint-field full">
+
+              <label for="complainantAddress">
+                YOUR ADDRESS
+                <span>*</span>
+              </label>
+
+              <textarea
+                id="complainantAddress"
+                class="complaint-input"
+                maxlength="350"
+                placeholder="Enter your address"
+                required
+              ></textarea>
+
+            </div>
+
+
+            <!-- AGAINST TYPE -->
+            <div class="complaint-field">
+
+              <label for="complaintAgainstType">
+                COMPLAINT AGAINST
+                <span>*</span>
+              </label>
+
+              <select
+                id="complaintAgainstType"
+                class="complaint-input"
+                required
+              >
+                <option value="">
+                  Select type
+                </option>
+
+                <option value="member">
+                  Member
+                </option>
+
+                <option value="volunteer">
+                  Volunteer
+                </option>
+
+                <option value="admin">
+                  Admin
+                </option>
+
+                <option value="other">
+                  Other
+                </option>
+              </select>
+
+            </div>
+
+
+            <!-- PERSON NAME -->
+            <div class="complaint-field">
+
+              <label for="complaintAgainstName">
+                PERSON / PARTY NAME
+                <span>*</span>
+              </label>
+
+              <input
+                type="text"
+                id="complaintAgainstName"
+                class="complaint-input"
+                maxlength="100"
+                placeholder="Name complaint is against"
+                required
+              >
+
+            </div>
+
+
+            <!-- MEMBER / VOL ID -->
+            <div
+              class="complaint-field full"
+              id="complaintAgainstIdField"
+            >
+
+              <label for="complaintAgainstId">
+                MEMBER / VOLUNTEER ID
+              </label>
+
+              <input
+                type="text"
+                id="complaintAgainstId"
+                class="complaint-input"
+                maxlength="60"
+                placeholder="Enter ID if available"
+              >
+
+            </div>
+
+
+            <!-- REASON -->
+            <div class="complaint-field full">
+
+              <label for="complaintReason">
+                COMPLAINT REASON
+                <span>*</span>
+              </label>
+
+              <input
+                type="text"
+                id="complaintReason"
+                class="complaint-input"
+                maxlength="150"
+                placeholder="Short reason / subject"
+                required
+              >
+
+            </div>
+
+
+            <!-- DESCRIPTION -->
+            <div class="complaint-field full">
+
+              <label for="complaintDescription">
+                FULL DESCRIPTION
+                <span>*</span>
+              </label>
+
+              <textarea
+                id="complaintDescription"
+                class="complaint-input"
+                maxlength="1500"
+                placeholder="Explain the complaint clearly..."
+                required
+              ></textarea>
+
+            </div>
+
+
+            <!-- DATE -->
+            <div class="complaint-field">
+
+              <label for="complaintIncidentDate">
+                INCIDENT DATE
+              </label>
+
+              <input
+                type="date"
+                id="complaintIncidentDate"
+                class="complaint-input"
+              >
+
+            </div>
+
+
+            <!-- TIME -->
+            <div class="complaint-field">
+
+              <label for="complaintIncidentTime">
+                INCIDENT TIME
+              </label>
+
+              <input
+                type="time"
+                id="complaintIncidentTime"
+                class="complaint-input"
+              >
+
+            </div>
+
+
+            <!-- PROOF -->
+            <div class="complaint-field full">
+
+              <label for="complaintProof">
+                PROOF PHOTO
+              </label>
+
+              <div class="complaint-photo-box">
+
+                <strong>
+                  Select Proof Photo
+                </strong>
+
+                <p>
+                  Photo preview is available. Firebase Storage
+                  upload is temporarily disabled, so the
+                  filename will be recorded with your complaint.
+                </p>
+
+                <input
+                  type="file"
+                  id="complaintProof"
+                  accept="image/*"
+                  style="
+                    margin-top:12px;
+                    max-width:100%;
+                    font-size:9px;
+                  "
+                >
+
+                <img
+                  id="complaintProofPreview"
+                  class="complaint-photo-preview"
+                  alt="Complaint proof preview"
+                >
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="complaint-note">
+            Your mobile number and address are for
+            administrative review and complaint verification.
+            They will not be displayed in the Member or
+            Volunteer complaint view.
+          </div>
+
+
+          <div
+            id="complaintMessage"
+            class="complaint-message"
+            role="alert"
+          ></div>
+
+
+          <button
+            type="submit"
+            id="complaintSubmit"
+            class="complaint-submit"
+          >
+            <span id="complaintSubmitText">
+              Submit Complaint →
+            </span>
+          </button>
+
+        </form>
+
+      </div>
+
+
+      <!-- SUCCESS -->
+      <div
+        id="complaintSuccess"
+        class="complaint-success"
+      >
+
+        <div class="complaint-success-icon">
+          ✓
+        </div>
+
+        <h2>
+          Complaint Submitted
+        </h2>
+
+        <p>
+          Your complaint has been recorded successfully.
+          Please save your Complaint ID. You will need the
+          Complaint ID and registered mobile number to track
+          its status.
+        </p>
+
+
+        <div class="complaint-id-box">
+
+          <small>
+            YOUR COMPLAINT ID
+          </small>
+
+          <strong id="successComplaintId">
+            —
+          </strong>
+
+        </div>
+
+
+        <button
+          type="button"
+          id="submitAnotherComplaint"
+          class="complaint-submit"
+          style="
+            width:auto;
+            padding:0 22px;
+          "
+        >
+          Submit Another Complaint
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- SIDE -->
+    <aside class="complaint-side">
+
+
+      <!-- INFO -->
+      <div class="complaint-info">
+
+        <div class="complaint-info-icon">
+          🛡️
+        </div>
+
+        <h3>
+          Private Information
+        </h3>
+
+        <p>
+          Your full mobile number and address are intended
+          for Admin review. Member and Volunteer portals will
+          not show these private fields.
+        </p>
+
+      </div>
+
+
+      <!-- PROCESS -->
+      <div class="complaint-info">
+
+        <div class="complaint-info-icon">
+          ✓
+        </div>
+
+        <h3>
+          Complaint Process
+        </h3>
+
+        <p>
+          Complaint statuses can move through:
+          <strong>Submitted</strong>,
+          <strong>Under Review</strong>,
+          <strong>In Progress</strong> and
+          <strong>Resolved</strong>.
+        </p>
+
+      </div>
+
+
+      <!-- TRACK -->
+      <div class="complaint-info track-card">
+
+        <div class="complaint-info-icon">
+          🔎
+        </div>
+
+        <h3>
+          Track Complaint
+        </h3>
+
+        <p>
+          Enter your Complaint ID and the same mobile number
+          used while submitting the complaint.
+        </p>
+
+
+        <form
+          id="complaintTrackForm"
+          class="track-form"
+          autocomplete="off"
+        >
+
+          <input
+            type="text"
+            id="trackComplaintId"
+            class="track-input"
+            placeholder="Complaint ID"
+            required
+          >
+
+          <input
+            type="tel"
+            id="trackComplaintMobile"
+            class="track-input"
+            maxlength="10"
+            inputmode="numeric"
+            placeholder="Registered mobile number"
+            required
+          >
+
+          <button
+            type="submit"
+            id="trackComplaintButton"
+            class="track-button"
+          >
+            Track Complaint →
+          </button>
+
+        </form>
+
+
+        <div
+          id="trackComplaintMessage"
+          style="
+            display:none;
+            margin-top:12px;
+            padding:10px;
+            border-radius:9px;
+            background:rgba(255,255,255,.07);
+            color:#f5d98a;
+            font-size:9px;
+            line-height:1.5;
+          "
+        ></div>
+
+
+        <div
+          id="complaintTrackResult"
+          class="track-result"
+        >
+
+          <div class="track-row">
+
+            <small>
+              COMPLAINT ID
+            </small>
+
+            <strong id="trackResultId">
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="track-row">
+
+            <small>
+              COMPLAINT AGAINST
+            </small>
+
+            <strong id="trackResultAgainst">
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="track-row">
+
+            <small>
+              REASON
+            </small>
+
+            <strong id="trackResultReason">
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="track-row">
+
+            <small>
+              STATUS
+            </small>
+
+            <strong id="trackResultStatus">
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="track-row">
+
+            <small>
+              ADMIN REPLY
+            </small>
+
+            <strong id="trackResultReply">
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="track-row">
+
+            <small>
+              SUBMITTED
+            </small>
+
+            <strong id="trackResultDate">
+              —
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+</div>
+
+
+<script
+  type="module"
+  src="complaint.js"
+></script>
+
+</body>
+</html>

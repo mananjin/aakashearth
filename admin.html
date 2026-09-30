@@ -1,0 +1,3046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Admin Control Panel | AAKASH EARTH</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    :root {
+      --admin-bg: #f5efe2;
+      --admin-card: #fffdf8;
+      --admin-navy: #061725;
+      --admin-blue: #123b63;
+      --admin-gold: #d7ad4a;
+      --admin-gold-light: #f2d78b;
+      --admin-maroon: #7a2430;
+      --admin-green: #147d64;
+      --admin-muted: #71808a;
+      --admin-border: rgba(7, 26, 43, .09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(
+          circle at 95% 5%,
+          rgba(215, 173, 74, .11),
+          transparent 24%
+        ),
+        var(--admin-bg);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .admin-app {
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ==========================
+       SIDEBAR
+    ========================== */
+
+    .admin-sidebar {
+      width: 285px;
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 1100;
+      overflow-y: auto;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 20% 5%,
+          rgba(215, 173, 74, .14),
+          transparent 25%
+        ),
+        linear-gradient(
+          180deg,
+          #061725,
+          #0b2c47 65%,
+          #071a2b
+        );
+
+      border-right:
+        1px solid rgba(215, 173, 74, .2);
+
+      transition: transform .3s ease;
+    }
+
+    .admin-brand {
+      padding: 24px 20px;
+
+      border-bottom:
+        1px solid rgba(255,255,255,.07);
+    }
+
+    .admin-profile {
+      padding: 25px 20px;
+
+      text-align: center;
+
+      border-bottom:
+        1px solid rgba(255,255,255,.07);
+    }
+
+    .admin-avatar {
+      width: 80px;
+      height: 80px;
+
+      margin: auto;
+
+      display: grid;
+      place-items: center;
+
+      border:
+        2px solid var(--admin-gold);
+
+      border-radius: 50%;
+
+      background:
+        linear-gradient(
+          135deg,
+          #123b63,
+          #061725
+        );
+
+      color: var(--admin-gold-light);
+
+      font-size: 32px;
+
+      box-shadow:
+        0 0 0 6px rgba(215,173,74,.07);
+    }
+
+    .admin-profile h3 {
+      margin: 14px 0 0;
+
+      font-family: "Cinzel", serif;
+      font-size: 16px;
+    }
+
+    .admin-profile p {
+      margin: 5px 0 0;
+
+      color: var(--admin-gold-light);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 1.4px;
+    }
+
+    .admin-nav {
+      padding: 15px 11px 30px;
+    }
+
+    .admin-link {
+      width: 100%;
+      min-height: 45px;
+
+      margin-bottom: 5px;
+      padding: 0 13px;
+
+      display: flex;
+      align-items: center;
+
+      gap: 11px;
+
+      border: 0;
+      border-radius: 11px;
+
+      background: transparent;
+
+      color: rgba(255,255,255,.67);
+
+      text-align: left;
+
+      font-size: 10px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      transition: .22s;
+    }
+
+    .admin-link:hover {
+      color: white;
+      background: rgba(255,255,255,.06);
+    }
+
+    .admin-link.active {
+      color: var(--admin-navy);
+
+      background:
+        linear-gradient(
+          135deg,
+          #f2d78b,
+          #c89430
+        );
+
+      box-shadow:
+        0 8px 24px rgba(215,173,74,.13);
+    }
+
+    .admin-link.danger {
+      margin-top: 14px;
+      color: #ffc0c8;
+    }
+
+    .admin-nav-icon {
+      width: 22px;
+      text-align: center;
+      font-size: 15px;
+    }
+
+    /* ==========================
+       MAIN
+    ========================== */
+
+    .admin-main {
+      width: calc(100% - 285px);
+      min-height: 100vh;
+
+      margin-left: 285px;
+    }
+
+    .admin-topbar {
+      min-height: 75px;
+
+      padding: 0 3%;
+
+      position: sticky;
+      top: 0;
+
+      z-index: 900;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      gap: 15px;
+
+      background: rgba(255,250,240,.94);
+
+      backdrop-filter: blur(16px);
+
+      border-bottom:
+        1px solid var(--admin-border);
+    }
+
+    .admin-top-left {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .admin-menu-btn {
+      width: 42px;
+      height: 42px;
+
+      display: none;
+      place-items: center;
+
+      border: 0;
+      border-radius: 11px;
+
+      background: var(--admin-navy);
+      color: var(--admin-gold-light);
+
+      cursor: pointer;
+    }
+
+    .admin-title small {
+      display: block;
+
+      color: var(--admin-gold-dark, #a77a20);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 1.5px;
+    }
+
+    .admin-title h1 {
+      margin: 4px 0 0;
+
+      color: var(--admin-navy);
+
+      font-family: "Cinzel", serif;
+      font-size: 20px;
+    }
+
+    .admin-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .admin-top-badge {
+      padding: 9px 13px;
+
+      border:
+        1px solid var(--admin-border);
+
+      border-radius: 11px;
+
+      background: white;
+
+      color: var(--admin-navy);
+
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .admin-content {
+      padding: 30px 3% 60px;
+    }
+
+    /* ==========================
+       PANELS
+    ========================== */
+
+    .admin-panel {
+      display: none;
+    }
+
+    .admin-panel.active {
+      display: block;
+      animation: adminPanelIn .35s ease both;
+    }
+
+    @keyframes adminPanelIn {
+      from {
+        opacity: 0;
+        transform: translateX(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* ==========================
+       WELCOME
+    ========================== */
+
+    .admin-welcome {
+      padding: 35px;
+
+      position: relative;
+      overflow: hidden;
+
+      display: grid;
+
+      grid-template-columns: 1fr auto;
+
+      gap: 25px;
+
+      align-items: center;
+
+      border-radius: 25px;
+
+      color: white;
+
+      background:
+        radial-gradient(
+          circle at 88% 15%,
+          rgba(215,173,74,.22),
+          transparent 30%
+        ),
+        linear-gradient(
+          135deg,
+          #061725,
+          #123b63 70%,
+          #7a2430
+        );
+
+      box-shadow:
+        0 20px 50px rgba(7,26,43,.16);
+    }
+
+    .admin-welcome::after {
+      content: "";
+
+      width: 270px;
+      height: 270px;
+
+      position: absolute;
+      right: -100px;
+      bottom: -180px;
+
+      border:
+        1px solid rgba(215,173,74,.17);
+
+      border-radius: 50%;
+    }
+
+    .admin-welcome small {
+      color: var(--admin-gold-light);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+    }
+
+    .admin-welcome h2 {
+      margin: 8px 0 0;
+
+      font-family: "Cinzel", serif;
+
+      font-size:
+        clamp(26px, 3vw, 39px);
+    }
+
+    .admin-welcome p {
+      max-width: 660px;
+
+      margin: 10px 0 0;
+
+      color: rgba(255,255,255,.65);
+
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    .admin-control-badge {
+      min-width: 190px;
+
+      padding: 17px;
+
+      position: relative;
+      z-index: 2;
+
+      text-align: center;
+
+      border:
+        1px solid rgba(215,173,74,.28);
+
+      border-radius: 16px;
+
+      background: rgba(255,255,255,.06);
+    }
+
+    .admin-control-badge strong {
+      display: block;
+
+      color: var(--admin-gold-light);
+
+      font-family: "Cinzel", serif;
+      font-size: 14px;
+    }
+
+    .admin-control-badge span {
+      display: block;
+
+      margin-top: 5px;
+
+      color: rgba(255,255,255,.5);
+
+      font-size: 8px;
+    }
+
+    /* ==========================
+       STATS
+    ========================== */
+
+    .admin-stats {
+      margin-top: 20px;
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(6, 1fr);
+
+      gap: 12px;
+    }
+
+    .admin-stat {
+      padding: 19px;
+
+      border:
+        1px solid var(--admin-border);
+
+      border-radius: 17px;
+
+      background: white;
+
+      box-shadow:
+        0 9px 25px rgba(7,26,43,.05);
+    }
+
+    .admin-stat-icon {
+      width: 38px;
+      height: 38px;
+
+      margin-bottom: 13px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 10px;
+
+      background: rgba(215,173,74,.1);
+
+      font-size: 17px;
+    }
+
+    .admin-stat strong {
+      display: block;
+
+      color: var(--admin-navy);
+
+      font-family: "Cinzel", serif;
+      font-size: 21px;
+    }
+
+    .admin-stat span {
+      display: block;
+
+      margin-top: 5px;
+
+      color: var(--admin-muted);
+
+      font-size: 8px;
+      font-weight: 700;
+    }
+
+    /* ==========================
+       COMMON
+    ========================== */
+
+    .admin-section {
+      margin-top: 24px;
+    }
+
+    .admin-panel-header {
+      margin-bottom: 20px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+
+      gap: 15px;
+    }
+
+    .admin-panel-header small {
+      color: #a77a20;
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 1.5px;
+    }
+
+    .admin-panel-header h2 {
+      margin: 5px 0 0;
+
+      color: var(--admin-navy);
+
+      font-family: "Cinzel", serif;
+      font-size: 25px;
+    }
+
+    .admin-panel-header p {
+      margin: 7px 0 0;
+
+      color: var(--admin-muted);
+
+      font-size: 9px;
+      line-height: 1.55;
+    }
+
+    .admin-card {
+      padding: 22px;
+
+      border:
+        1px solid var(--admin-border);
+
+      border-radius: 19px;
+
+      background: var(--admin-card);
+
+      box-shadow:
+        0 10px 30px rgba(7,26,43,.05);
+    }
+
+    .admin-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 14px;
+    }
+
+    .admin-quick {
+      min-height: 120px;
+
+      padding: 19px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      border:
+        1px solid var(--admin-border);
+
+      border-radius: 17px;
+
+      background: white;
+
+      color: var(--admin-navy);
+
+      text-align: left;
+
+      cursor: pointer;
+
+      transition: .22s;
+    }
+
+    .admin-quick:hover {
+      transform: translateY(-3px);
+
+      border-color:
+        rgba(215,173,74,.45);
+
+      box-shadow:
+        0 12px 28px rgba(7,26,43,.08);
+    }
+
+    .admin-quick-icon {
+      font-size: 23px;
+    }
+
+    .admin-quick strong {
+      font-family: "Cinzel", serif;
+      font-size: 12px;
+    }
+
+    .admin-quick span {
+      color: var(--admin-muted);
+      font-size: 8px;
+    }
+
+    /* ==========================
+       BUTTONS
+    ========================== */
+
+    .admin-btn {
+      min-height: 42px;
+
+      padding: 0 15px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      gap: 7px;
+
+      border: 0;
+      border-radius: 10px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #f1d783,
+          #c89531
+        );
+
+      color: var(--admin-navy);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      cursor: pointer;
+    }
+
+    .admin-btn.secondary {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #123b63,
+          #071a2b
+        );
+    }
+
+    .admin-btn.green {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #147d64,
+          #0b4e40
+        );
+    }
+
+    .admin-btn.red {
+      color: white;
+
+      background:
+        linear-gradient(
+          135deg,
+          #9c3545,
+          #641e2b
+        );
+    }
+
+    .admin-btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    /* ==========================
+       TOOLBAR
+    ========================== */
+
+    .admin-toolbar {
+      margin-bottom: 16px;
+
+      display: flex;
+      flex-wrap: wrap;
+
+      gap: 9px;
+
+      align-items: center;
+    }
+
+    .admin-search,
+    .admin-select,
+    .admin-input,
+    .admin-textarea {
+      min-height: 43px;
+
+      padding: 10px 12px;
+
+      outline: none;
+
+      border:
+        1px solid rgba(7,26,43,.13);
+
+      border-radius: 10px;
+
+      background: white;
+
+      color: var(--admin-navy);
+
+      font-size: 9px;
+    }
+
+    .admin-search {
+      min-width: 250px;
+      flex: 1;
+    }
+
+    .admin-input,
+    .admin-select,
+    .admin-textarea {
+      width: 100%;
+    }
+
+    .admin-textarea {
+      min-height: 105px;
+      resize: vertical;
+    }
+
+    .admin-search:focus,
+    .admin-input:focus,
+    .admin-select:focus,
+    .admin-textarea:focus {
+      border-color: var(--admin-gold);
+
+      box-shadow:
+        0 0 0 3px rgba(215,173,74,.08);
+    }
+
+    /* ==========================
+       TABLE
+    ========================== */
+
+    .admin-table-wrap {
+      overflow-x: auto;
+    }
+
+    .admin-table {
+      width: 100%;
+      min-width: 800px;
+
+      border-collapse: collapse;
+    }
+
+    .admin-table th {
+      padding: 12px;
+
+      text-align: left;
+
+      background: #f4eddd;
+
+      color: var(--admin-navy);
+
+      font-size: 8px;
+      letter-spacing: .5px;
+    }
+
+    .admin-table td {
+      padding: 12px;
+
+      border-bottom:
+        1px solid rgba(7,26,43,.07);
+
+      color: #596871;
+
+      font-size: 9px;
+
+      vertical-align: middle;
+    }
+
+    .admin-table td strong {
+      color: var(--admin-navy);
+    }
+
+    .admin-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .admin-mini-btn {
+      min-height: 32px;
+
+      padding: 0 10px;
+
+      border: 0;
+      border-radius: 8px;
+
+      background: #edf1f3;
+
+      color: var(--admin-navy);
+
+      font-size: 8px;
+      font-weight: 800;
+
+      cursor: pointer;
+    }
+
+    .admin-mini-btn.green {
+      color: #08624d;
+      background: rgba(20,125,100,.1);
+    }
+
+    .admin-mini-btn.red {
+      color: #862536;
+      background: rgba(122,36,48,.1);
+    }
+
+    .admin-mini-btn.gold {
+      color: #765515;
+      background: rgba(215,173,74,.15);
+    }
+
+    /* ==========================
+       EMPTY
+    ========================== */
+
+    .admin-empty {
+      min-height: 150px;
+
+      padding: 25px;
+
+      display: grid;
+      place-items: center;
+
+      text-align: center;
+
+      border:
+        1px dashed rgba(7,26,43,.15);
+
+      border-radius: 15px;
+
+      color: var(--admin-muted);
+
+      font-size: 9px;
+      line-height: 1.6;
+    }
+
+    /* ==========================
+       FORM
+    ========================== */
+
+    .admin-form-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 14px;
+    }
+
+    .admin-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .admin-field label {
+      display: block;
+
+      margin-bottom: 6px;
+
+      color: var(--admin-navy);
+
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .admin-message {
+      display: none;
+
+      margin-top: 13px;
+      padding: 11px;
+
+      border-radius: 9px;
+
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .admin-message.show {
+      display: block;
+    }
+
+    .admin-message.success {
+      color: #08624d;
+      background: rgba(20,125,100,.09);
+    }
+
+    .admin-message.error {
+      color: #862536;
+      background: rgba(122,36,48,.09);
+    }
+
+    /* ==========================
+       MODAL
+    ========================== */
+
+    .admin-modal {
+      display: none;
+
+      position: fixed;
+      inset: 0;
+
+      z-index: 4000;
+
+      padding: 20px;
+
+      align-items: center;
+      justify-content: center;
+
+      background: rgba(2,12,20,.75);
+
+      backdrop-filter: blur(7px);
+    }
+
+    .admin-modal.open {
+      display: flex;
+    }
+
+    .admin-modal-card {
+      width: min(100%, 650px);
+      max-height: 90vh;
+
+      overflow-y: auto;
+
+      padding: 25px;
+
+      border:
+        1px solid rgba(215,173,74,.25);
+
+      border-radius: 21px;
+
+      background: #fffaf0;
+
+      box-shadow:
+        0 30px 90px rgba(0,0,0,.3);
+    }
+
+    .admin-modal-header {
+      margin-bottom: 20px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+
+      gap: 15px;
+    }
+
+    .admin-modal-header small {
+      color: #a77a20;
+
+      font-size: 8px;
+      font-weight: 800;
+
+      letter-spacing: 1.4px;
+    }
+
+    .admin-modal-header h3 {
+      margin: 5px 0 0;
+
+      color: var(--admin-navy);
+
+      font-family: "Cinzel", serif;
+      font-size: 20px;
+    }
+
+    .admin-modal-close {
+      width: 36px;
+      height: 36px;
+
+      border: 0;
+      border-radius: 9px;
+
+      background: var(--admin-navy);
+      color: white;
+
+      cursor: pointer;
+    }
+
+    /* ==========================
+       RESPONSIVE
+    ========================== */
+
+    @media (max-width: 1250px) {
+      .admin-stats {
+        grid-template-columns:
+          repeat(3, 1fr);
+      }
+
+      .admin-grid {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 950px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+
+        box-shadow:
+          20px 0 50px rgba(0,0,0,.25);
+      }
+
+      .admin-sidebar.open {
+        transform: translateX(0);
+      }
+
+      .admin-main {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .admin-menu-btn {
+        display: grid;
+      }
+    }
+
+    @media (max-width: 650px) {
+      .admin-content {
+        padding: 22px 4% 50px;
+      }
+
+      .admin-top-badge {
+        display: none;
+      }
+
+      .admin-welcome {
+        padding: 25px;
+
+        grid-template-columns: 1fr;
+      }
+
+      .admin-control-badge {
+        min-width: 0;
+        text-align: left;
+      }
+
+      .admin-stats {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+      .admin-grid,
+      .admin-form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-field.full {
+        grid-column: auto;
+      }
+
+      .admin-search {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="admin-app">
+
+  <!-- ===============================================
+       SIDEBAR
+  ================================================ -->
+
+  <aside
+    class="admin-sidebar"
+    id="adminSidebar"
+  >
+
+    <div class="admin-brand">
+
+      <a href="index.html" class="brand">
+
+        <div class="brand-emblem">
+          <span>AE</span>
+        </div>
+
+        <div class="brand-text">
+          <strong>AAKASH EARTH</strong>
+          <span>YUWA MANDAL</span>
+        </div>
+
+      </a>
+
+    </div>
+
+
+    <div class="admin-profile">
+
+      <div class="admin-avatar">
+        👑
+      </div>
+
+      <h3>Administrator</h3>
+
+      <p>CONTROL PANEL</p>
+
+    </div>
+
+
+    <nav class="admin-nav">
+
+      <button
+        type="button"
+        class="admin-link active"
+        data-admin-panel="dashboard"
+      >
+        <span class="admin-nav-icon">⌂</span>
+        Dashboard
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="members"
+      >
+        <span class="admin-nav-icon">👥</span>
+        Members
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="volunteers"
+      >
+        <span class="admin-nav-icon">🤝</span>
+        Volunteers
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="tasks"
+      >
+        <span class="admin-nav-icon">✓</span>
+        Tasks
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="taskreview"
+      >
+        <span class="admin-nav-icon">⭐</span>
+        Task Review
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="complaints"
+      >
+        <span class="admin-nav-icon">!</span>
+        Complaints
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="proposals"
+      >
+        <span class="admin-nav-icon">◆</span>
+        Proposals
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="receipts"
+      >
+        <span class="admin-nav-icon">₹</span>
+        Receipts / Vargani
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="festivals"
+      >
+        <span class="admin-nav-icon">🪔</span>
+        Festivals
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="sports"
+      >
+        <span class="admin-nav-icon">🏆</span>
+        Sports
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="updates"
+      >
+        <span class="admin-nav-icon">📢</span>
+        Updates
+      </button>
+
+      <button
+        type="button"
+        class="admin-link"
+        data-admin-panel="gallery"
+      >
+        <span class="admin-nav-icon">▣</span>
+        Gallery
+      </button>
+
+      <button
+        type="button"
+        class="admin-link danger"
+        id="adminLogout"
+      >
+        <span class="admin-nav-icon">↪</span>
+        Logout
+      </button>
+
+    </nav>
+
+  </aside>
+
+
+  <!-- ===============================================
+       MAIN
+  ================================================ -->
+
+  <main class="admin-main">
+
+    <header class="admin-topbar">
+
+      <div class="admin-top-left">
+
+        <button
+          type="button"
+          class="admin-menu-btn"
+          id="adminMenuBtn"
+        >
+          ☰
+        </button>
+
+        <div class="admin-title">
+
+          <small>
+            AAKASH EARTH ADMIN
+          </small>
+
+          <h1 id="adminPageTitle">
+            Dashboard
+          </h1>
+
+        </div>
+
+      </div>
+
+
+      <div class="admin-top-actions">
+
+        <a
+          href="index.html"
+          class="admin-btn secondary"
+          style="text-decoration:none;"
+        >
+          View Website
+        </a>
+
+        <div class="admin-top-badge">
+          👑 Administrator
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <div class="admin-content">
+
+
+      <!-- ===========================================
+           DASHBOARD
+      ============================================ -->
+
+      <section
+        class="admin-panel active"
+        data-admin-panel-content="dashboard"
+      >
+
+        <div class="admin-welcome">
+
+          <div>
+
+            <small>
+              ✦ CENTRAL CONTROL
+            </small>
+
+            <h2>
+              AAKASH EARTH Admin
+            </h2>
+
+            <p>
+              Manage members, volunteers, tasks, complaints,
+              community content, receipts and approval workflows
+              from one control panel.
+            </p>
+
+          </div>
+
+
+          <div class="admin-control-badge">
+
+            <strong>
+              ADMIN ACCESS
+            </strong>
+
+            <span>
+              AAKASH EARTH YUWA MANDAL
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="admin-stats">
+
+          <div class="admin-stat">
+            <div class="admin-stat-icon">👥</div>
+            <strong id="adminMemberCount">0</strong>
+            <span>Members</span>
+          </div>
+
+          <div class="admin-stat">
+            <div class="admin-stat-icon">🤝</div>
+            <strong id="adminVolunteerCount">0</strong>
+            <span>Approved Volunteers</span>
+          </div>
+
+          <div class="admin-stat">
+            <div class="admin-stat-icon">◷</div>
+            <strong id="adminPendingVolunteerCount">0</strong>
+            <span>Pending Volunteers</span>
+          </div>
+
+          <div class="admin-stat">
+            <div class="admin-stat-icon">✓</div>
+            <strong id="adminPendingTaskCount">0</strong>
+            <span>Task Reviews</span>
+          </div>
+
+          <div class="admin-stat">
+            <div class="admin-stat-icon">!</div>
+            <strong id="adminComplaintCount">0</strong>
+            <span>Open Complaints</span>
+          </div>
+
+          <div class="admin-stat">
+            <div class="admin-stat-icon">◆</div>
+            <strong id="adminProposalCount">0</strong>
+            <span>Pending Proposals</span>
+          </div>
+
+        </div>
+
+
+        <div class="admin-section">
+
+          <div class="admin-panel-header">
+
+            <div>
+              <small>QUICK CONTROL</small>
+              <h2>Admin Services</h2>
+            </div>
+
+          </div>
+
+
+          <div class="admin-grid">
+
+            <button
+              class="admin-quick"
+              data-open-admin-panel="members"
+            >
+              <span class="admin-quick-icon">👥</span>
+              <strong>Manage Members</strong>
+              <span>Add and manage member accounts</span>
+            </button>
+
+            <button
+              class="admin-quick"
+              data-open-admin-panel="volunteers"
+            >
+              <span class="admin-quick-icon">🤝</span>
+              <strong>Volunteer Approval</strong>
+              <span>Approve or reject applications</span>
+            </button>
+
+            <button
+              class="admin-quick"
+              data-open-admin-panel="tasks"
+            >
+              <span class="admin-quick-icon">✓</span>
+              <strong>Assign Tasks</strong>
+              <span>Member and volunteer tasks</span>
+            </button>
+
+            <button
+              class="admin-quick"
+              data-open-admin-panel="taskreview"
+            >
+              <span class="admin-quick-icon">⭐</span>
+              <strong>Review Work</strong>
+              <span>Approve submitted tasks</span>
+            </button>
+
+            <button
+              class="admin-quick"
+              data-open-admin-panel="complaints"
+            >
+              <span class="admin-quick-icon">!</span>
+              <strong>Complaints</strong>
+              <span>Review and reply to complaints</span>
+            </button>
+
+            <button
+              class="admin-quick"
+              data-open-admin-panel="proposals"
+            >
+              <span class="admin-quick-icon">◆</span>
+              <strong>Proposals</strong>
+              <span>Approve member proposals</span>
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           MEMBERS
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="members"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>MEMBER MANAGEMENT</small>
+            <h2>Members</h2>
+            <p>
+              Create member accounts and manage existing records.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="admin-btn"
+            id="openAddMemberModal"
+          >
+            + Add Member
+          </button>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <div class="admin-toolbar">
+
+            <input
+              type="search"
+              id="memberAdminSearch"
+              class="admin-search"
+              placeholder="Search name, Member ID or mobile..."
+            >
+
+            <select
+              id="memberAdminStatusFilter"
+              class="admin-select"
+              style="width:auto;"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+
+          </div>
+
+
+          <div class="admin-table-wrap">
+
+            <table class="admin-table">
+
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Member ID</th>
+                  <th>Mobile</th>
+                  <th>Position</th>
+                  <th>Year</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody id="adminMemberList">
+                <tr>
+                  <td colspan="7">
+                    Loading members...
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           VOLUNTEERS
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="volunteers"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>VOLUNTEER MANAGEMENT</small>
+            <h2>Volunteers</h2>
+            <p>
+              Review registrations and approve official volunteers.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <div class="admin-toolbar">
+
+            <input
+              type="search"
+              id="volunteerAdminSearch"
+              class="admin-search"
+              placeholder="Search volunteer..."
+            >
+
+            <select
+              id="volunteerAdminStatusFilter"
+              class="admin-select"
+              style="width:auto;"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+          </div>
+
+
+          <div class="admin-table-wrap">
+
+            <table class="admin-table">
+
+              <thead>
+                <tr>
+                  <th>Volunteer</th>
+                  <th>Volunteer ID</th>
+                  <th>Mobile</th>
+                  <th>Area</th>
+                  <th>Year</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody id="adminVolunteerList">
+                <tr>
+                  <td colspan="7">
+                    Loading volunteers...
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           TASKS
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="tasks"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>TASK MANAGEMENT</small>
+            <h2>Assign Tasks</h2>
+            <p>
+              Assign a task to a Member or approved Volunteer.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <form id="adminTaskForm">
+
+            <div class="admin-form-grid">
+
+              <div class="admin-field">
+
+                <label for="adminTaskUserType">
+                  ASSIGN TO TYPE
+                </label>
+
+                <select
+                  id="adminTaskUserType"
+                  class="admin-select"
+                  required
+                >
+                  <option value="">
+                    Select type
+                  </option>
+
+                  <option value="member">
+                    Member
+                  </option>
+
+                  <option value="volunteer">
+                    Volunteer
+                  </option>
+                </select>
+
+              </div>
+
+
+              <div class="admin-field">
+
+                <label for="adminTaskUser">
+                  SELECT PERSON
+                </label>
+
+                <select
+                  id="adminTaskUser"
+                  class="admin-select"
+                  required
+                >
+                  <option value="">
+                    Select type first
+                  </option>
+                </select>
+
+              </div>
+
+
+              <div class="admin-field full">
+
+                <label for="adminTaskTitle">
+                  TASK TITLE
+                </label>
+
+                <input
+                  type="text"
+                  id="adminTaskTitle"
+                  class="admin-input"
+                  maxlength="120"
+                  required
+                >
+
+              </div>
+
+
+              <div class="admin-field full">
+
+                <label for="adminTaskDescription">
+                  DESCRIPTION
+                </label>
+
+                <textarea
+                  id="adminTaskDescription"
+                  class="admin-textarea"
+                  maxlength="1000"
+                  required
+                ></textarea>
+
+              </div>
+
+
+              <div class="admin-field">
+
+                <label for="adminTaskDeadline">
+                  DEADLINE
+                </label>
+
+                <input
+                  type="date"
+                  id="adminTaskDeadline"
+                  class="admin-input"
+                >
+
+              </div>
+
+
+              <div class="admin-field">
+
+                <label for="adminTaskPoints">
+                  POINTS
+                </label>
+
+                <input
+                  type="number"
+                  id="adminTaskPoints"
+                  class="admin-input"
+                  min="0"
+                  max="10000"
+                  value="10"
+                  required
+                >
+
+              </div>
+
+            </div>
+
+
+            <div
+              id="adminTaskMessage"
+              class="admin-message"
+            ></div>
+
+
+            <button
+              type="submit"
+              id="adminTaskSubmit"
+              class="admin-btn"
+              style="margin-top:15px;"
+            >
+              Assign Task →
+            </button>
+
+          </form>
+
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           TASK REVIEW
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="taskreview"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>WORK REVIEW</small>
+            <h2>Task Review</h2>
+            <p>
+              Review Member and Volunteer task submissions.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <div class="admin-toolbar">
+
+            <select
+              id="taskReviewTypeFilter"
+              class="admin-select"
+              style="width:auto;"
+            >
+              <option value="all">All</option>
+              <option value="member">Members</option>
+              <option value="volunteer">Volunteers</option>
+            </select>
+
+            <select
+              id="taskReviewStatusFilter"
+              class="admin-select"
+              style="width:auto;"
+            >
+              <option value="pending_review">
+                Pending Review
+              </option>
+
+              <option value="all">
+                All Status
+              </option>
+
+              <option value="completed">
+                Completed
+              </option>
+
+              <option value="rejected">
+                Rejected
+              </option>
+            </select>
+
+          </div>
+
+
+          <div class="admin-table-wrap">
+
+            <table class="admin-table">
+
+              <thead>
+                <tr>
+                  <th>Person</th>
+                  <th>Type</th>
+                  <th>Task</th>
+                  <th>Proof</th>
+                  <th>Points</th>
+                  <th>Status</th>
+                  <th>Review</th>
+                </tr>
+              </thead>
+
+              <tbody id="adminTaskReviewList">
+                <tr>
+                  <td colspan="7">
+                    Loading submitted tasks...
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           COMPLAINTS
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="complaints"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>COMPLAINT CONTROL</small>
+            <h2>Complaints</h2>
+            <p>
+              Admin can view private complaint information,
+              update status and send a reply.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <div class="admin-toolbar">
+
+            <input
+              type="search"
+              id="adminComplaintSearch"
+              class="admin-search"
+              placeholder="Search Complaint ID, name or mobile..."
+            >
+
+            <select
+              id="adminComplaintStatusFilter"
+              class="admin-select"
+              style="width:auto;"
+            >
+              <option value="all">All Status</option>
+              <option value="submitted">Submitted</option>
+              <option value="under_review">Under Review</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+            </select>
+
+          </div>
+
+
+          <div class="admin-table-wrap">
+
+            <table class="admin-table">
+
+              <thead>
+                <tr>
+                  <th>Complaint ID</th>
+                  <th>Complainant</th>
+                  <th>Against</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody id="adminComplaintList">
+                <tr>
+                  <td colspan="7">
+                    Loading complaints...
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           PROPOSALS
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="proposals"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>MEMBER REQUESTS</small>
+            <h2>Proposals</h2>
+            <p>
+              Review Member event, festival, sports, update
+              and gallery proposals.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <div class="admin-toolbar">
+
+            <select
+              id="adminProposalStatusFilter"
+              class="admin-select"
+              style="width:auto;"
+            >
+              <option value="pending">Pending</option>
+              <option value="all">All Status</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+          </div>
+
+
+          <div class="admin-table-wrap">
+
+            <table class="admin-table">
+
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Type</th>
+                  <th>Title</th>
+                  <th>Date</th>
+                  <th>Venue</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody id="adminProposalList">
+                <tr>
+                  <td colspan="7">
+                    Loading proposals...
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           RECEIPTS
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="receipts"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>VARGANI RECORD</small>
+            <h2>Receipts / Vargani</h2>
+            <p>
+              View receipt records created through the system.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <div class="admin-toolbar">
+
+            <input
+              type="search"
+              id="adminReceiptSearch"
+              class="admin-search"
+              placeholder="Search receipt, donor or mobile..."
+            >
+
+          </div>
+
+
+          <div class="admin-table-wrap">
+
+            <table class="admin-table">
+
+              <thead>
+                <tr>
+                  <th>Receipt ID</th>
+                  <th>Name</th>
+                  <th>Mobile</th>
+                  <th>Amount</th>
+                  <th>Purpose</th>
+                  <th>Created By</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+
+              <tbody id="adminReceiptList">
+                <tr>
+                  <td colspan="7">
+                    No receipt records loaded yet.
+                  </td>
+                </tr>
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           FESTIVALS
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="festivals"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>CELEBRATION MANAGEMENT</small>
+            <h2>Festivals</h2>
+            <p>
+              Publish festival information on the website.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <form
+            id="adminFestivalForm"
+            data-content-form="festivals"
+          >
+
+            <div class="admin-form-grid">
+
+              <div class="admin-field full">
+                <label>TITLE</label>
+                <input
+                  id="adminFestivalTitle"
+                  class="admin-input"
+                  type="text"
+                  maxlength="120"
+                  required
+                >
+              </div>
+
+              <div class="admin-field">
+                <label>DATE</label>
+                <input
+                  id="adminFestivalDate"
+                  class="admin-input"
+                  type="date"
+                >
+              </div>
+
+              <div class="admin-field">
+                <label>VENUE</label>
+                <input
+                  id="adminFestivalVenue"
+                  class="admin-input"
+                  type="text"
+                  maxlength="150"
+                >
+              </div>
+
+              <div class="admin-field full">
+                <label>DESCRIPTION</label>
+                <textarea
+                  id="adminFestivalDescription"
+                  class="admin-textarea"
+                  maxlength="1000"
+                ></textarea>
+              </div>
+
+            </div>
+
+            <div
+              id="adminFestivalMessage"
+              class="admin-message"
+            ></div>
+
+            <button
+              type="submit"
+              class="admin-btn"
+              style="margin-top:14px;"
+            >
+              Publish Festival
+            </button>
+
+          </form>
+
+        </div>
+
+
+        <div class="admin-card admin-section">
+          <div id="adminFestivalList" class="admin-grid">
+            <div class="admin-empty">
+              Loading festivals...
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           SPORTS
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="sports"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>SPORTS MANAGEMENT</small>
+            <h2>Sports</h2>
+            <p>
+              Publish sports events and community activities.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <form id="adminSportsForm">
+
+            <div class="admin-form-grid">
+
+              <div class="admin-field full">
+                <label>TITLE</label>
+                <input
+                  id="adminSportsTitle"
+                  class="admin-input"
+                  type="text"
+                  maxlength="120"
+                  required
+                >
+              </div>
+
+              <div class="admin-field">
+                <label>DATE</label>
+                <input
+                  id="adminSportsDate"
+                  class="admin-input"
+                  type="date"
+                >
+              </div>
+
+              <div class="admin-field">
+                <label>VENUE</label>
+                <input
+                  id="adminSportsVenue"
+                  class="admin-input"
+                  type="text"
+                  maxlength="150"
+                >
+              </div>
+
+              <div class="admin-field full">
+                <label>DESCRIPTION</label>
+                <textarea
+                  id="adminSportsDescription"
+                  class="admin-textarea"
+                  maxlength="1000"
+                ></textarea>
+              </div>
+
+            </div>
+
+            <div
+              id="adminSportsMessage"
+              class="admin-message"
+            ></div>
+
+            <button
+              type="submit"
+              class="admin-btn"
+              style="margin-top:14px;"
+            >
+              Publish Sports Event
+            </button>
+
+          </form>
+
+        </div>
+
+
+        <div class="admin-card admin-section">
+          <div id="adminSportsList" class="admin-grid">
+            <div class="admin-empty">
+              Loading sports...
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           UPDATES
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="updates"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>ANNOUNCEMENTS</small>
+            <h2>Updates</h2>
+            <p>
+              Publish important community announcements.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <form id="adminUpdateForm">
+
+            <div class="admin-form-grid">
+
+              <div class="admin-field full">
+                <label>TITLE</label>
+                <input
+                  id="adminUpdateTitle"
+                  class="admin-input"
+                  type="text"
+                  maxlength="120"
+                  required
+                >
+              </div>
+
+              <div class="admin-field full">
+                <label>MESSAGE / DESCRIPTION</label>
+                <textarea
+                  id="adminUpdateDescription"
+                  class="admin-textarea"
+                  maxlength="1200"
+                  required
+                ></textarea>
+              </div>
+
+            </div>
+
+            <div
+              id="adminUpdateMessage"
+              class="admin-message"
+            ></div>
+
+            <button
+              type="submit"
+              class="admin-btn"
+              style="margin-top:14px;"
+            >
+              Publish Update
+            </button>
+
+          </form>
+
+        </div>
+
+
+        <div class="admin-card admin-section">
+          <div id="adminUpdatesList" class="admin-grid">
+            <div class="admin-empty">
+              Loading updates...
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- ===========================================
+           GALLERY
+      ============================================ -->
+
+      <section
+        class="admin-panel"
+        data-admin-panel-content="gallery"
+      >
+
+        <div class="admin-panel-header">
+
+          <div>
+            <small>COMMUNITY MEMORIES</small>
+            <h2>Gallery</h2>
+            <p>
+              Manage approved gallery records. Firebase Storage
+              image upload will be connected after Storage is fixed.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-card">
+
+          <form id="adminGalleryForm">
+
+            <div class="admin-form-grid">
+
+              <div class="admin-field full">
+
+                <label>TITLE / CAPTION</label>
+
+                <input
+                  id="adminGalleryTitle"
+                  class="admin-input"
+                  type="text"
+                  maxlength="120"
+                  required
+                >
+
+              </div>
+
+
+              <div class="admin-field full">
+
+                <label>DESCRIPTION</label>
+
+                <textarea
+                  id="adminGalleryDescription"
+                  class="admin-textarea"
+                  maxlength="800"
+                ></textarea>
+
+              </div>
+
+            </div>
+
+
+            <div
+              id="adminGalleryMessage"
+              class="admin-message"
+            ></div>
+
+
+            <button
+              type="submit"
+              class="admin-btn"
+              style="margin-top:14px;"
+            >
+              Add Gallery Record
+            </button>
+
+          </form>
+
+        </div>
+
+
+        <div class="admin-card admin-section">
+
+          <div
+            id="adminGalleryList"
+            class="admin-grid"
+          >
+            <div class="admin-empty">
+              Loading gallery...
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+</div>
+
+
+<!-- =================================================
+     ADD MEMBER MODAL
+================================================== -->
+
+<div
+  class="admin-modal"
+  id="addMemberModal"
+>
+
+  <div class="admin-modal-card">
+
+    <div class="admin-modal-header">
+
+      <div>
+        <small>MEMBER ACCOUNT</small>
+        <h3>Add New Member</h3>
+      </div>
+
+      <button
+        type="button"
+        class="admin-modal-close"
+        id="closeAddMemberModal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form id="adminAddMemberForm">
+
+      <div class="admin-form-grid">
+
+        <div class="admin-field full">
+          <label>FULL NAME</label>
+
+          <input
+            id="newMemberName"
+            class="admin-input"
+            type="text"
+            maxlength="100"
+            required
+          >
+        </div>
+
+
+        <div class="admin-field">
+          <label>MOBILE</label>
+
+          <input
+            id="newMemberMobile"
+            class="admin-input"
+            type="tel"
+            maxlength="10"
+            inputmode="numeric"
+            required
+          >
+        </div>
+
+
+        <div class="admin-field">
+          <label>POSITION</label>
+
+          <input
+            id="newMemberPosition"
+            class="admin-input"
+            type="text"
+            maxlength="80"
+            placeholder="Member / President / etc."
+          >
+        </div>
+
+
+        <div class="admin-field">
+          <label>YEAR</label>
+
+          <input
+            id="newMemberYear"
+            class="admin-input"
+            type="number"
+            min="2020"
+            max="2100"
+            required
+          >
+        </div>
+
+
+        <div class="admin-field">
+          <label>USERNAME</label>
+
+          <input
+            id="newMemberUsername"
+            class="admin-input"
+            type="text"
+            maxlength="60"
+            required
+          >
+        </div>
+
+
+        <div class="admin-field full">
+          <label>PASSWORD</label>
+
+          <input
+            id="newMemberPassword"
+            class="admin-input"
+            type="text"
+            maxlength="80"
+            required
+          >
+        </div>
+
+
+        <div class="admin-field full">
+          <label>ADDRESS</label>
+
+          <textarea
+            id="newMemberAddress"
+            class="admin-textarea"
+            maxlength="350"
+          ></textarea>
+        </div>
+
+      </div>
+
+
+      <div
+        id="addMemberMessage"
+        class="admin-message"
+      ></div>
+
+
+      <button
+        type="submit"
+        id="addMemberSubmit"
+        class="admin-btn"
+        style="
+          width:100%;
+          margin-top:15px;
+        "
+      >
+        Create Member Account →
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
+
+
+<!-- =================================================
+     VOLUNTEER REVIEW MODAL
+================================================== -->
+
+<div
+  class="admin-modal"
+  id="volunteerReviewModal"
+>
+
+  <div class="admin-modal-card">
+
+    <div class="admin-modal-header">
+
+      <div>
+        <small>VOLUNTEER APPLICATION</small>
+        <h3 id="reviewVolunteerName">
+          Volunteer
+        </h3>
+      </div>
+
+      <button
+        type="button"
+        class="admin-modal-close"
+        id="closeVolunteerReviewModal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div id="reviewVolunteerDetails">
+      <div class="admin-empty">
+        Volunteer details
+      </div>
+    </div>
+
+
+    <div
+      id="volunteerReviewMessage"
+      class="admin-message"
+    ></div>
+
+
+    <div
+      class="admin-actions"
+      style="margin-top:18px;"
+    >
+
+      <button
+        type="button"
+        class="admin-btn green"
+        id="approveVolunteerBtn"
+      >
+        ✓ Approve Volunteer
+      </button>
+
+      <button
+        type="button"
+        class="admin-btn red"
+        id="rejectVolunteerBtn"
+      >
+        Reject
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =================================================
+     TASK REVIEW MODAL
+================================================== -->
+
+<div
+  class="admin-modal"
+  id="taskReviewModal"
+>
+
+  <div class="admin-modal-card">
+
+    <div class="admin-modal-header">
+
+      <div>
+        <small>TASK REVIEW</small>
+        <h3 id="taskReviewModalTitle">
+          Review Task
+        </h3>
+      </div>
+
+      <button
+        type="button"
+        class="admin-modal-close"
+        id="closeTaskReviewModal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div id="taskReviewDetails"></div>
+
+
+    <div class="admin-form-grid" style="margin-top:18px;">
+
+      <div class="admin-field">
+
+        <label for="taskReviewPoints">
+          FINAL POINTS
+        </label>
+
+        <input
+          id="taskReviewPoints"
+          class="admin-input"
+          type="number"
+          min="0"
+          max="10000"
+        >
+
+      </div>
+
+
+      <div class="admin-field">
+
+        <label for="taskReviewRating">
+          RATING
+        </label>
+
+        <select
+          id="taskReviewRating"
+          class="admin-select"
+        >
+          <option value="">No Rating</option>
+          <option value="1">1 Star</option>
+          <option value="2">2 Stars</option>
+          <option value="3">3 Stars</option>
+          <option value="4">4 Stars</option>
+          <option value="5">5 Stars</option>
+        </select>
+
+      </div>
+
+
+      <div class="admin-field full">
+
+        <label for="taskReviewRemark">
+          ADMIN REMARK
+        </label>
+
+        <textarea
+          id="taskReviewRemark"
+          class="admin-textarea"
+          maxlength="500"
+        ></textarea>
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="taskReviewMessage"
+      class="admin-message"
+    ></div>
+
+
+    <div
+      class="admin-actions"
+      style="margin-top:17px;"
+    >
+
+      <button
+        type="button"
+        class="admin-btn green"
+        id="approveTaskBtn"
+      >
+        ✓ Approve & Complete
+      </button>
+
+      <button
+        type="button"
+        class="admin-btn red"
+        id="rejectTaskBtn"
+      >
+        Reject / Resubmit
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =================================================
+     COMPLAINT MODAL
+================================================== -->
+
+<div
+  class="admin-modal"
+  id="complaintAdminModal"
+>
+
+  <div class="admin-modal-card">
+
+    <div class="admin-modal-header">
+
+      <div>
+        <small>COMPLAINT REVIEW</small>
+
+        <h3 id="complaintModalId">
+          Complaint
+        </h3>
+      </div>
+
+      <button
+        type="button"
+        class="admin-modal-close"
+        id="closeComplaintAdminModal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div id="complaintAdminDetails"></div>
+
+
+    <div class="admin-form-grid" style="margin-top:18px;">
+
+      <div class="admin-field">
+
+        <label for="complaintAdminStatus">
+          STATUS
+        </label>
+
+        <select
+          id="complaintAdminStatus"
+          class="admin-select"
+        >
+          <option value="submitted">
+            Submitted
+          </option>
+
+          <option value="under_review">
+            Under Review
+          </option>
+
+          <option value="in_progress">
+            In Progress
+          </option>
+
+          <option value="resolved">
+            Resolved
+          </option>
+        </select>
+
+      </div>
+
+
+      <div class="admin-field full">
+
+        <label for="complaintAdminReply">
+          ADMIN REPLY
+        </label>
+
+        <textarea
+          id="complaintAdminReply"
+          class="admin-textarea"
+          maxlength="800"
+          placeholder="Write reply / action taken..."
+        ></textarea>
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="complaintAdminMessage"
+      class="admin-message"
+    ></div>
+
+
+    <button
+      type="button"
+      class="admin-btn"
+      id="saveComplaintAdminBtn"
+      style="margin-top:15px;"
+    >
+      Save Complaint Update →
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- =================================================
+     PROPOSAL REVIEW MODAL
+================================================== -->
+
+<div
+  class="admin-modal"
+  id="proposalReviewModal"
+>
+
+  <div class="admin-modal-card">
+
+    <div class="admin-modal-header">
+
+      <div>
+        <small>MEMBER PROPOSAL</small>
+
+        <h3 id="proposalReviewTitle">
+          Proposal
+        </h3>
+      </div>
+
+      <button
+        type="button"
+        class="admin-modal-close"
+        id="closeProposalReviewModal"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div id="proposalReviewDetails"></div>
+
+
+    <div
+      id="proposalReviewMessage"
+      class="admin-message"
+    ></div>
+
+
+    <div
+      class="admin-actions"
+      style="margin-top:18px;"
+    >
+
+      <button
+        type="button"
+        class="admin-btn green"
+        id="approveProposalBtn"
+      >
+        ✓ Approve & Publish
+      </button>
+
+      <button
+        type="button"
+        class="admin-btn red"
+        id="rejectProposalBtn"
+      >
+        Reject Proposal
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script
+  type="module"
+  src="admin.js"
+></script>
+
+</body>
+</html>
