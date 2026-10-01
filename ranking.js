@@ -1,6 +1,11 @@
 /* =========================================================
-   AAKASH EARTH - VOLUNTEER RANKING
-   Firebase Realtime Database
+   AAKASH EARTH
+   PUBLIC VOLUNTEER RANKING
+   Complete replacement: ranking.js
+
+   IMPORTANT:
+   Points are used ONLY for ranking calculation.
+   Points are NOT displayed publicly.
 ========================================================= */
 
 import {
@@ -17,782 +22,760 @@ import {
 const $ = (id) =>
   document.getElementById(id);
 
-function clean(value = "") {
-  return String(value).trim();
-}
 
-function normalize(value = "") {
-  return clean(value).toLowerCase();
-}
+const clean = (value) =>
+  String(value ?? "").trim();
 
-function escapeHTML(value = "") {
-  return String(value)
+
+const safeNumber = (value) => {
+
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : 0;
+
+};
+
+
+const escapeHTML = (value) =>
+  String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+
+
+/* =========================================================
+   CURRENT YEAR
+========================================================= */
+
+if ($("rankingCurrentYear")) {
+
+  $("rankingCurrentYear")
+    .textContent =
+    new Date().getFullYear();
+
 }
 
-function numberValue(value) {
-  const number = Number(value);
 
-  return Number.isFinite(number)
-    ? number
-    : 0;
-}
+/* =========================================================
+   CHECK PUBLIC VOLUNTEER
+========================================================= */
 
-function safeImage(value = "") {
-  const url = clean(value);
-
-  if (!url) return "";
+function isPublicVolunteer(
+  volunteer
+) {
 
   if (
-    url.startsWith("https://") ||
-    url.startsWith("http://") ||
-    url.startsWith("data:image/")
+    !volunteer ||
+    typeof volunteer !== "object"
   ) {
-    return url;
+
+    return false;
+
   }
 
-  return "";
-}
 
+  if (
+    volunteer.active === false
+  ) {
 
-/* =========================================================
-   STATE
-========================================================= */
+    return false;
 
-let volunteers = [];
-
-
-/* =========================================================
-   CURRENT LOGGED-IN VOLUNTEER
-========================================================= */
-
-const currentVolunteerKey =
-  sessionStorage.getItem(
-    "aakashVolunteerKey"
-  ) || "";
-
-const currentVolunteerId =
-  sessionStorage.getItem(
-    "aakashVolunteerId"
-  ) || "";
-
-
-/* =========================================================
-   RANKING CALCULATION
-========================================================= */
-
-function calculateRanking(data) {
-  if (!data) {
-    return [];
   }
 
-  const list =
-    Object.entries(data)
-      .map(([key, volunteer]) => ({
-        key,
-        ...(volunteer || {})
-      }))
-      .filter(
-        (volunteer) =>
-          normalize(volunteer.status) ===
-          "approved"
-      );
+
+  const status =
+    clean(
+      volunteer.status
+    ).toLowerCase();
+
 
   /*
-    Ranking priority:
-
-    1. Highest Points
-    2. Highest Rating
-    3. Alphabetical Name
+     Do not show disabled/inactive
+     accounts publicly.
   */
 
-  list.sort((a, b) => {
-    const pointDifference =
-      numberValue(b.points) -
-      numberValue(a.points);
+  if (
+    [
+      "inactive",
+      "disabled",
+      "blocked",
+      "suspended",
+      "rejected"
+    ].includes(status)
+  ) {
 
-    if (pointDifference !== 0) {
-      return pointDifference;
-    }
+    return false;
 
-    const ratingDifference =
-      numberValue(b.rating) -
-      numberValue(a.rating);
+  }
 
-    if (ratingDifference !== 0) {
-      return ratingDifference;
-    }
 
-    return String(a.name || "")
-      .localeCompare(
-        String(b.name || ""),
-        "en",
-        {
-          sensitivity: "base"
+  return true;
+
+}
+
+
+/* =========================================================
+   VOLUNTEER DETAILS
+========================================================= */
+
+function getVolunteerName(
+  volunteer
+) {
+
+  return clean(
+    volunteer.name ??
+    volunteer.fullName ??
+    volunteer.volunteerName
+  ) || "Volunteer";
+
+}
+
+
+function getVolunteerId(
+  volunteer
+) {
+
+  return clean(
+    volunteer.volunteerId ??
+    volunteer.volunteerID ??
+    volunteer.userId ??
+    volunteer.id
+  ) || "—";
+
+}
+
+
+function getVolunteerPhoto(
+  volunteer
+) {
+
+  return clean(
+    volunteer.photoURL ??
+    volunteer.imageURL ??
+    volunteer.photo ??
+    volunteer.image
+  );
+
+}
+
+
+/* =========================================================
+   SORT RANKING
+
+   Highest points = Rank #1
+
+   Tie:
+   Older account first.
+
+   NOTE:
+   Points are never returned
+   in public HTML.
+========================================================= */
+
+function buildRanking(
+  data
+) {
+
+  return Object.entries(
+    data || {}
+  )
+    .filter(
+      ([, volunteer]) =>
+        isPublicVolunteer(
+          volunteer
+        )
+    )
+    .map(
+      ([key, volunteer]) => ({
+
+        key,
+
+        volunteer,
+
+        /*
+          Internal calculation only.
+          Never display this publicly.
+        */
+
+        score:
+          safeNumber(
+            volunteer.points
+          ),
+
+        createdAt:
+          safeNumber(
+            volunteer.createdAt
+          )
+
+      })
+    )
+    .sort(
+      (a, b) => {
+
+        /*
+          Higher points first.
+        */
+
+        if (
+          b.score !==
+          a.score
+        ) {
+
+          return (
+            b.score -
+            a.score
+          );
+
         }
-      );
-  });
 
-  return list.map(
-    (volunteer, index) => ({
-      ...volunteer,
-      calculatedRank:
-        index + 1
-    })
-  );
+
+        /*
+          If points are equal,
+          older account stays first.
+        */
+
+        if (
+          a.createdAt !==
+          b.createdAt
+        ) {
+
+          return (
+            a.createdAt -
+            b.createdAt
+          );
+
+        }
+
+
+        /*
+          Final stable tie breaker.
+        */
+
+        return a.key.localeCompare(
+          b.key
+        );
+
+      }
+    );
+
 }
 
 
 /* =========================================================
-   MEDAL
+   PHOTO HTML
 ========================================================= */
 
-function rankDisplay(rank) {
-  if (rank === 1) {
+function createPhotoHTML(
+  volunteer,
+  extraClass = ""
+) {
+
+  const name =
+    getVolunteerName(
+      volunteer
+    );
+
+
+  const photo =
+    getVolunteerPhoto(
+      volunteer
+    );
+
+
+  const initial =
+    clean(name)
+      .charAt(0)
+      .toUpperCase() ||
+    "V";
+
+
+  if (photo) {
+
     return `
-      <span
-        title="Rank 1"
-        style="font-size:20px;"
-      >
-        🥇
-      </span>
-    `;
-  }
+      <div class="volunteer-photo ${extraClass}">
 
-  if (rank === 2) {
-    return `
-      <span
-        title="Rank 2"
-        style="font-size:20px;"
-      >
-        🥈
-      </span>
-    `;
-  }
+        <span>
+          ${escapeHTML(initial)}
+        </span>
 
-  if (rank === 3) {
-    return `
-      <span
-        title="Rank 3"
-        style="font-size:20px;"
-      >
-        🥉
-      </span>
-    `;
-  }
-
-  return `
-    <strong>
-      #${rank}
-    </strong>
-  `;
-}
-
-
-/* =========================================================
-   PHOTO
-========================================================= */
-
-function volunteerPhoto(volunteer) {
-  return safeImage(
-    volunteer.photoURL ||
-    volunteer.photoUrl ||
-    volunteer.photo ||
-    ""
-  );
-}
-
-
-/* =========================================================
-   RATING
-========================================================= */
-
-function ratingDisplay(value) {
-  const rating =
-    numberValue(value);
-
-  if (rating <= 0) {
-    return "—";
-  }
-
-  return `${rating.toFixed(1)} ★`;
-}
-
-
-/* =========================================================
-   RANKING TABLE
-========================================================= */
-
-function renderRankingTable() {
-  const body =
-    $("volunteerRankingList");
-
-  if (!body) return;
-
-  if (!volunteers.length) {
-    body.innerHTML = `
-      <tr>
-        <td
-          colspan="5"
-          style="
-            text-align:center;
-            padding:25px;
+        <img
+          src="${escapeHTML(photo)}"
+          alt="${escapeHTML(name)}"
+          loading="lazy"
+          decoding="async"
+          onerror="
+            this.style.display='none';
           "
         >
-          No approved volunteers
-          available for ranking.
-        </td>
-      </tr>
+
+      </div>
     `;
 
+  }
+
+
+  return `
+    <div class="volunteer-photo ${extraClass}">
+      <span>
+        ${escapeHTML(initial)}
+      </span>
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   PODIUM CARD
+========================================================= */
+
+function createPodiumCard(
+  item,
+  rank
+) {
+
+  const volunteer =
+    item.volunteer;
+
+
+  const name =
+    getVolunteerName(
+      volunteer
+    );
+
+
+  const volunteerId =
+    getVolunteerId(
+      volunteer
+    );
+
+
+  let medal = "";
+
+  let rankClass = "";
+
+
+  if (rank === 1) {
+
+    medal = "🥇";
+    rankClass = "rank-one";
+
+  } else if (rank === 2) {
+
+    medal = "🥈";
+
+  } else if (rank === 3) {
+
+    medal = "🥉";
+
+  }
+
+
+  return `
+    <article class="podium-card ${rankClass}">
+
+      <span
+        class="rank-medal"
+        aria-hidden="true"
+      >
+        ${medal}
+      </span>
+
+
+      <span class="rank-number">
+        RANK #${rank}
+      </span>
+
+
+      ${createPhotoHTML(
+        volunteer
+      )}
+
+
+      <h3>
+        ${escapeHTML(name)}
+      </h3>
+
+
+      <span class="volunteer-id">
+        ${escapeHTML(
+          volunteerId
+        )}
+      </span>
+
+    </article>
+  `;
+
+}
+
+
+/* =========================================================
+   NORMAL RANK ROW
+========================================================= */
+
+function createRankingRow(
+  item,
+  rank
+) {
+
+  const volunteer =
+    item.volunteer;
+
+
+  const name =
+    getVolunteerName(
+      volunteer
+    );
+
+
+  const volunteerId =
+    getVolunteerId(
+      volunteer
+    );
+
+
+  return `
+    <article class="ranking-row">
+
+      <div class="row-rank">
+        #${rank}
+      </div>
+
+
+      ${createPhotoHTML(
+        volunteer,
+        "row-photo"
+      )}
+
+
+      <div class="row-info">
+
+        <h3>
+          ${escapeHTML(name)}
+        </h3>
+
+        <span>
+          Volunteer ID:
+          ${escapeHTML(
+            volunteerId
+          )}
+        </span>
+
+      </div>
+
+    </article>
+  `;
+
+}
+
+
+/* =========================================================
+   RENDER TOP 3
+========================================================= */
+
+function renderPodium(
+  ranking
+) {
+
+  const container =
+    $("rankingPodium");
+
+
+  if (!container) {
     return;
   }
 
-  body.innerHTML =
-    volunteers
-      .map((volunteer) => {
-        const isCurrent =
-          volunteer.key ===
-            currentVolunteerKey ||
-          (
-            currentVolunteerId &&
-            clean(
-              volunteer.volunteerId
-            ) ===
-            clean(
-              currentVolunteerId
-            )
-          );
 
-        return `
-          <tr
-            ${
-              isCurrent
-                ? `
-                  style="
-                    background:
-                    rgba(215,173,74,.12);
-                  "
-                `
-                : ""
-            }
-          >
+  if (!ranking.length) {
 
-            <td>
-              ${rankDisplay(
-                volunteer.calculatedRank
-              )}
-            </td>
-
-            <td>
-              <div
-                style="
-                  display:flex;
-                  align-items:center;
-                  gap:9px;
-                "
-              >
-
-                ${
-                  volunteerPhoto(volunteer)
-                    ? `
-                      <img
-                        src="${escapeHTML(
-                          volunteerPhoto(
-                            volunteer
-                          )
-                        )}"
-                        alt=""
-                        style="
-                          width:34px;
-                          height:34px;
-                          object-fit:cover;
-                          border-radius:50%;
-                          border:
-                            1px solid
-                            rgba(215,173,74,.4);
-                        "
-                      >
-                    `
-                    : `
-                      <div
-                        style="
-                          width:34px;
-                          height:34px;
-                          display:grid;
-                          place-items:center;
-                          border-radius:50%;
-                          background:#071a2b;
-                          color:#f2d78b;
-                          font-size:11px;
-                          font-weight:800;
-                        "
-                      >
-                        ${escapeHTML(
-                          (
-                            volunteer.name ||
-                            "V"
-                          )
-                            .charAt(0)
-                            .toUpperCase()
-                        )}
-                      </div>
-                    `
-                }
-
-                <div>
-                  <strong>
-                    ${escapeHTML(
-                      volunteer.name ||
-                      "Volunteer"
-                    )}
-                  </strong>
-
-                  ${
-                    isCurrent
-                      ? `
-                        <br>
-                        <small
-                          style="
-                            color:#a77a20;
-                            font-weight:800;
-                          "
-                        >
-                          YOU
-                        </small>
-                      `
-                      : ""
-                  }
-                </div>
-
-              </div>
-            </td>
-
-            <td>
-              ${escapeHTML(
-                volunteer.volunteerId ||
-                volunteer.applicationId ||
-                "—"
-              )}
-            </td>
-
-            <td>
-              <strong>
-                ${numberValue(
-                  volunteer.points
-                )}
-              </strong>
-            </td>
-
-            <td>
-              ${escapeHTML(
-                ratingDisplay(
-                  volunteer.rating
-                )
-              )}
-            </td>
-
-          </tr>
-        `;
-      })
-      .join("");
-}
-
-
-/* =========================================================
-   OPTIONAL STANDALONE RANKING PAGE SUPPORT
-
-   Agar ranking.html me ye IDs hain,
-   to ye automatically work karenge.
-========================================================= */
-
-function renderStandaloneRanking() {
-  const container =
-    $("rankingVolunteerList");
-
-  if (!container) return;
-
-  if (!volunteers.length) {
     container.innerHTML = `
-      <div class="ranking-empty">
-        No approved volunteers found.
+      <div class="empty">
+        No volunteer ranking available yet.
       </div>
     `;
 
     return;
+
   }
 
-  container.innerHTML =
-    volunteers
-      .map((volunteer) => {
-        const photo =
-          volunteerPhoto(volunteer);
-
-        return `
-          <article
-            class="ranking-card"
-            data-rank="${
-              volunteer.calculatedRank
-            }"
-          >
-
-            <div
-              class="ranking-number"
-            >
-              ${rankDisplay(
-                volunteer.calculatedRank
-              )}
-            </div>
-
-            <div
-              class="ranking-person"
-              style="
-                display:flex;
-                align-items:center;
-                gap:12px;
-              "
-            >
-
-              ${
-                photo
-                  ? `
-                    <img
-                      src="${escapeHTML(photo)}"
-                      alt=""
-                      style="
-                        width:48px;
-                        height:48px;
-                        border-radius:50%;
-                        object-fit:cover;
-                      "
-                    >
-                  `
-                  : `
-                    <div
-                      style="
-                        width:48px;
-                        height:48px;
-                        display:grid;
-                        place-items:center;
-                        border-radius:50%;
-                        background:#071a2b;
-                        color:#f2d78b;
-                        font-weight:800;
-                      "
-                    >
-                      ${escapeHTML(
-                        (
-                          volunteer.name ||
-                          "V"
-                        )
-                          .charAt(0)
-                          .toUpperCase()
-                      )}
-                    </div>
-                  `
-              }
-
-              <div>
-                <strong>
-                  ${escapeHTML(
-                    volunteer.name ||
-                    "Volunteer"
-                  )}
-                </strong>
-
-                <div>
-                  ${escapeHTML(
-                    volunteer.volunteerId ||
-                    volunteer.applicationId ||
-                    "—"
-                  )}
-                </div>
-              </div>
-
-            </div>
-
-            <div
-              class="ranking-points"
-            >
-              <strong>
-                ${numberValue(
-                  volunteer.points
-                )}
-              </strong>
-
-              <span>
-                Points
-              </span>
-            </div>
-
-            <div
-              class="ranking-rating"
-            >
-              ${escapeHTML(
-                ratingDisplay(
-                  volunteer.rating
-                )
-              )}
-            </div>
-
-          </article>
-        `;
-      })
-      .join("");
-}
-
-
-/* =========================================================
-   CURRENT VOLUNTEER RANK
-========================================================= */
-
-function renderCurrentRank() {
-  const rankElement =
-    $("volunteerRank");
-
-  if (!rankElement) return;
-
-  const current =
-    volunteers.find(
-      (volunteer) =>
-        volunteer.key ===
-          currentVolunteerKey ||
-        (
-          currentVolunteerId &&
-          clean(
-            volunteer.volunteerId
-          ) ===
-          clean(
-            currentVolunteerId
-          )
-        )
-    );
-
-  if (!current) {
-    rankElement.textContent =
-      "—";
-
-    return;
-  }
-
-  rankElement.textContent =
-    `#${current.calculatedRank}`;
-}
-
-
-/* =========================================================
-   OPTIONAL TOP 3
-========================================================= */
-
-function renderTopThree() {
-  const container =
-    $("rankingTopThree");
-
-  if (!container) return;
 
   const topThree =
-    volunteers.slice(0, 3);
+    ranking.slice(
+      0,
+      3
+    );
 
-  if (!topThree.length) {
-    container.innerHTML = "";
+
+  /*
+     Desktop visual order:
+
+     Rank 2 | Rank 1 | Rank 3
+
+     Rank numbers remain correct.
+  */
+
+  if (
+    topThree.length >= 3
+  ) {
+
+    container.innerHTML =
+      createPodiumCard(
+        topThree[1],
+        2
+      ) +
+
+      createPodiumCard(
+        topThree[0],
+        1
+      ) +
+
+      createPodiumCard(
+        topThree[2],
+        3
+      );
+
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    topThree.map(
+      (item, index) =>
+        createPodiumCard(
+          item,
+          index + 1
+        )
+    ).join("");
+
+}
+
+
+/* =========================================================
+   RENDER ALL RANKS
+
+   Top 3 are already shown above,
+   so normal list starts at Rank #4.
+========================================================= */
+
+function renderRankingList(
+  ranking
+) {
+
+  const container =
+    $("publicRankingList");
+
+
+  if (!container) {
     return;
   }
 
+
+  const remaining =
+    ranking.slice(3);
+
+
+  if (!ranking.length) {
+
+    container.innerHTML = `
+      <div class="empty">
+        No volunteers available.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  if (!remaining.length) {
+
+    container.innerHTML = `
+      <div class="empty">
+        Top volunteers are shown above.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
   container.innerHTML =
-    topThree
-      .map((volunteer) => `
-        <article
-          class="ranking-top-card"
-        >
+    remaining.map(
+      (item, index) => {
 
-          <div
-            style="
-              font-size:28px;
-              margin-bottom:8px;
-            "
-          >
-            ${
-              volunteer.calculatedRank === 1
-                ? "🥇"
-                : volunteer.calculatedRank === 2
-                  ? "🥈"
-                  : "🥉"
-            }
-          </div>
+        /*
+          index 0 here means
+          public Rank #4.
+        */
 
-          <strong>
-            ${escapeHTML(
-              volunteer.name ||
-              "Volunteer"
-            )}
-          </strong>
+        const rank =
+          index + 4;
 
-          <div
-            style="
-              margin-top:5px;
-              opacity:.7;
-            "
-          >
-            ${escapeHTML(
-              volunteer.volunteerId ||
-              volunteer.applicationId ||
-              "—"
-            )}
-          </div>
 
-          <div
-            style="
-              margin-top:10px;
-              font-weight:800;
-            "
-          >
-            ${numberValue(
-              volunteer.points
-            )}
-            Points
-          </div>
+        return createRankingRow(
+          item,
+          rank
+        );
 
-          <div
-            style="
-              margin-top:4px;
-            "
-          >
-            ${escapeHTML(
-              ratingDisplay(
-                volunteer.rating
-              )
-            )}
-          </div>
+      }
+    ).join("");
 
-        </article>
-      `)
-      .join("");
 }
 
 
 /* =========================================================
-   STATS
+   VOLUNTEER COUNT
 ========================================================= */
 
-function renderRankingStats() {
-  if ($("rankingVolunteerCount")) {
-    $("rankingVolunteerCount")
-      .textContent =
-        volunteers.length;
+function renderCount(
+  ranking
+) {
+
+  const element =
+    $("publicVolunteerRankingCount");
+
+
+  if (!element) {
+    return;
   }
 
-  if ($("rankingHighestPoints")) {
-    $("rankingHighestPoints")
-      .textContent =
-        volunteers.length
-          ? numberValue(
-              volunteers[0].points
-            )
-          : 0;
-  }
 
-  if ($("rankingHighestRating")) {
-    const highestRating =
-      volunteers.reduce(
-        (highest, volunteer) =>
-          Math.max(
-            highest,
-            numberValue(
-              volunteer.rating
-            )
-          ),
-        0
-      );
+  const count =
+    ranking.length;
 
-    $("rankingHighestRating")
-      .textContent =
-        highestRating > 0
-          ? highestRating.toFixed(1)
-          : "0";
-  }
+
+  element.textContent =
+    `${count} ${
+      count === 1
+        ? "Volunteer"
+        : "Volunteers"
+    }`;
+
 }
 
 
 /* =========================================================
-   RENDER ALL
+   MAIN RENDER
 ========================================================= */
 
-function renderEverything() {
-  renderRankingTable();
+function renderRanking(
+  data
+) {
 
-  renderStandaloneRanking();
+  const ranking =
+    buildRanking(
+      data
+    );
 
-  renderCurrentRank();
 
-  renderTopThree();
+  renderCount(
+    ranking
+  );
 
-  renderRankingStats();
+
+  renderPodium(
+    ranking
+  );
+
+
+  renderRankingList(
+    ranking
+  );
+
 }
 
 
 /* =========================================================
-   FIREBASE LIVE LISTENER
+   FIREBASE LIVE RANKING
+
+   Any points change automatically
+   recalculates the ranking.
 ========================================================= */
 
 onValue(
-  ref(db, "volunteers"),
+  ref(
+    db,
+    "volunteers"
+  ),
 
   (snapshot) => {
-    volunteers =
-      calculateRanking(
-        snapshot.val()
-      );
 
-    renderEverything();
+    const data =
+      snapshot.exists()
+        ? snapshot.val()
+        : {};
+
+
+    renderRanking(
+      data
+    );
+
   },
 
   (error) => {
+
     console.error(
-      "Volunteer ranking error:",
+      "Public ranking error:",
       error
     );
 
-    const table =
-      $("volunteerRankingList");
 
-    if (table) {
-      table.innerHTML = `
-        <tr>
-          <td
-            colspan="5"
-            style="
-              text-align:center;
-              padding:20px;
-            "
-          >
-            Unable to load ranking.
-          </td>
-        </tr>
-      `;
-    }
+    const podium =
+      $("rankingPodium");
 
-    const standalone =
-      $("rankingVolunteerList");
 
-    if (standalone) {
-      standalone.innerHTML = `
-        <div class="ranking-empty">
+    const list =
+      $("publicRankingList");
+
+
+    if (podium) {
+
+      podium.innerHTML = `
+        <div class="empty">
           Unable to load ranking.
         </div>
       `;
+
     }
+
+
+    if (list) {
+
+      list.innerHTML = `
+        <div class="empty">
+          Please try again later.
+        </div>
+      `;
+
+    }
+
+
+    if (
+      $("publicVolunteerRankingCount")
+    ) {
+
+      $("publicVolunteerRankingCount")
+        .textContent =
+        "0 Volunteers";
+
+    }
+
   }
 );
 
 
 /* =========================================================
-   START
+   READY
 ========================================================= */
 
 console.log(
-  "AAKASH EARTH Volunteer Ranking connected."
+  "AAKASH EARTH public ranking ready."
 );

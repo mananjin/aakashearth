@@ -2,1386 +2,667 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#071A2B">
 
   <title>Volunteer Dashboard | AAKASH EARTH</title>
 
   <link rel="stylesheet" href="style.css">
 
   <style>
-    body {
-      background: #f4f0e5;
+    :root{
+      --navy:#071A2B;
+      --blue:#123B63;
+      --gold:#D6AD45;
+      --gold-light:#F2D78B;
+      --ivory:#FFF8E7;
+      --green:#147D64;
+      --green-dark:#0B4E40;
+      --red:#7A2430;
+      --white:#fff;
+      --muted:#6d7c86;
+      --border:rgba(7,26,43,.10);
     }
 
-    .volunteer-app {
-      min-height: 100vh;
-      display: flex;
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Inter,Arial,sans-serif;
+      color:var(--navy);
+      background:#f3efe5;
     }
 
-    /* =====================================================
-       SIDEBAR
-    ====================================================== */
+    button,input,select,textarea{
+      font:inherit;
+    }
 
-    .volunteer-sidebar {
-      width: 275px;
+    .volunteer-app{
+      min-height:100vh;
+      display:flex;
+    }
 
-      position: fixed;
-      inset: 0 auto 0 0;
+    /* SIDEBAR */
 
-      z-index: 1000;
+    .volunteer-sidebar{
+      width:250px;
+      min-height:100vh;
 
-      overflow-y: auto;
+      position:fixed;
+      left:0;
+      top:0;
+      bottom:0;
+      z-index:100;
 
-      color: white;
+      padding:20px 14px;
+      overflow-y:auto;
+
+      color:white;
 
       background:
         radial-gradient(
-          circle at 20% 5%,
-          rgba(215,173,74,.14),
-          transparent 25%
+          circle at 25% 5%,
+          rgba(214,173,69,.15),
+          transparent 26%
         ),
         linear-gradient(
           180deg,
-          #061b29,
-          #0b4e40 60%,
-          #06251f
+          #071A2B,
+          #0B4E40
         );
 
-      border-right:
-        1px solid rgba(215,173,74,.2);
+      border-right:1px solid rgba(214,173,69,.18);
     }
 
-    .vol-sidebar-brand {
-      padding: 25px 22px;
-
-      border-bottom:
-        1px solid rgba(255,255,255,.07);
+    .volunteer-brand{
+      padding:8px 10px 20px;
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
 
-    .vol-sidebar-profile {
-      padding: 26px 20px;
-
-      text-align: center;
-
-      border-bottom:
-        1px solid rgba(255,255,255,.07);
+    .volunteer-brand strong{
+      display:block;
+      font-family:Cinzel,Georgia,serif;
+      font-size:17px;
     }
 
-    .vol-sidebar-photo {
-      width: 84px;
-      height: 84px;
+    .volunteer-brand span{
+      display:block;
+      margin-top:4px;
+      color:var(--gold-light);
+      font-size:8px;
+      font-weight:900;
+      letter-spacing:1.5px;
+    }
 
-      margin: auto;
+    .volunteer-sidebar-profile{
+      padding:20px 8px;
+      text-align:center;
+    }
 
-      overflow: hidden;
+    .volunteer-sidebar-photo{
+      width:76px;
+      height:76px;
+      margin:auto;
 
-      display: grid;
-      place-items: center;
+      display:grid;
+      place-items:center;
 
-      border:
-        2px solid var(--gold);
+      overflow:hidden;
 
-      border-radius: 50%;
+      border:2px solid var(--gold);
+      border-radius:50%;
+
+      background:var(--green);
+      color:white;
+
+      font-family:Cinzel,Georgia,serif;
+      font-size:24px;
+      font-weight:900;
+    }
+
+    .volunteer-sidebar-photo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+    .volunteer-sidebar-profile h3{
+      margin:11px 0 4px;
+      font-size:13px;
+    }
+
+    .volunteer-sidebar-profile p{
+      margin:0;
+      color:rgba(255,255,255,.55);
+      font-size:8px;
+    }
+
+    .volunteer-nav{
+      display:grid;
+      gap:5px;
+    }
+
+    .volunteer-nav-btn{
+      width:100%;
+      min-height:42px;
+      padding:0 12px;
+
+      border:0;
+      border-radius:9px;
+
+      text-align:left;
+
+      color:rgba(255,255,255,.7);
+      background:transparent;
+
+      font-size:9px;
+      font-weight:800;
+
+      cursor:pointer;
+    }
+
+    .volunteer-nav-btn:hover,
+    .volunteer-nav-btn.active{
+      color:var(--navy);
+      background:linear-gradient(
+        135deg,
+        var(--gold-light),
+        var(--gold)
+      );
+    }
+
+    .volunteer-nav-btn.logout{
+      margin-top:8px;
+      color:#ffdadd;
+      background:rgba(122,36,48,.28);
+    }
+
+    /* MAIN */
+
+    .volunteer-main{
+      width:calc(100% - 250px);
+      margin-left:250px;
+    }
+
+    .volunteer-topbar{
+      min-height:66px;
+      padding:0 4%;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:15px;
+
+      position:sticky;
+      top:0;
+      z-index:80;
+
+      background:rgba(255,248,231,.96);
+      border-bottom:1px solid var(--border);
+      backdrop-filter:blur(10px);
+    }
+
+    .volunteer-menu-btn{
+      display:none;
+      border:0;
+      background:none;
+      font-size:22px;
+      cursor:pointer;
+    }
+
+    .volunteer-topbar h1{
+      margin:0;
+      font-family:Cinzel,Georgia,serif;
+      font-size:19px;
+    }
+
+    .volunteer-top-user{
+      color:var(--muted);
+      font-size:9px;
+      font-weight:900;
+    }
+
+    .volunteer-content{
+      padding:28px 4% 60px;
+    }
+
+    .volunteer-panel{
+      display:none;
+    }
+
+    .volunteer-panel.active{
+      display:block;
+    }
+
+    .panel-heading{
+      margin-bottom:20px;
+    }
+
+    .panel-heading small{
+      color:#987019;
+      font-size:8px;
+      font-weight:900;
+      letter-spacing:1.3px;
+    }
+
+    .panel-heading h2{
+      margin:6px 0 0;
+      font-family:Cinzel,Georgia,serif;
+      font-size:25px;
+    }
+
+    .panel-heading p{
+      max-width:650px;
+      margin:7px 0 0;
+      color:var(--muted);
+      font-size:9px;
+      line-height:1.7;
+    }
+
+    /* CARDS */
+
+    .dashboard-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+
+    .stat-card,
+    .dashboard-card,
+    .form-card,
+    .table-card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:rgba(255,255,255,.84);
+      box-shadow:0 12px 35px rgba(7,26,43,.06);
+    }
+
+    .stat-card{
+      padding:18px;
+    }
+
+    .stat-card span{
+      color:var(--muted);
+      font-size:7px;
+      font-weight:900;
+      letter-spacing:.6px;
+    }
+
+    .stat-card strong{
+      display:block;
+      margin-top:7px;
+      font-family:Cinzel,Georgia,serif;
+      font-size:24px;
+    }
+
+    .dashboard-card,
+    .form-card{
+      margin-top:14px;
+      padding:20px;
+    }
+
+    /* FORM */
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:13px;
+    }
+
+    .form-field.full{
+      grid-column:1/-1;
+    }
+
+    .form-field label{
+      display:block;
+      margin-bottom:6px;
+      font-size:8px;
+      font-weight:900;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea{
+      width:100%;
+      min-height:44px;
+      padding:10px 12px;
+
+      border:1px solid rgba(7,26,43,.13);
+      border-radius:9px;
+      outline:none;
+
+      background:white;
+      color:var(--navy);
+
+      font-size:9px;
+    }
+
+    .form-field textarea{
+      min-height:100px;
+      resize:vertical;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 3px rgba(214,173,69,.1);
+    }
+
+    .primary-btn{
+      min-height:43px;
+      padding:0 16px;
+
+      border:0;
+      border-radius:9px;
+
+      color:var(--navy);
+      background:linear-gradient(
+        135deg,
+        var(--gold-light),
+        var(--gold)
+      );
+
+      font-size:8px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .secondary-btn{
+      min-height:40px;
+      padding:0 14px;
+
+      border:0;
+      border-radius:9px;
+
+      color:white;
+      background:linear-gradient(
+        135deg,
+        var(--green),
+        var(--green-dark)
+      );
+
+      font-size:8px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .form-message{
+      margin-top:12px;
+      font-size:9px;
+      font-weight:800;
+    }
+
+    /* SPORTS FORM SETTINGS */
+
+    .sports-registration-settings{
+      display:none;
+
+      grid-column:1/-1;
+
+      padding:18px;
+      margin-top:4px;
+
+      border:1px solid rgba(20,125,100,.24);
+      border-radius:14px;
 
       background:
         linear-gradient(
-          135deg,
-          #147d64,
-          #071a2b
-        );
-
-      color: var(--gold-light);
-
-      font-size: 34px;
-
-      box-shadow:
-        0 0 0 6px
-        rgba(215,173,74,.07);
-    }
-
-    .vol-sidebar-photo img {
-      width: 100%;
-      height: 100%;
-
-      object-fit: cover;
-    }
-
-    .vol-sidebar-profile h3 {
-      margin-top: 14px;
-
-      font-family:
-        "Cinzel", serif;
-
-      font-size: 15px;
-    }
-
-    .vol-sidebar-profile p {
-      margin-top: 5px;
-
-      color: var(--gold-light);
-
-      font-size: 9px;
-
-      letter-spacing: 1px;
-    }
-
-    .vol-status {
-      margin-top: 9px;
-
-      display: inline-flex;
-
-      padding: 6px 10px;
-
-      border-radius: 30px;
-
-      color: #baf4df;
-
-      background:
-        rgba(20,125,100,.25);
-
-      border:
-        1px solid rgba(186,244,223,.12);
-
-      font-size: 8px;
-      font-weight: 800;
-    }
-
-    .volunteer-nav {
-      padding: 16px 12px 30px;
-    }
-
-    .volunteer-link {
-      width: 100%;
-      min-height: 45px;
-
-      margin-bottom: 5px;
-      padding: 0 13px;
-
-      display: flex;
-      align-items: center;
-
-      gap: 12px;
-
-      border: 0;
-      border-radius: 11px;
-
-      background: transparent;
-
-      color:
-        rgba(255,255,255,.68);
-
-      font-size: 11px;
-      font-weight: 700;
-
-      text-align: left;
-
-      cursor: pointer;
-
-      transition: .25s;
-    }
-
-    .volunteer-link:hover {
-      color: white;
-
-      background:
-        rgba(255,255,255,.06);
-    }
-
-    .volunteer-link.active {
-      color: var(--navy);
-
-      background:
-        linear-gradient(
-          135deg,
-          #f1d887,
-          #c89632
-        );
-
-      box-shadow:
-        0 9px 24px
-        rgba(215,173,74,.14);
-    }
-
-    .volunteer-link.danger {
-      margin-top: 15px;
-
-      color: #ffc1c8;
-    }
-
-    .vol-nav-icon {
-      width: 22px;
-
-      text-align: center;
-
-      font-size: 15px;
-    }
-
-
-    /* =====================================================
-       MAIN
-    ====================================================== */
-
-    .volunteer-main {
-      width:
-        calc(100% - 275px);
-
-      min-height: 100vh;
-
-      margin-left: 275px;
-    }
-
-    .volunteer-topbar {
-      min-height: 74px;
-
-      padding: 0 4%;
-
-      position: sticky;
-      top: 0;
-
-      z-index: 900;
-
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      background:
-        rgba(255,250,240,.94);
-
-      backdrop-filter:
-        blur(16px);
-
-      border-bottom:
-        1px solid rgba(7,26,43,.08);
-    }
-
-    .vol-topbar-left {
-      display: flex;
-      align-items: center;
-
-      gap: 13px;
-    }
-
-    .vol-menu-btn {
-      width: 42px;
-      height: 42px;
-
-      display: none;
-      place-items: center;
-
-      border: 0;
-      border-radius: 11px;
-
-      background:
-        var(--emerald-dark);
-
-      color: var(--gold-light);
-
-      cursor: pointer;
-    }
-
-    .vol-topbar-title small {
-      display: block;
-
-      margin-bottom: 3px;
-
-      color: var(--emerald);
-
-      font-size: 8px;
-      font-weight: 800;
-
-      letter-spacing: 1.7px;
-    }
-
-    .vol-topbar-title h1 {
-      color: var(--navy);
-
-      font-family:
-        "Cinzel", serif;
-
-      font-size: 20px;
-    }
-
-    .vol-top-user {
-      padding: 9px 14px;
-
-      border:
-        1px solid rgba(7,26,43,.08);
-
-      border-radius: 12px;
-
-      background: white;
-
-      color: var(--navy);
-
-      font-size: 10px;
-      font-weight: 800;
-    }
-
-    .volunteer-content {
-      padding: 32px 4% 60px;
-    }
-
-
-    /* =====================================================
-       PANELS
-    ====================================================== */
-
-    .volunteer-panel {
-      display: none;
-    }
-
-    .volunteer-panel.active {
-      display: block;
-
-      animation:
-        volunteerPanelIn
-        .4s ease both;
-    }
-
-    @keyframes volunteerPanelIn {
-      from {
-        opacity: 0;
-        transform:
-          translateX(18px);
-      }
-
-      to {
-        opacity: 1;
-        transform:
-          translateX(0);
-      }
-    }
-
-
-    /* =====================================================
-       WELCOME
-    ====================================================== */
-
-    .vol-welcome {
-      padding: 36px;
-
-      position: relative;
-      overflow: hidden;
-
-      display: grid;
-
-      grid-template-columns:
-        1fr auto;
-
-      gap: 25px;
-
-      align-items: center;
-
-      border-radius: 25px;
-
-      color: white;
-
-      background:
-        radial-gradient(
-          circle at 90% 15%,
-          rgba(215,173,74,.2),
-          transparent 30%
-        ),
-        linear-gradient(
-          135deg,
-          #071a2b,
-          #0b5b4b
-        );
-
-      box-shadow:
-        0 18px 45px
-        rgba(7,26,43,.15);
-    }
-
-    .vol-welcome::after {
-      content: "";
-
-      width: 260px;
-      height: 260px;
-
-      position: absolute;
-
-      right: -110px;
-      bottom: -160px;
-
-      border:
-        1px solid
-        rgba(215,173,74,.16);
-
-      border-radius: 50%;
-    }
-
-    .vol-welcome-label {
-      color: var(--gold-light);
-
-      font-size: 9px;
-      font-weight: 800;
-
-      letter-spacing: 2px;
-    }
-
-    .vol-welcome h2 {
-      margin-top: 9px;
-
-      font-family:
-        "Cinzel", serif;
-
-      font-size:
-        clamp(25px, 3vw, 38px);
-    }
-
-    .vol-welcome p {
-      max-width: 620px;
-
-      margin-top: 10px;
-
-      color:
-        rgba(255,255,255,.62);
-
-      font-size: 11px;
-
-      line-height: 1.7;
-    }
-
-    .vol-welcome-id {
-      min-width: 200px;
-
-      padding: 18px;
-
-      position: relative;
-      z-index: 2;
-
-      text-align: center;
-
-      border:
-        1px solid
-        rgba(215,173,74,.3);
-
-      border-radius: 17px;
-
-      background:
-        rgba(255,255,255,.06);
-    }
-
-    .vol-welcome-id small {
-      display: block;
-
-      color:
-        rgba(255,255,255,.5);
-
-      font-size: 8px;
-    }
-
-    .vol-welcome-id strong {
-      display: block;
-
-      margin-top: 6px;
-
-      color: var(--gold-light);
-
-      font-size: 11px;
-    }
-
-
-    /* =====================================================
-       STATS
-    ====================================================== */
-
-    .vol-stats {
-      margin-top: 22px;
-
-      display: grid;
-
-      grid-template-columns:
-        repeat(5, 1fr);
-
-      gap: 14px;
-    }
-
-    .vol-stat {
-      padding: 21px;
-
-      border:
-        1px solid rgba(7,26,43,.08);
-
-      border-radius: 18px;
-
-      background: white;
-
-      box-shadow:
-        0 10px 28px
-        rgba(7,26,43,.06);
-    }
-
-    .vol-stat-icon {
-      width: 40px;
-      height: 40px;
-
-      margin-bottom: 15px;
-
-      display: grid;
-      place-items: center;
-
-      border-radius: 11px;
-
-      background:
-        rgba(20,125,100,.09);
-    }
-
-    .vol-stat strong {
-      display: block;
-
-      color: var(--navy);
-
-      font-family:
-        "Cinzel", serif;
-
-      font-size: 22px;
-    }
-
-    .vol-stat span {
-      display: block;
-
-      margin-top: 5px;
-
-      color: var(--muted);
-
-      font-size: 9px;
-      font-weight: 700;
-    }
-
-
-    /* =====================================================
-       COMMON
-    ====================================================== */
-
-    .vol-section {
-      margin-top: 25px;
-    }
-
-    .vol-panel-header {
-      margin-bottom: 22px;
-
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-
-      gap: 15px;
-    }
-
-    .vol-panel-header small {
-      color: var(--emerald);
-
-      font-size: 8px;
-      font-weight: 800;
-
-      letter-spacing: 1.6px;
-    }
-
-    .vol-panel-header h2 {
-      margin-top: 5px;
-
-      color: var(--navy);
-
-      font-family:
-        "Cinzel", serif;
-
-      font-size: 25px;
-    }
-
-    .vol-panel-header p {
-      margin-top: 7px;
-
-      color: var(--muted);
-
-      font-size: 10px;
-
-      line-height: 1.5;
-    }
-
-    .vol-card {
-      padding: 23px;
-
-      border:
-        1px solid rgba(7,26,43,.08);
-
-      border-radius: 20px;
-
-      background: white;
-
-      box-shadow:
-        0 10px 30px
-        rgba(7,26,43,.05);
-    }
-
-
-    /* =====================================================
-       SHORTCUTS
-    ====================================================== */
-
-    .vol-shortcuts {
-      display: grid;
-
-      grid-template-columns:
-        repeat(4, 1fr);
-
-      gap: 14px;
-    }
-
-    .vol-shortcut {
-      min-height: 125px;
-
-      padding: 20px;
-
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-
-      border:
-        1px solid rgba(7,26,43,.08);
-
-      border-radius: 18px;
-
-      background: white;
-
-      color: var(--navy);
-
-      text-align: left;
-
-      cursor: pointer;
-
-      transition: .25s;
-    }
-
-    .vol-shortcut:hover {
-      transform:
-        translateY(-4px);
-
-      border-color:
-        rgba(20,125,100,.4);
-
-      box-shadow:
-        0 14px 32px
-        rgba(7,26,43,.1);
-    }
-
-    .vol-shortcut-icon {
-      font-size: 24px;
-    }
-
-    .vol-shortcut strong {
-      font-family:
-        "Cinzel", serif;
-
-      font-size: 12px;
-    }
-
-    .vol-shortcut span {
-      color: var(--muted);
-
-      font-size: 9px;
-    }
-
-
-    /* =====================================================
-       DETAILS / PROFILE
-    ====================================================== */
-
-    .vol-detail-grid {
-      display: grid;
-
-      grid-template-columns:
-        repeat(2, 1fr);
-
-      gap: 13px;
-    }
-
-    .vol-detail {
-      padding: 16px;
-
-      border-radius: 13px;
-
-      background: #faf7f0;
-    }
-
-    .vol-detail small {
-      display: block;
-
-      color: var(--muted);
-
-      font-size: 8px;
-      font-weight: 700;
-    }
-
-    .vol-detail strong {
-      display: block;
-
-      margin-top: 5px;
-
-      color: var(--navy);
-
-      font-size: 11px;
-
-      word-break: break-word;
-    }
-
-    .vol-profile-layout {
-      display: grid;
-
-      grid-template-columns:
-        280px 1fr;
-
-      gap: 20px;
-    }
-
-    .vol-profile-card {
-      text-align: center;
-    }
-
-    .vol-profile-photo {
-      width: 125px;
-      height: 125px;
-
-      margin: auto;
-
-      overflow: hidden;
-
-      display: grid;
-      place-items: center;
-
-      border:
-        3px solid var(--gold);
-
-      border-radius: 50%;
-
-      background:
-        linear-gradient(
-          135deg,
-          #147d64,
-          #071a2b
-        );
-
-      color: var(--gold-light);
-
-      font-size: 48px;
-    }
-
-    .vol-profile-photo img {
-      width: 100%;
-      height: 100%;
-
-      object-fit: cover;
-    }
-
-    .vol-profile-card h3 {
-      margin-top: 17px;
-
-      color: var(--navy);
-
-      font-family:
-        "Cinzel", serif;
-    }
-
-    .vol-profile-card p {
-      margin-top: 7px;
-
-      color: var(--muted);
-
-      font-size: 9px;
-    }
-
-    .vol-profile-id {
-      color: var(--emerald) !important;
-
-      font-weight: 800;
-    }
-
-
-    /* =====================================================
-       TASKS
-    ====================================================== */
-
-    .vol-filter-row {
-      margin-bottom: 18px;
-
-      display: flex;
-      flex-wrap: wrap;
-
-      gap: 7px;
-    }
-
-    .vol-task-filter {
-      padding: 9px 13px;
-
-      border:
-        1px solid rgba(7,26,43,.1);
-
-      border-radius: 10px;
-
-      background: white;
-
-      color: var(--muted);
-
-      font-size: 9px;
-      font-weight: 800;
-
-      cursor: pointer;
-    }
-
-    .vol-task-filter.active {
-      border-color:
-        var(--emerald);
-
-      background:
-        var(--emerald-dark);
-
-      color: var(--gold-light);
-    }
-
-    .vol-task-list {
-      display: grid;
-      gap: 13px;
-    }
-
-    .vol-empty {
-      min-height: 160px;
-
-      padding: 25px;
-
-      display: grid;
-      place-items: center;
-
-      text-align: center;
-
-      border:
-        1px dashed rgba(7,26,43,.15);
-
-      border-radius: 17px;
-
-      background:
-        rgba(255,255,255,.55);
-
-      color: var(--muted);
-
-      font-size: 10px;
-
-      line-height: 1.7;
-    }
-
-
-    /* =====================================================
-       SCORES
-    ====================================================== */
-
-    .score-grid {
-      display: grid;
-
-      grid-template-columns:
-        repeat(3, minmax(0, 280px));
-
-      gap: 16px;
-    }
-
-    .score-card {
-      min-height: 185px;
-
-      padding: 30px;
-
-      display: grid;
-      place-items: center;
-
-      text-align: center;
-
-      border-radius: 22px;
-
-      color: white;
-
-      background:
-        linear-gradient(
-          135deg,
-          #071a2b,
-          #0b5b4b
+          145deg,
+          rgba(20,125,100,.07),
+          rgba(214,173,69,.07)
         );
     }
 
-    .score-card.gold {
-      color: var(--navy);
-
-      background:
-        linear-gradient(
-          135deg,
-          #a87820,
-          #d5aa45
-        );
+    .sports-registration-settings.show{
+      display:block;
     }
 
-    .score-card.blue {
-      background:
-        linear-gradient(
-          135deg,
-          #0c3655,
-          #1e6595
-        );
+    .sports-settings-title h3{
+      margin:0;
+      font-family:Cinzel,Georgia,serif;
+      font-size:17px;
     }
 
-    .score-card strong {
-      display: block;
-
-      font-family:
-        "Cinzel", serif;
-
-      font-size: 36px;
+    .sports-settings-title p{
+      margin:6px 0 14px;
+      color:var(--muted);
+      font-size:8px;
+      line-height:1.6;
     }
 
-    .score-card span {
-      display: block;
+    .sports-toggle{
+      padding:12px;
+      margin-bottom:14px;
 
-      margin-top: 7px;
+      display:flex;
+      align-items:center;
+      gap:8px;
 
-      font-size: 9px;
-      font-weight: 800;
+      border:1px solid rgba(20,125,100,.18);
+      border-radius:10px;
 
-      letter-spacing: 1px;
+      background:rgba(255,255,255,.65);
     }
 
-
-    /* =====================================================
-       TABLE
-    ====================================================== */
-
-    .vol-table-wrap {
-      overflow-x: auto;
+    .sports-toggle input{
+      width:17px;
+      height:17px;
     }
 
-    .vol-table {
-      width: 100%;
-
-      min-width: 700px;
-
-      border-collapse: collapse;
+    .sports-toggle label{
+      font-size:9px;
+      font-weight:900;
     }
 
-    .vol-table th {
-      padding: 12px;
-
-      text-align: left;
-
-      background: #f5efdf;
-
-      color: var(--navy);
-
-      font-size: 8px;
-
-      letter-spacing: .7px;
+    #volunteerSportsRegistrationOptions{
+      display:none;
     }
 
-    .vol-table td {
-      padding: 13px 12px;
-
-      border-bottom:
-        1px solid rgba(7,26,43,.07);
-
-      color: #58646c;
-
-      font-size: 9px;
+    #volunteerSportsRegistrationOptions.show{
+      display:block;
     }
 
-
-    /* =====================================================
-       MODULE GRID
-    ====================================================== */
-
-    .vol-module-grid {
-      display: grid;
-
-      grid-template-columns:
-        repeat(3, 1fr);
-
-      gap: 15px;
+    .checkbox-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
     }
 
+    .checkbox-option{
+      padding:10px;
 
-    /* =====================================================
-       PRIVACY NOTE
-    ====================================================== */
+      display:flex;
+      align-items:center;
+      gap:7px;
 
-    .vol-privacy-note {
-      margin-bottom: 17px;
+      border:1px solid var(--border);
+      border-radius:8px;
 
-      padding: 13px 15px;
+      background:white;
 
-      border-left:
-        4px solid var(--emerald);
-
-      border-radius: 9px;
-
-      background:
-        rgba(20,125,100,.07);
-
-      color: #42655c;
-
-      font-size: 9px;
-
-      line-height: 1.6;
+      font-size:8px;
+      font-weight:800;
     }
 
-
-    /* =====================================================
-       MODAL
-    ====================================================== */
-
-    .vol-modal {
-      display: none;
-
-      position: fixed;
-      inset: 0;
-
-      z-index: 3000;
-
-      padding: 20px;
-
-      align-items: center;
-      justify-content: center;
-
-      background:
-        rgba(2,12,20,.72);
-
-      backdrop-filter:
-        blur(8px);
+    .checkbox-option input{
+      width:auto;
+      min-height:auto;
     }
 
-    .vol-modal.open {
-      display: flex;
+    /* LIST */
+
+    .simple-list{
+      display:grid;
+      gap:10px;
     }
 
-    .vol-modal-card {
-      width: min(100%, 540px);
+    .simple-item{
+      padding:14px;
 
-      max-height: 90vh;
+      border:1px solid var(--border);
+      border-radius:11px;
 
-      overflow-y: auto;
+      background:white;
 
-      padding: 26px;
-
-      border:
-        1px solid rgba(215,173,74,.25);
-
-      border-radius: 22px;
-
-      background: #fffaf0;
-
-      box-shadow:
-        0 30px 80px
-        rgba(0,0,0,.28);
+      font-size:9px;
     }
 
-    .vol-modal-header {
-      margin-bottom: 20px;
+    /* TABLE */
 
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-
-      gap: 15px;
+    .table-card{
+      overflow:auto;
     }
 
-    .vol-modal-header small {
-      color: var(--emerald);
-
-      font-size: 8px;
-      font-weight: 800;
-
-      letter-spacing: 1.5px;
+    table{
+      width:100%;
+      min-width:680px;
+      border-collapse:collapse;
     }
 
-    .vol-modal-header h3 {
-      margin-top: 5px;
-
-      color: var(--navy);
-
-      font-family:
-        "Cinzel", serif;
+    th,
+    td{
+      padding:12px;
+      border-bottom:1px solid var(--border);
+      text-align:left;
+      font-size:8px;
     }
 
-    .vol-modal-close {
-      width: 36px;
-      height: 36px;
-
-      border: 0;
-      border-radius: 10px;
-
-      background:
-        var(--emerald-dark);
-
-      color: white;
-
-      cursor: pointer;
+    th{
+      color:#89651c;
+      background:rgba(214,173,69,.07);
+      font-weight:900;
     }
 
-    .vol-form-field {
-      margin-top: 18px;
+    /* MODAL */
+
+    .volunteer-modal{
+      display:none;
+
+      position:fixed;
+      inset:0;
+      z-index:500;
+
+      padding:20px;
+
+      align-items:center;
+      justify-content:center;
+
+      background:rgba(0,0,0,.62);
     }
 
-    .vol-form-field label {
-      display: block;
-
-      margin-bottom: 7px;
-
-      color: var(--navy);
-
-      font-size: 9px;
-      font-weight: 800;
+    .volunteer-modal.show{
+      display:flex;
     }
 
-    .vol-input {
-      width: 100%;
-      min-height: 46px;
+    .volunteer-modal-box{
+      width:min(520px,100%);
+      max-height:90vh;
+      overflow:auto;
 
-      padding: 11px 13px;
+      padding:22px;
 
-      outline: none;
-
-      border:
-        1px solid rgba(7,26,43,.13);
-
-      border-radius: 10px;
-
-      background: #fffdfa;
-
-      color: var(--navy);
-
-      font-size: 10px;
+      border-radius:18px;
+      background:var(--ivory);
     }
 
-    .vol-input:focus {
-      border-color: var(--gold);
-
-      box-shadow:
-        0 0 0 3px
-        rgba(215,173,74,.09);
+    .modal-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
     }
 
-    .vol-proof-preview {
-      width: 100%;
-
-      max-height: 230px;
-
-      margin-top: 12px;
-
-      display: none;
-
-      object-fit: contain;
-
-      border-radius: 12px;
-
-      background: #eee8dc;
+    .modal-close{
+      border:0;
+      background:none;
+      font-size:23px;
+      cursor:pointer;
     }
 
-    .vol-form-message {
-      display: none;
+    /* RESPONSIVE */
 
-      margin-top: 13px;
-
-      padding: 11px;
-
-      border-radius: 10px;
-
-      font-size: 9px;
-      font-weight: 700;
-
-      line-height: 1.5;
-    }
-
-    .vol-form-message.show {
-      display: block;
-    }
-
-    .vol-form-message.success {
-      color: #08624d;
-
-      background:
-        rgba(20,125,100,.08);
-    }
-
-    .vol-form-message.error {
-      color: #862536;
-
-      background:
-        rgba(122,36,48,.08);
-    }
-
-    .vol-submit-btn {
-      min-height: 46px;
-
-      padding: 0 18px;
-
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-
-      gap: 8px;
-
-      border: 0;
-      border-radius: 11px;
-
-      background:
-        linear-gradient(
-          135deg,
-          #f0d27a,
-          #c89430
-        );
-
-      color: var(--navy);
-
-      font-size: 10px;
-      font-weight: 800;
-
-      cursor: pointer;
-    }
-
-    .vol-submit-btn:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-
-
-    /* =====================================================
-       RESPONSIVE
-    ====================================================== */
-
-    @media (max-width: 1150px) {
-      .vol-stats {
-        grid-template-columns:
-          repeat(3, 1fr);
-      }
-
-      .vol-shortcuts {
-        grid-template-columns:
-          repeat(2, 1fr);
-      }
-
-      .vol-module-grid {
-        grid-template-columns:
-          repeat(2, 1fr);
+    @media(max-width:950px){
+      .dashboard-grid{
+        grid-template-columns:repeat(2,1fr);
       }
     }
 
-    @media (max-width: 900px) {
-      .volunteer-sidebar {
-        transform:
-          translateX(-100%);
-
-        transition:
-          transform .3s ease;
-
-        box-shadow:
-          20px 0 50px
-          rgba(0,0,0,.25);
+    @media(max-width:760px){
+      .volunteer-sidebar{
+        transform:translateX(-100%);
+        transition:.25s ease;
       }
 
-      .volunteer-sidebar.open {
-        transform:
-          translateX(0);
+      .volunteer-sidebar.open{
+        transform:translateX(0);
       }
 
-      .volunteer-main {
-        width: 100%;
-        margin-left: 0;
+      .volunteer-main{
+        width:100%;
+        margin-left:0;
       }
 
-      .vol-menu-btn {
-        display: grid;
+      .volunteer-menu-btn{
+        display:block;
       }
 
-      .vol-profile-layout {
-        grid-template-columns: 1fr;
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+
+      .form-field.full,
+      .sports-registration-settings{
+        grid-column:auto;
+      }
+
+      .checkbox-grid{
+        grid-template-columns:repeat(2,1fr);
       }
     }
 
-    @media (max-width: 650px) {
-      .volunteer-content {
-        padding:
-          22px 4% 50px;
+    @media(max-width:500px){
+      .dashboard-grid{
+        grid-template-columns:1fr 1fr;
       }
 
-      .vol-top-user {
-        display: none;
+      .checkbox-grid{
+        grid-template-columns:1fr;
       }
 
-      .vol-welcome {
-        padding: 25px;
-
-        grid-template-columns: 1fr;
-      }
-
-      .vol-welcome-id {
-        min-width: 0;
-
-        text-align: left;
-      }
-
-      .vol-stats {
-        grid-template-columns:
-          repeat(2, 1fr);
-      }
-
-      .vol-shortcuts,
-      .vol-module-grid,
-      .vol-detail-grid,
-      .score-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .vol-panel-header h2 {
-        font-size: 21px;
+      .volunteer-content{
+        padding-left:3%;
+        padding-right:3%;
       }
     }
   </style>
 </head>
 
-
 <body>
 
 <div class="volunteer-app">
 
+  <!-- SIDEBAR -->
 
-  <!-- ===================================================
-       SIDEBAR
-  ==================================================== -->
   <aside
     class="volunteer-sidebar"
     id="volunteerSidebar"
   >
 
-    <div class="vol-sidebar-brand">
-
-      <a href="index.html" class="brand">
-
-        <div class="brand-emblem">
-          <span>AE</span>
-        </div>
-
-        <div class="brand-text">
-          <strong>AAKASH EARTH</strong>
-          <span>YUWA MANDAL</span>
-        </div>
-
-      </a>
-
+    <div class="volunteer-brand">
+      <strong>AAKASH EARTH</strong>
+      <span>VOLUNTEER PORTAL</span>
     </div>
 
 
-    <div class="vol-sidebar-profile">
+    <div class="volunteer-sidebar-profile">
 
       <div
-        class="vol-sidebar-photo"
+        class="volunteer-sidebar-photo"
         id="sidebarVolunteerPhoto"
       >
-        🤝
+        V
       </div>
 
       <h3 id="sidebarVolunteerName">
@@ -1389,120 +670,72 @@
       </h3>
 
       <p id="sidebarVolunteerId">
-        Loading...
+        —
       </p>
-
-      <span class="vol-status">
-        ✓ APPROVED VOLUNTEER
-      </span>
 
     </div>
 
 
     <nav class="volunteer-nav">
 
-      <button
-        class="volunteer-link active"
-        data-vol-panel="dashboard"
-      >
-        <span class="vol-nav-icon">⌂</span>
-        Dashboard
+      <button class="volunteer-nav-btn active" data-volunteer-panel="dashboard">
+        🏠 Dashboard
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="profile">
+        👤 Profile
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="idcard">
+        🪪 I-Card
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="tasks">
+        📋 Tasks
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="performance">
+        ⭐ Performance
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="ranking">
+        🏆 Ranking
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="history">
+        🕘 Task History
+      </button>
+
+      <!-- NEW -->
+      <button class="volunteer-nav-btn" data-volunteer-panel="organize">
+        🏟 Organize
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="complaints">
+        ⚠ Complaints
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="festivals">
+        🪔 Festivals
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="sports">
+        ⚽ Sports
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="updates">
+        📢 Updates
+      </button>
+
+      <button class="volunteer-nav-btn" data-volunteer-panel="gallery">
+        🖼 Gallery
       </button>
 
       <button
-        class="volunteer-link"
-        data-vol-panel="profile"
-      >
-        <span class="vol-nav-icon">👤</span>
-        My Profile
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="idcard"
-      >
-        <span class="vol-nav-icon">🪪</span>
-        My I-Card
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="tasks"
-      >
-        <span class="vol-nav-icon">✓</span>
-        My Tasks
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="performance"
-      >
-        <span class="vol-nav-icon">★</span>
-        Points & Rating
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="ranking"
-      >
-        <span class="vol-nav-icon">🏆</span>
-        Volunteer Ranking
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="history"
-      >
-        <span class="vol-nav-icon">◷</span>
-        Task History
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="complaints"
-      >
-        <span class="vol-nav-icon">!</span>
-        Complaints Against Me
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="festivals"
-      >
-        <span class="vol-nav-icon">🪔</span>
-        Festivals
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="sports"
-      >
-        <span class="vol-nav-icon">🏆</span>
-        Sports
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="updates"
-      >
-        <span class="vol-nav-icon">📢</span>
-        Updates
-      </button>
-
-      <button
-        class="volunteer-link"
-        data-vol-panel="gallery"
-      >
-        <span class="vol-nav-icon">▣</span>
-        Gallery
-      </button>
-
-      <button
-        class="volunteer-link danger"
+        class="volunteer-nav-btn logout"
         id="volunteerLogout"
       >
-        <span class="vol-nav-icon">↪</span>
-        Logout
+        ↪ Logout
       </button>
 
     </nav>
@@ -1510,45 +743,32 @@
   </aside>
 
 
-  <!-- ===================================================
-       MAIN
-  ==================================================== -->
+  <!-- MAIN -->
+
   <main class="volunteer-main">
 
-
-    <!-- TOPBAR -->
     <header class="volunteer-topbar">
 
-      <div class="vol-topbar-left">
+      <div style="display:flex;align-items:center;gap:12px;">
 
         <button
-          type="button"
-          class="vol-menu-btn"
+          class="volunteer-menu-btn"
           id="volunteerMenuBtn"
         >
           ☰
         </button>
 
-        <div class="vol-topbar-title">
-
-          <small>
-            VOLUNTEER PORTAL
-          </small>
-
-          <h1 id="volunteerPageTitle">
-            Dashboard
-          </h1>
-
-        </div>
+        <h1 id="volunteerPageTitle">
+          Dashboard
+        </h1>
 
       </div>
 
-
-      <div class="vol-top-user">
-        Welcome,
-        <span id="topVolunteerName">
-          Volunteer
-        </span>
+      <div
+        class="volunteer-top-user"
+        id="topVolunteerName"
+      >
+        Volunteer
       </div>
 
     </header>
@@ -1556,283 +776,209 @@
 
     <div class="volunteer-content">
 
+      <!-- DASHBOARD -->
 
-      <!-- =================================================
-           DASHBOARD
-      ================================================== -->
       <section
         class="volunteer-panel active"
-        data-vol-panel-content="dashboard"
+        data-volunteer-panel-content="dashboard"
       >
 
-        <div class="vol-welcome">
+        <div class="panel-heading">
 
-          <div>
+          <small>VOLUNTEER PORTAL</small>
 
-            <span class="vol-welcome-label">
-              ✦ AAKASH EARTH SEVA TEAM
+          <h2>
+            Welcome,
+            <span id="welcomeVolunteerName">
+              Volunteer
             </span>
+          </h2>
 
-            <h2>
-              Welcome,
-              <span id="welcomeVolunteerName">
-                Volunteer
-              </span>
-            </h2>
+          <p>
+            Volunteer ID:
+            <strong id="dashboardVolunteerId">—</strong>
+          </p>
 
-            <p>
-              Complete assigned community tasks, submit your
-              work for review, earn points and build your
-              official volunteer rank.
-            </p>
+        </div>
 
+
+        <div class="dashboard-grid">
+
+          <div class="stat-card">
+            <span>TOTAL TASKS</span>
+            <strong id="volunteerTotalTasks">0</strong>
           </div>
 
+          <div class="stat-card">
+            <span>COMPLETED</span>
+            <strong id="volunteerCompletedTasks">0</strong>
+          </div>
 
-          <div class="vol-welcome-id">
+          <div class="stat-card">
+            <span>POINTS</span>
+            <strong id="volunteerPoints">0</strong>
+          </div>
 
-            <small>
-              OFFICIAL VOLUNTEER ID
-            </small>
-
-            <strong id="dashboardVolunteerId">
-              —
-            </strong>
-
+          <div class="stat-card">
+            <span>RANK</span>
+            <strong id="volunteerRank">—</strong>
           </div>
 
         </div>
 
 
-        <!-- STATS -->
-        <div class="vol-stats">
+        <div class="dashboard-card">
 
-          <div class="vol-stat">
+          <p>
+            Rating:
+            <strong id="volunteerRating">0</strong>
+          </p>
 
-            <div class="vol-stat-icon">
-              ✓
-            </div>
+          <p>
+            Area:
+            <strong id="dashboardVolunteerArea">—</strong>
+          </p>
 
-            <strong id="volunteerTotalTasks">
-              0
-            </strong>
+          <p>
+            Year:
+            <strong id="dashboardVolunteerYear">—</strong>
+          </p>
 
-            <span>
-              Total Tasks
-            </span>
+          <p>
+            Status:
+            <strong id="dashboardVolunteerStatus">—</strong>
+          </p>
 
-          </div>
-
-
-          <div class="vol-stat">
-
-            <div class="vol-stat-icon">
-              🏅
-            </div>
-
-            <strong id="volunteerCompletedTasks">
-              0
-            </strong>
-
-            <span>
-              Completed
-            </span>
-
-          </div>
-
-
-          <div class="vol-stat">
-
-            <div class="vol-stat-icon">
-              ★
-            </div>
-
-            <strong id="volunteerPoints">
-              0
-            </strong>
-
-            <span>
-              Points
-            </span>
-
-          </div>
-
-
-          <div class="vol-stat">
-
-            <div class="vol-stat-icon">
-              ⭐
-            </div>
-
-            <strong id="volunteerRating">
-              -
-            </strong>
-
-            <span>
-              Rating
-            </span>
-
-          </div>
-
-
-          <div class="vol-stat">
-
-            <div class="vol-stat-icon">
-              🏆
-            </div>
-
-            <strong id="volunteerRank">
-              -
-            </strong>
-
-            <span>
-              Rank
-            </span>
-
-          </div>
+          <button
+            class="primary-btn"
+            id="dashboardVolunteerIdCard"
+          >
+            View Official I-Card
+          </button>
 
         </div>
 
-
-        <!-- SHORTCUTS -->
-        <div class="vol-section">
-
-          <div class="vol-panel-header">
-
-            <div>
-
-              <small>
-                QUICK ACCESS
-              </small>
-
-              <h2>
-                Volunteer Services
-              </h2>
-
-            </div>
-
-          </div>
+      </section>
 
 
-          <div class="vol-shortcuts">
+      <!-- PROFILE -->
 
-            <button
-              class="vol-shortcut"
-              data-open-vol-panel="tasks"
-            >
+      <section
+        class="volunteer-panel"
+        data-volunteer-panel-content="profile"
+      >
 
-              <span class="vol-shortcut-icon">
-                ✓
-              </span>
+        <div class="panel-heading">
+          <small>MY ACCOUNT</small>
+          <h2>Profile</h2>
+        </div>
 
-              <strong>
-                My Tasks
-              </strong>
+        <div class="dashboard-card">
 
-              <span>
-                View assigned work
-              </span>
+          <p>Name: <strong id="profileVolunteerName">—</strong></p>
 
-            </button>
+          <p>Volunteer ID: <strong id="profileVolunteerId">—</strong></p>
 
+          <p>Mobile: <strong id="profileVolunteerMobile">—</strong></p>
 
-            <button
-              class="vol-shortcut"
-              id="dashboardVolunteerIdCard"
-            >
+          <p>Area: <strong id="profileVolunteerArea">—</strong></p>
 
-              <span class="vol-shortcut-icon">
-                🪪
-              </span>
+          <p>Year: <strong id="profileVolunteerYear">—</strong></p>
 
-              <strong>
-                Official I-Card
-              </strong>
+          <p>Gender: <strong id="profileVolunteerGender">—</strong></p>
 
-              <span>
-                Open Volunteer ID
-              </span>
+          <p>Address: <strong id="profileVolunteerAddress">—</strong></p>
 
-            </button>
-
-
-            <button
-              class="vol-shortcut"
-              data-open-vol-panel="ranking"
-            >
-
-              <span class="vol-shortcut-icon">
-                🏆
-              </span>
-
-              <strong>
-                Ranking
-              </strong>
-
-              <span>
-                View volunteer rank
-              </span>
-
-            </button>
-
-
-            <button
-              class="vol-shortcut"
-              data-open-vol-panel="complaints"
-            >
-
-              <span class="vol-shortcut-icon">
-                !
-              </span>
-
-              <strong>
-                Complaints
-              </strong>
-
-              <span>
-                View linked complaints
-              </span>
-
-            </button>
-
-          </div>
+          <p>Status: <strong id="profileVolunteerStatus">—</strong></p>
 
         </div>
 
+      </section>
 
-        <!-- DETAILS -->
-        <div class="vol-section vol-card">
 
-          <div class="vol-detail-grid">
+      <!-- ID CARD -->
 
-            <div class="vol-detail">
-              <small>VOLUNTEER YEAR</small>
-              <strong id="dashboardVolunteerYear">
-                —
-              </strong>
-            </div>
+      <section
+        class="volunteer-panel"
+        data-volunteer-panel-content="idcard"
+      >
 
-            <div class="vol-detail">
-              <small>AREA / SOCIETY</small>
-              <strong id="dashboardVolunteerArea">
-                —
-              </strong>
-            </div>
+        <div class="panel-heading">
+          <small>OFFICIAL IDENTITY</small>
+          <h2>Volunteer I-Card</h2>
+        </div>
 
-            <div class="vol-detail">
-              <small>ACCOUNT STATUS</small>
-              <strong id="dashboardVolunteerStatus">
-                —
-              </strong>
-            </div>
+        <div class="dashboard-card">
 
-            <div class="vol-detail">
-              <small>PORTAL</small>
-              <strong>
-                Volunteer Dashboard
-              </strong>
-            </div>
+          <p>
+            Open your official AAKASH EARTH
+            Volunteer I-Card.
+          </p>
 
+          <button
+            class="primary-btn"
+            id="viewVolunteerIdCard"
+          >
+            Open I-Card
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- TASKS -->
+
+      <section
+        class="volunteer-panel"
+        data-volunteer-panel-content="tasks"
+      >
+
+        <div class="panel-heading">
+          <small>ASSIGNED WORK</small>
+          <h2>My Tasks</h2>
+        </div>
+
+        <div
+          class="simple-list"
+          id="volunteerTaskList"
+        ></div>
+
+      </section>
+
+
+      <!-- PERFORMANCE -->
+
+      <section
+        class="volunteer-panel"
+        data-volunteer-panel-content="performance"
+      >
+
+        <div class="panel-heading">
+          <small>MY PERFORMANCE</small>
+          <h2>Points & Rating</h2>
+        </div>
+
+        <div class="dashboard-grid">
+
+          <div class="stat-card">
+            <span>POINTS</span>
+            <strong id="performanceVolunteerPoints">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>RATING</span>
+            <strong id="performanceVolunteerRating">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>RANK</span>
+            <strong id="performanceVolunteerRank">—</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>COMPLETED</span>
+            <strong id="performanceCompletedTasks">0</strong>
           </div>
 
         </div>
@@ -1840,666 +986,695 @@
       </section>
 
 
-      <!-- =================================================
-           PROFILE
-      ================================================== -->
+      <!-- RANKING -->
+
       <section
         class="volunteer-panel"
-        data-vol-panel-content="profile"
+        data-volunteer-panel-content="ranking"
       >
 
-        <div class="vol-panel-header">
+        <div class="panel-heading">
+          <small>VOLUNTEER LEADERBOARD</small>
+          <h2>Ranking</h2>
+        </div>
 
-          <div>
+        <div class="table-card">
 
-            <small>
-              VOLUNTEER RECORD
-            </small>
+          <table>
 
-            <h2>
-              My Profile
-            </h2>
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Volunteer</th>
+                <th>ID</th>
+                <th>Points</th>
+                <th>Rating</th>
+              </tr>
+            </thead>
 
-            <p>
-              Your approved Aakash Earth volunteer information.
-            </p>
+            <tbody id="volunteerRankingList"></tbody>
 
-          </div>
+          </table>
+
+        </div>
+
+      </section>
+
+
+      <!-- HISTORY -->
+
+      <section
+        class="volunteer-panel"
+        data-volunteer-panel-content="history"
+      >
+
+        <div class="panel-heading">
+          <small>PAST WORK</small>
+          <h2>Task History</h2>
+        </div>
+
+        <div
+          class="simple-list"
+          id="volunteerTaskHistory"
+        ></div>
+
+      </section>
+
+
+      <!-- =====================================
+           ORGANIZE
+      ====================================== -->
+
+      <section
+        class="volunteer-panel"
+        data-volunteer-panel-content="organize"
+      >
+
+        <div class="panel-heading">
+
+          <small>ORGANIZE & PROPOSE</small>
+
+          <h2>
+            Organize Event
+          </h2>
+
+          <p>
+            Volunteer Festival, Event, Sports, Update
+            ya Gallery proposal Admin ko bhej sakta hai.
+            Sports select karne par Registration Form
+            settings open hongi.
+          </p>
 
         </div>
 
 
-        <div class="vol-profile-layout">
+        <div class="form-card">
 
-          <div class="vol-card vol-profile-card">
+          <form
+            id="volunteerOrganizeForm"
+            class="form-grid"
+          >
+
+            <!-- TYPE -->
+
+            <div class="form-field">
+
+              <label>
+                ORGANIZE TYPE *
+              </label>
+
+              <select
+                id="volunteerOrganizeType"
+                required
+              >
+
+                <option value="">
+                  Select Type
+                </option>
+
+                <option value="event">
+                  Event
+                </option>
+
+                <option value="festival">
+                  Festival
+                </option>
+
+                <option value="sports">
+                  Sports
+                </option>
+
+                <option value="update">
+                  Update
+                </option>
+
+                <option value="gallery">
+                  Gallery
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <!-- TITLE -->
+
+            <div class="form-field">
+
+              <label>
+                TITLE *
+              </label>
+
+              <input
+                type="text"
+                id="volunteerOrganizeTitle"
+                placeholder="Title"
+                required
+              >
+
+            </div>
+
+
+            <!-- DATE -->
+
+            <div class="form-field">
+
+              <label>
+                DATE
+              </label>
+
+              <input
+                type="date"
+                id="volunteerOrganizeDate"
+              >
+
+            </div>
+
+
+            <!-- TIME -->
+
+            <div class="form-field">
+
+              <label>
+                TIME
+              </label>
+
+              <input
+                type="time"
+                id="volunteerOrganizeTime"
+              >
+
+            </div>
+
+
+            <!-- VENUE -->
+
+            <div class="form-field full">
+
+              <label>
+                VENUE
+              </label>
+
+              <input
+                type="text"
+                id="volunteerOrganizeVenue"
+                placeholder="Event / Sports venue"
+              >
+
+            </div>
+
+
+            <!-- DESCRIPTION -->
+
+            <div class="form-field full">
+
+              <label>
+                DESCRIPTION *
+              </label>
+
+              <textarea
+                id="volunteerOrganizeDescription"
+                placeholder="Enter complete details..."
+                required
+              ></textarea>
+
+            </div>
+
+
+            <!-- =====================================
+                 SPORTS REGISTRATION SETTINGS
+            ====================================== -->
 
             <div
-              class="vol-profile-photo"
-              id="profileVolunteerPhoto"
+              class="sports-registration-settings"
+              id="volunteerSportsRegistrationSettings"
             >
-              🤝
-            </div>
 
-            <h3 id="profileVolunteerName">
-              Volunteer
-            </h3>
+              <div class="sports-settings-title">
 
-            <p
-              class="vol-profile-id"
-              id="profileVolunteerId"
-            >
-              —
-            </p>
+                <h3>
+                  🏆 Sports Registration Form
+                </h3>
 
-            <p id="profileVolunteerArea">
-              —
-            </p>
+                <p>
+                  Admin approve karne ke baad public
+                  Sports page par Register Now form
+                  isi configuration se banega.
+                </p>
 
-          </div>
-
-
-          <div class="vol-card">
-
-            <div class="vol-detail-grid">
-
-              <div class="vol-detail">
-                <small>VOLUNTEER ID</small>
-                <strong id="detailVolunteerId">—</strong>
               </div>
 
-              <div class="vol-detail">
-                <small>FULL NAME</small>
-                <strong id="detailVolunteerName">—</strong>
+
+              <div class="sports-toggle">
+
+                <input
+                  type="checkbox"
+                  id="volunteerSportsRegistrationEnabled"
+                  checked
+                >
+
+                <label for="volunteerSportsRegistrationEnabled">
+                  Registration Form Enable
+                </label>
+
               </div>
 
-              <div class="vol-detail">
-                <small>MOBILE</small>
-                <strong id="detailVolunteerMobile">—</strong>
-              </div>
-
-              <div class="vol-detail">
-                <small>DATE OF BIRTH</small>
-                <strong id="detailVolunteerDob">—</strong>
-              </div>
-
-              <div class="vol-detail">
-                <small>GENDER</small>
-                <strong id="detailVolunteerGender">—</strong>
-              </div>
-
-              <div class="vol-detail">
-                <small>YEAR</small>
-                <strong id="detailVolunteerYear">—</strong>
-              </div>
-
-              <div class="vol-detail">
-                <small>AREA</small>
-                <strong id="detailVolunteerArea">—</strong>
-              </div>
-
-              <div class="vol-detail">
-                <small>STATUS</small>
-                <strong id="detailVolunteerStatus">—</strong>
-              </div>
 
               <div
-                class="vol-detail"
-                style="grid-column:1/-1;"
+                id="volunteerSportsRegistrationOptions"
+                class="show"
               >
-                <small>ADDRESS</small>
-                <strong id="detailVolunteerAddress">—</strong>
+
+                <div class="form-grid">
+
+                  <!-- GAME -->
+
+                  <div class="form-field">
+
+                    <label>
+                      SPORT / GAME NAME *
+                    </label>
+
+                    <input
+                      type="text"
+                      id="volunteerSportsGameName"
+                      placeholder="Example: Cricket"
+                    >
+
+                  </div>
+
+
+                  <!-- TYPE -->
+
+                  <div class="form-field">
+
+                    <label>
+                      PARTICIPATION TYPE
+                    </label>
+
+                    <select id="volunteerSportsParticipationType">
+
+                      <option value="individual">
+                        Individual
+                      </option>
+
+                      <option value="team">
+                        Team
+                      </option>
+
+                      <option value="both">
+                        Individual + Team
+                      </option>
+
+                    </select>
+
+                  </div>
+
+
+                  <!-- LAST DATE -->
+
+                  <div class="form-field">
+
+                    <label>
+                      REGISTRATION LAST DATE
+                    </label>
+
+                    <input
+                      type="date"
+                      id="volunteerSportsRegistrationLastDate"
+                    >
+
+                  </div>
+
+
+                  <!-- LIMIT -->
+
+                  <div class="form-field">
+
+                    <label>
+                      MAX REGISTRATIONS
+                    </label>
+
+                    <input
+                      type="number"
+                      id="volunteerSportsMaxParticipants"
+                      min="0"
+                      placeholder="0 = Unlimited"
+                    >
+
+                  </div>
+
+
+                  <!-- MIN AGE -->
+
+                  <div class="form-field">
+
+                    <label>
+                      MINIMUM AGE
+                    </label>
+
+                    <input
+                      type="number"
+                      id="volunteerSportsMinAge"
+                      min="1"
+                      max="100"
+                      placeholder="Example: 10"
+                    >
+
+                  </div>
+
+
+                  <!-- MAX AGE -->
+
+                  <div class="form-field">
+
+                    <label>
+                      MAXIMUM AGE
+                    </label>
+
+                    <input
+                      type="number"
+                      id="volunteerSportsMaxAge"
+                      min="1"
+                      max="100"
+                      placeholder="Example: 25"
+                    >
+
+                  </div>
+
+
+                  <!-- TEAM SIZE -->
+
+                  <div class="form-field">
+
+                    <label>
+                      TEAM SIZE
+                    </label>
+
+                    <input
+                      type="number"
+                      id="volunteerSportsTeamSize"
+                      min="1"
+                      placeholder="Example: 11"
+                    >
+
+                  </div>
+
+
+                  <!-- FEE -->
+
+                  <div class="form-field">
+
+                    <label>
+                      ENTRY FEE ₹
+                    </label>
+
+                    <input
+                      type="number"
+                      id="volunteerSportsEntryFee"
+                      min="0"
+                      placeholder="0 = Free"
+                    >
+
+                  </div>
+
+
+                  <!-- FORM FIELDS -->
+
+                  <div class="form-field full">
+
+                    <label>
+                      REGISTRATION FORM FIELDS
+                    </label>
+
+                    <div class="checkbox-grid">
+
+                      <label class="checkbox-option">
+                        <input
+                          type="checkbox"
+                          id="volunteerSportsFieldName"
+                          checked
+                          disabled
+                        >
+                        Participant Name
+                      </label>
+
+
+                      <label class="checkbox-option">
+                        <input
+                          type="checkbox"
+                          id="volunteerSportsFieldMobile"
+                          checked
+                          disabled
+                        >
+                        Mobile Number
+                      </label>
+
+
+                      <label class="checkbox-option">
+                        <input
+                          type="checkbox"
+                          id="volunteerSportsFieldAge"
+                          checked
+                        >
+                        Age
+                      </label>
+
+
+                      <label class="checkbox-option">
+                        <input
+                          type="checkbox"
+                          id="volunteerSportsFieldGender"
+                          checked
+                        >
+                        Gender
+                      </label>
+
+
+                      <label class="checkbox-option">
+                        <input
+                          type="checkbox"
+                          id="volunteerSportsFieldArea"
+                        >
+                        Area
+                      </label>
+
+
+                      <label class="checkbox-option">
+                        <input
+                          type="checkbox"
+                          id="volunteerSportsFieldTeamName"
+                          checked
+                        >
+                        Team Name
+                      </label>
+
+                    </div>
+
+                  </div>
+
+
+                  <!-- RULES -->
+
+                  <div class="form-field full">
+
+                    <label>
+                      SPORTS RULES / INSTRUCTIONS
+                    </label>
+
+                    <textarea
+                      id="volunteerSportsRules"
+                      placeholder="Game rules, reporting time, dress code, instructions etc."
+                    ></textarea>
+
+                  </div>
+
+                </div>
+
               </div>
 
             </div>
 
-          </div>
 
-        </div>
+            <!-- SUBMIT -->
 
-      </section>
-
-
-      <!-- =================================================
-           ID CARD
-      ================================================== -->
-      <section
-        class="volunteer-panel"
-        data-vol-panel-content="idcard"
-      >
-
-        <div class="vol-panel-header">
-
-          <div>
-
-            <small>
-              OFFICIAL IDENTITY
-            </small>
-
-            <h2>
-              My I-Card
-            </h2>
-
-            <p>
-              Open your official Aakash Earth Volunteer ID Card.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="vol-card">
-
-          <div class="vol-empty">
-
-            <div>
-
-              <div
-                style="
-                  font-size:50px;
-                  margin-bottom:15px;
-                "
-              >
-                🪪
-              </div>
-
-              <strong
-                style="
-                  display:block;
-                  color:#071a2b;
-                  font-family:Cinzel,serif;
-                  font-size:18px;
-                "
-              >
-                Official Volunteer I-Card
-              </strong>
-
-              <p
-                style="
-                  margin:10px 0 18px;
-                "
-              >
-                Your card includes your official Volunteer ID
-                and public verification details.
-              </p>
+            <div class="form-field full">
 
               <button
-                type="button"
-                class="vol-submit-btn"
-                id="viewVolunteerIdCard"
+                type="submit"
+                class="primary-btn"
               >
-                Open My I-Card →
+                Send Proposal to Admin
               </button>
 
+              <div
+                id="volunteerOrganizeMessage"
+                class="form-message"
+              ></div>
+
             </div>
 
-          </div>
+          </form>
+
+        </div>
+
+
+        <!-- MY PROPOSALS -->
+
+        <div class="dashboard-card">
+
+          <strong>
+            My Proposals
+          </strong>
+
+          <div
+            id="volunteerOrganizeList"
+            class="simple-list"
+            style="margin-top:12px;"
+          ></div>
 
         </div>
 
       </section>
 
 
-      <!-- =================================================
-           TASKS
-      ================================================== -->
+      <!-- COMPLAINTS -->
+
       <section
         class="volunteer-panel"
-        data-vol-panel-content="tasks"
+        data-volunteer-panel-content="complaints"
       >
 
-        <div class="vol-panel-header">
-
-          <div>
-
-            <small>
-              SEVA TASKS
-            </small>
-
-            <h2>
-              My Tasks
-            </h2>
-
-            <p>
-              Complete tasks assigned by the administrator and
-              submit your work for review.
-            </p>
-
-          </div>
-
+        <div class="panel-heading">
+          <small>COMPLAINT SYSTEM</small>
+          <h2>My Complaints</h2>
         </div>
 
+        <div class="dashboard-card">
 
-        <div class="vol-filter-row">
-
-          <button
-            class="vol-task-filter active"
-            data-vol-task-filter="all"
+          <a
+            href="complaint.html"
+            class="primary-btn"
+            style="
+              display:inline-flex;
+              align-items:center;
+              text-decoration:none;
+            "
           >
-            All
-          </button>
-
-          <button
-            class="vol-task-filter"
-            data-vol-task-filter="assigned"
-          >
-            Assigned
-          </button>
-
-          <button
-            class="vol-task-filter"
-            data-vol-task-filter="pending_review"
-          >
-            Pending Review
-          </button>
-
-          <button
-            class="vol-task-filter"
-            data-vol-task-filter="completed"
-          >
-            Completed
-          </button>
-
-          <button
-            class="vol-task-filter"
-            data-vol-task-filter="rejected"
-          >
-            Rejected
-          </button>
+            Submit New Complaint
+          </a>
 
         </div>
 
+        <div class="table-card">
 
-        <div
-          class="vol-task-list"
-          id="volunteerTaskList"
-        >
+          <table>
 
-          <div class="vol-empty">
-            Loading your tasks...
-          </div>
+            <thead>
+              <tr>
+                <th>Complaint ID</th>
+                <th>Against</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Admin Reply</th>
+              </tr>
+            </thead>
+
+            <tbody id="volunteerComplaintList"></tbody>
+
+          </table>
 
         </div>
 
       </section>
 
 
-      <!-- =================================================
-           PERFORMANCE
-      ================================================== -->
+      <!-- FESTIVALS -->
+
       <section
         class="volunteer-panel"
-        data-vol-panel-content="performance"
+        data-volunteer-panel-content="festivals"
       >
 
-        <div class="vol-panel-header">
-
-          <div>
-
-            <small>
-              PERFORMANCE
-            </small>
-
-            <h2>
-              Points & Rating
-            </h2>
-
-            <p>
-              Your performance based on approved volunteer work.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="score-grid">
-
-          <div class="score-card">
-
-            <div>
-              <strong id="performancePoints">
-                0
-              </strong>
-
-              <span>
-                TOTAL POINTS
-              </span>
-            </div>
-
-          </div>
-
-
-          <div class="score-card gold">
-
-            <div>
-              <strong id="performanceRating">
-                -
-              </strong>
-
-              <span>
-                VOLUNTEER RATING
-              </span>
-            </div>
-
-          </div>
-
-
-          <div class="score-card blue">
-
-            <div>
-              <strong id="performanceCompleted">
-                0
-              </strong>
-
-              <span>
-                COMPLETED TASKS
-              </span>
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =================================================
-           RANKING
-      ================================================== -->
-      <section
-        class="volunteer-panel"
-        data-vol-panel-content="ranking"
-      >
-
-        <div class="vol-panel-header">
-
-          <div>
-
-            <small>
-              VOLUNTEER LEADERBOARD
-            </small>
-
-            <h2>
-              Volunteer Ranking
-            </h2>
-
-            <p>
-              Ranking of approved volunteers based on available
-              points and performance data.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="vol-card">
-
-          <div class="vol-table-wrap">
-
-            <table class="vol-table">
-
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Volunteer</th>
-                  <th>Volunteer ID</th>
-                  <th>Points</th>
-                  <th>Rating</th>
-                </tr>
-              </thead>
-
-              <tbody id="volunteerRankingList">
-
-                <tr>
-                  <td colspan="5">
-                    Loading ranking...
-                  </td>
-                </tr>
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =================================================
-           HISTORY
-      ================================================== -->
-      <section
-        class="volunteer-panel"
-        data-vol-panel-content="history"
-      >
-
-        <div class="vol-panel-header">
-
-          <div>
-
-            <small>
-              SEVA RECORD
-            </small>
-
-            <h2>
-              Task History
-            </h2>
-
-            <p>
-              Your submitted, reviewed and completed tasks.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="vol-card">
-
-          <div id="volunteerTaskHistory">
-
-            <div class="vol-empty">
-              No task history available.
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =================================================
-           COMPLAINTS
-      ================================================== -->
-      <section
-        class="volunteer-panel"
-        data-vol-panel-content="complaints"
-      >
-
-        <div class="vol-panel-header">
-
-          <div>
-
-            <small>
-              COMPLAINT RECORD
-            </small>
-
-            <h2>
-              Complaints Against Me
-            </h2>
-
-            <p>
-              Complaints linked to your official Volunteer ID.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div class="vol-privacy-note">
-          For privacy, the complainant's mobile number and
-          address are not shown in the Volunteer Portal.
-          Volunteers cannot edit or delete complaint records.
-        </div>
-
-
-        <div class="vol-card">
-
-          <div class="vol-table-wrap">
-
-            <table class="vol-table">
-
-              <thead>
-                <tr>
-                  <th>Complaint ID</th>
-                  <th>Reason</th>
-                  <th>Incident</th>
-                  <th>Status</th>
-                  <th>Admin Reply</th>
-                </tr>
-              </thead>
-
-              <tbody id="volunteerComplaintList">
-
-                <tr>
-                  <td colspan="5">
-                    Loading complaints...
-                  </td>
-                </tr>
-
-              </tbody>
-
-            </table>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- =================================================
-           FESTIVALS
-      ================================================== -->
-      <section
-        class="volunteer-panel"
-        data-vol-panel-content="festivals"
-      >
-
-        <div class="vol-panel-header">
-
-          <div>
-            <small>CELEBRATIONS</small>
-            <h2>Festivals</h2>
-            <p>Approved Aakash Earth festival activities.</p>
-          </div>
-
+        <div class="panel-heading">
+          <small>EVENTS</small>
+          <h2>Festivals</h2>
         </div>
 
         <div
-          class="vol-module-grid"
+          class="simple-list"
           id="volunteerFestivalList"
-        >
-          <div class="vol-empty">
-            Festival information will appear here.
-          </div>
-        </div>
+        ></div>
 
       </section>
 
 
-      <!-- =================================================
-           SPORTS
-      ================================================== -->
+      <!-- SPORTS -->
+
       <section
         class="volunteer-panel"
-        data-vol-panel-content="sports"
+        data-volunteer-panel-content="sports"
       >
 
-        <div class="vol-panel-header">
+        <div class="panel-heading">
 
-          <div>
-            <small>TEAMWORK</small>
-            <h2>Sports</h2>
-            <p>Community sports and team activities.</p>
-          </div>
+          <small>SPORTS & GAMES</small>
+
+          <h2>
+            Sports
+          </h2>
+
+          <p>
+            Approved Sports events aur registration
+            information yahan dikhegi.
+          </p>
 
         </div>
 
         <div
-          class="vol-module-grid"
+          class="simple-list"
           id="volunteerSportsList"
-        >
-          <div class="vol-empty">
-            Sports activities will appear here.
-          </div>
-        </div>
+        ></div>
 
       </section>
 
 
-      <!-- =================================================
-           UPDATES
-      ================================================== -->
+      <!-- UPDATES -->
+
       <section
         class="volunteer-panel"
-        data-vol-panel-content="updates"
+        data-volunteer-panel-content="updates"
       >
 
-        <div class="vol-panel-header">
-
-          <div>
-            <small>COMMUNITY NEWS</small>
-            <h2>Updates</h2>
-            <p>Latest Aakash Earth announcements.</p>
-          </div>
-
+        <div class="panel-heading">
+          <small>NEWS</small>
+          <h2>Updates</h2>
         </div>
 
         <div
-          class="vol-module-grid"
+          class="simple-list"
           id="volunteerUpdatesList"
-        >
-          <div class="vol-empty">
-            Community updates will appear here.
-          </div>
-        </div>
+        ></div>
 
       </section>
 
 
-      <!-- =================================================
-           GALLERY
-      ================================================== -->
+      <!-- GALLERY -->
+
       <section
         class="volunteer-panel"
-        data-vol-panel-content="gallery"
+        data-volunteer-panel-content="gallery"
       >
 
-        <div class="vol-panel-header">
-
-          <div>
-            <small>MEMORIES</small>
-            <h2>Gallery</h2>
-            <p>Approved community photos and memories.</p>
-          </div>
-
+        <div class="panel-heading">
+          <small>MEMORIES</small>
+          <h2>Gallery</h2>
         </div>
 
         <div
-          class="vol-module-grid"
+          class="simple-list"
           id="volunteerGalleryList"
-        >
-          <div class="vol-empty">
-            Gallery will appear here.
-          </div>
-        </div>
+        ></div>
 
       </section>
 
@@ -2510,33 +1685,24 @@
 </div>
 
 
-<!-- =====================================================
-     TASK PROOF MODAL
-====================================================== -->
+<!-- TASK MODAL -->
+
 <div
-  class="vol-modal"
+  class="volunteer-modal"
   id="volunteerTaskModal"
 >
 
-  <div class="vol-modal-card">
+  <div class="volunteer-modal-box">
 
-    <div class="vol-modal-header">
+    <div class="modal-head">
 
-      <div>
-
-        <small>
-          TASK SUBMISSION
-        </small>
-
-        <h3 id="volunteerTaskModalTitle">
-          Complete Task
-        </h3>
-
-      </div>
+      <h3 id="volunteerTaskModalTitle">
+        Task
+      </h3>
 
       <button
         type="button"
-        class="vol-modal-close"
+        class="modal-close"
         id="closeVolunteerTaskModal"
       >
         ×
@@ -2545,96 +1711,55 @@
     </div>
 
 
-    <div class="vol-detail-grid">
+    <p id="volunteerTaskModalDescription">
+      —
+    </p>
 
-      <div
-        class="vol-detail"
-        style="grid-column:1/-1;"
-      >
-        <small>DESCRIPTION</small>
+    <p>
+      Deadline:
+      <strong id="volunteerTaskModalDeadline">—</strong>
+    </p>
 
-        <strong id="volunteerTaskModalDescription">
-          —
-        </strong>
-      </div>
-
-
-      <div class="vol-detail">
-
-        <small>DEADLINE</small>
-
-        <strong id="volunteerTaskModalDeadline">
-          —
-        </strong>
-
-      </div>
+    <p>
+      Points:
+      <strong id="volunteerTaskModalPoints">0</strong>
+    </p>
 
 
-      <div class="vol-detail">
+    <div class="form-field">
 
-        <small>POINTS</small>
-
-        <strong id="volunteerTaskModalPoints">
-          0
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <div class="vol-form-field">
-
-      <label for="volunteerTaskProofPhoto">
+      <label>
         TASK PROOF PHOTO
       </label>
 
       <input
         type="file"
         id="volunteerTaskProofPhoto"
-        class="vol-input"
         accept="image/*"
       >
-
-      <img
-        id="volunteerTaskProofPreview"
-        class="vol-proof-preview"
-        alt="Task proof preview"
-      >
-
-      <small
-        style="
-          display:block;
-          margin-top:8px;
-          color:#7a858c;
-          font-size:8px;
-          line-height:1.55;
-        "
-      >
-        Photo upload to Firebase Storage is temporarily
-        disabled. Your selected photo will be previewed and
-        its filename will be recorded with the task submission.
-      </small>
 
     </div>
 
 
     <div
+      id="volunteerTaskProofPreview"
+      style="margin-top:10px;"
+    ></div>
+
+
+    <div
       id="volunteerTaskFormMessage"
-      class="vol-form-message"
+      class="form-message"
     ></div>
 
 
     <button
       type="button"
-      class="vol-submit-btn"
+      class="primary-btn"
       id="submitVolunteerTaskProof"
-      style="
-        width:100%;
-        margin-top:15px;
-      "
+      style="margin-top:12px;"
     >
-      Submit Task For Review →
+      Submit Task for Review
     </button>
 
   </div>

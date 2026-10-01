@@ -1,1171 +1,1102 @@
 /* =========================================================
-   AAKASH EARTH - PUBLIC COMPLAINT SYSTEM
-   Realtime Database only
-   Firebase Storage temporarily NOT used
+   AAKASH EARTH
+   PUBLIC COMPLAINT SYSTEM
+   Complete replacement: complaint.js
 ========================================================= */
 
 import {
   db,
+  storage,
   ref,
   push,
   set,
-  get
+  storageRef,
+  uploadBytes,
+  getDownloadURL
 } from "./firebase.js";
-
-
-/* =========================================================
-   ELEMENTS
-========================================================= */
-
-const complaintForm =
-  document.getElementById("complaintForm");
-
-const complainantName =
-  document.getElementById("complainantName");
-
-const complainantMobile =
-  document.getElementById("complainantMobile");
-
-const complainantAddress =
-  document.getElementById("complainantAddress");
-
-const complaintAgainstType =
-  document.getElementById("complaintAgainstType");
-
-const complaintAgainstName =
-  document.getElementById("complaintAgainstName");
-
-const complaintAgainstId =
-  document.getElementById("complaintAgainstId");
-
-const complaintAgainstIdField =
-  document.getElementById("complaintAgainstIdField");
-
-const complaintReason =
-  document.getElementById("complaintReason");
-
-const complaintDescription =
-  document.getElementById("complaintDescription");
-
-const complaintIncidentDate =
-  document.getElementById("complaintIncidentDate");
-
-const complaintIncidentTime =
-  document.getElementById("complaintIncidentTime");
-
-const complaintProof =
-  document.getElementById("complaintProof");
-
-const complaintProofPreview =
-  document.getElementById("complaintProofPreview");
-
-const complaintMessage =
-  document.getElementById("complaintMessage");
-
-const complaintSubmit =
-  document.getElementById("complaintSubmit");
-
-const complaintSubmitText =
-  document.getElementById("complaintSubmitText");
-
-const complaintFormContent =
-  document.getElementById("complaintFormContent");
-
-const complaintSuccess =
-  document.getElementById("complaintSuccess");
-
-const successComplaintId =
-  document.getElementById("successComplaintId");
-
-const submitAnotherComplaint =
-  document.getElementById("submitAnotherComplaint");
-
-
-/* TRACKING */
-
-const complaintTrackForm =
-  document.getElementById("complaintTrackForm");
-
-const trackComplaintId =
-  document.getElementById("trackComplaintId");
-
-const trackComplaintMobile =
-  document.getElementById("trackComplaintMobile");
-
-const trackComplaintButton =
-  document.getElementById("trackComplaintButton");
-
-const trackComplaintMessage =
-  document.getElementById("trackComplaintMessage");
-
-const complaintTrackResult =
-  document.getElementById("complaintTrackResult");
-
-
-/* =========================================================
-   STATE
-========================================================= */
-
-let selectedProofFile = null;
 
 
 /* =========================================================
    HELPERS
 ========================================================= */
 
-function cleanText(value = "") {
-  return String(value).trim();
+const $ = (id) =>
+  document.getElementById(id);
+
+const clean = (value) =>
+  String(value ?? "").trim();
+
+
+function withTimeout(
+  promise,
+  milliseconds = 15000,
+  message = "Request timed out."
+) {
+
+  let timer;
+
+  const timeout = new Promise(
+    (_, reject) => {
+
+      timer = setTimeout(
+        () => reject(
+          new Error(message)
+        ),
+        milliseconds
+      );
+
+    }
+  );
+
+  return Promise.race([
+    promise,
+    timeout
+  ]).finally(() => {
+    clearTimeout(timer);
+  });
+
 }
 
-function cleanMobile(value = "") {
-  let mobile =
-    String(value)
-      .replace(/\D/g, "");
-
-  /*
-    Support old records saved as:
-    +91xxxxxxxxxx
-    91xxxxxxxxxx
-  */
-
-  if (
-    mobile.length === 12 &&
-    mobile.startsWith("91")
-  ) {
-    mobile = mobile.slice(-10);
-  }
-
-  return mobile.slice(0, 10);
-}
-
-function normalize(value = "") {
-  return String(value)
-    .trim()
-    .toLowerCase();
-}
-
-function escapeHTML(value = "") {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
 
 function showMessage(
-  message,
-  type = "error"
+  message = "",
+  error = false
 ) {
-  if (!complaintMessage) return;
 
-  complaintMessage.textContent =
+  const element =
+    $("complaintMessage");
+
+  if (!element) {
+    return;
+  }
+
+  element.textContent =
     message;
 
-  complaintMessage.className =
-    `complaint-message show ${type}`;
-}
+  element.style.color =
+    error
+      ? "#9a3e38"
+      : "#795b18";
 
-function clearMessage() {
-  if (!complaintMessage) return;
-
-  complaintMessage.textContent = "";
-
-  complaintMessage.className =
-    "complaint-message";
-}
-
-function setSubmitting(loading) {
-  if (complaintSubmit) {
-    complaintSubmit.disabled =
-      loading;
-  }
-
-  if (complaintSubmitText) {
-    complaintSubmitText.textContent =
-      loading
-        ? "Submitting Complaint..."
-        : "Submit Complaint →";
-  }
-}
-
-function formatDate(value) {
-  if (!value) {
-    return "—";
-  }
-
-  const date =
-    new Date(value);
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return String(value);
-  }
-
-  return new Intl.DateTimeFormat(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }
-  ).format(date);
-}
-
-function formatDateTime(value) {
-  if (!value) {
-    return "—";
-  }
-
-  const date =
-    new Date(value);
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return "—";
-  }
-
-  return new Intl.DateTimeFormat(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  ).format(date);
-}
-
-function statusLabel(value) {
-  const status =
-    normalize(value);
-
-  const labels = {
-    submitted: "Submitted",
-    under_review: "Under Review",
-    in_progress: "In Progress",
-    resolved: "Resolved",
-    rejected: "Rejected"
-  };
-
-  return (
-    labels[status] ||
-    String(value || "Submitted")
-      .replaceAll("_", " ")
-  );
 }
 
 
 /* =========================================================
-   RANDOM ID
+   CURRENT YEAR
 ========================================================= */
 
-function randomCode(length = 6) {
-  const characters =
-    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+if ($("complaintCurrentYear")) {
 
-  let result = "";
-
-  if (
-    window.crypto &&
-    window.crypto.getRandomValues
-  ) {
-    const values =
-      new Uint32Array(length);
-
-    window.crypto.getRandomValues(
-      values
-    );
-
-    for (
-      let index = 0;
-      index < length;
-      index++
-    ) {
-      result +=
-        characters[
-          values[index] %
-          characters.length
-        ];
-    }
-
-    return result;
-  }
-
-  for (
-    let index = 0;
-    index < length;
-    index++
-  ) {
-    result +=
-      characters[
-        Math.floor(
-          Math.random() *
-          characters.length
-        )
-      ];
-  }
-
-  return result;
-}
-
-function generateComplaintId() {
-  const year =
+  $("complaintCurrentYear")
+    .textContent =
     new Date().getFullYear();
 
-  return (
-    `AE-CMP-${year}-` +
-    randomCode(6)
-  );
 }
 
 
 /* =========================================================
-   MOBILE INPUT
+   PHOTO PREVIEW
 ========================================================= */
 
-complainantMobile?.addEventListener(
-  "input",
-  () => {
-    complainantMobile.value =
-      cleanMobile(
-        complainantMobile.value
-      );
-  }
-);
+const photoInput =
+  $("complaintPhoto");
 
-trackComplaintMobile?.addEventListener(
-  "input",
-  () => {
-    trackComplaintMobile.value =
-      cleanMobile(
-        trackComplaintMobile.value
-      );
-  }
-);
+const previewBox =
+  $("complaintPhotoPreviewBox");
+
+const previewImage =
+  $("complaintPhotoPreview");
+
+const previewName =
+  $("complaintPhotoName");
 
 
-/* =========================================================
-   AGAINST TYPE
-========================================================= */
+let previewObjectURL = "";
 
-complaintAgainstType?.addEventListener(
+
+photoInput?.addEventListener(
   "change",
   () => {
-    const type =
-      normalize(
-        complaintAgainstType.value
-      );
 
-    /*
-      Member / Volunteer ke liye
-      official ID useful hai.
-
-      Admin / Other me ID field
-      hide kar dete hain.
-    */
-
-    if (
-      type === "member" ||
-      type === "volunteer"
-    ) {
-      if (complaintAgainstIdField) {
-        complaintAgainstIdField.style.display =
-          "";
-      }
-
-      if (complaintAgainstId) {
-        complaintAgainstId.placeholder =
-          type === "member"
-            ? "Example: AE-MEM-2026-XXXXXX"
-            : "Example: AE-VOL-2026-XXXXXX";
-      }
-    } else {
-      if (complaintAgainstIdField) {
-        complaintAgainstIdField.style.display =
-          "none";
-      }
-
-      if (complaintAgainstId) {
-        complaintAgainstId.value = "";
-      }
-    }
-  }
-);
-
-
-/* =========================================================
-   PROOF PHOTO PREVIEW
-   STORAGE NOT USED
-========================================================= */
-
-complaintProof?.addEventListener(
-  "change",
-  () => {
-    clearMessage();
+    clearPreview();
 
     const file =
-      complaintProof.files?.[0];
-
-    selectedProofFile = null;
+      photoInput.files?.[0];
 
     if (!file) {
-      if (complaintProofPreview) {
-        complaintProofPreview.src =
-          "";
-
-        complaintProofPreview.style.display =
-          "none";
-      }
-
       return;
     }
+
 
     if (
       !file.type.startsWith(
         "image/"
       )
     ) {
-      complaintProof.value = "";
+
+      photoInput.value = "";
 
       showMessage(
-        "Please select a valid image file.",
-        "error"
+        "Please select a valid image.",
+        true
       );
 
       return;
+
     }
 
-    const maxSize =
-      5 * 1024 * 1024;
 
-    if (file.size > maxSize) {
-      complaintProof.value = "";
+    if (
+      file.size >
+      15 * 1024 * 1024
+    ) {
+
+      photoInput.value = "";
 
       showMessage(
-        "Proof photo must be 5 MB or smaller.",
-        "error"
+        "Photo must be smaller than 15 MB.",
+        true
       );
 
       return;
+
     }
 
-    selectedProofFile = file;
 
-    const reader =
-      new FileReader();
-
-    reader.onload = () => {
-      if (!complaintProofPreview) {
-        return;
-      }
-
-      complaintProofPreview.src =
-        reader.result;
-
-      complaintProofPreview.style.display =
-        "block";
-    };
-
-    reader.onerror = () => {
-      selectedProofFile = null;
-
-      complaintProof.value = "";
-
-      showMessage(
-        "Unable to preview proof photo.",
-        "error"
+    previewObjectURL =
+      URL.createObjectURL(
+        file
       );
-    };
 
-    reader.readAsDataURL(file);
+
+    if (previewImage) {
+
+      previewImage.src =
+        previewObjectURL;
+
+    }
+
+
+    if (previewName) {
+
+      previewName.textContent =
+        file.name;
+
+    }
+
+
+    previewBox?.classList.add(
+      "show"
+    );
+
+
+    showMessage("");
+
   }
 );
 
 
-/* =========================================================
-   INCIDENT DATE - NO FUTURE DATE
-========================================================= */
+function clearPreview() {
 
-if (complaintIncidentDate) {
-  const today =
-    new Date();
+  if (previewObjectURL) {
 
-  const year =
-    today.getFullYear();
+    URL.revokeObjectURL(
+      previewObjectURL
+    );
 
-  const month =
-    String(
-      today.getMonth() + 1
-    ).padStart(2, "0");
+    previewObjectURL = "";
 
-  const day =
-    String(
-      today.getDate()
-    ).padStart(2, "0");
+  }
 
-  complaintIncidentDate.max =
-    `${year}-${month}-${day}`;
+
+  previewBox?.classList.remove(
+    "show"
+  );
+
+
+  if (previewImage) {
+
+    previewImage.removeAttribute(
+      "src"
+    );
+
+  }
+
+
+  if (previewName) {
+
+    previewName.textContent = "";
+
+  }
+
 }
 
 
 /* =========================================================
-   COMPLAINT SUBMISSION
+   IMAGE COMPRESSION
 ========================================================= */
 
-complaintForm?.addEventListener(
-  "submit",
-  async (event) => {
-    event.preventDefault();
+const MAX_ORIGINAL_SIZE =
+  15 * 1024 * 1024;
 
-    clearMessage();
+const MAX_DIMENSION =
+  1280;
 
-    const name =
-      cleanText(
-        complainantName?.value
+const TARGET_SIZE =
+  700 * 1024;
+
+
+function canvasToBlob(
+  canvas,
+  quality
+) {
+
+  return new Promise(
+    (resolve) => {
+
+      canvas.toBlob(
+        resolve,
+        "image/jpeg",
+        quality
       );
 
-    const mobile =
-      cleanMobile(
-        complainantMobile?.value
-      );
-
-    const address =
-      cleanText(
-        complainantAddress?.value
-      );
-
-    const againstType =
-      normalize(
-        complaintAgainstType?.value
-      );
-
-    const againstName =
-      cleanText(
-        complaintAgainstName?.value
-      );
-
-    const againstId =
-      cleanText(
-        complaintAgainstId?.value
-      );
-
-    const reason =
-      cleanText(
-        complaintReason?.value
-      );
-
-    const description =
-      cleanText(
-        complaintDescription?.value
-      );
-
-    const incidentDate =
-      complaintIncidentDate?.value ||
-      "";
-
-    const incidentTime =
-      complaintIncidentTime?.value ||
-      "";
-
-
-    /* VALIDATION */
-
-    if (name.length < 2) {
-      showMessage(
-        "Please enter your full name.",
-        "error"
-      );
-
-      complainantName?.focus();
-
-      return;
     }
+  );
 
-    if (mobile.length !== 10) {
-      showMessage(
-        "Please enter a valid 10-digit mobile number.",
-        "error"
-      );
-
-      complainantMobile?.focus();
-
-      return;
-    }
-
-    if (!address) {
-      showMessage(
-        "Please enter your address.",
-        "error"
-      );
-
-      complainantAddress?.focus();
-
-      return;
-    }
-
-    if (
-      ![
-        "member",
-        "volunteer",
-        "admin",
-        "other"
-      ].includes(againstType)
-    ) {
-      showMessage(
-        "Please select who the complaint is against.",
-        "error"
-      );
-
-      complaintAgainstType?.focus();
-
-      return;
-    }
-
-    if (!againstName) {
-      showMessage(
-        "Please enter the person or party name.",
-        "error"
-      );
-
-      complaintAgainstName?.focus();
-
-      return;
-    }
-
-    if (!reason) {
-      showMessage(
-        "Please enter the complaint reason.",
-        "error"
-      );
-
-      complaintReason?.focus();
-
-      return;
-    }
-
-    if (
-      description.length < 10
-    ) {
-      showMessage(
-        "Please explain the complaint in more detail.",
-        "error"
-      );
-
-      complaintDescription?.focus();
-
-      return;
-    }
+}
 
 
-    try {
-      setSubmitting(true);
+async function compressImage(
+  file
+) {
 
-      showMessage(
-        "Saving complaint...",
-        "success"
+  if (!file) {
+    return null;
+  }
+
+
+  if (
+    !file.type.startsWith(
+      "image/"
+    )
+  ) {
+
+    throw new Error(
+      "Please select a valid image."
+    );
+
+  }
+
+
+  if (
+    file.size >
+    MAX_ORIGINAL_SIZE
+  ) {
+
+    throw new Error(
+      "Photo must be smaller than 15 MB."
+    );
+
+  }
+
+
+  const bitmap =
+    await createImageBitmap(
+      file
+    );
+
+
+  let width =
+    bitmap.width;
+
+  let height =
+    bitmap.height;
+
+
+  if (
+    width > MAX_DIMENSION ||
+    height > MAX_DIMENSION
+  ) {
+
+    const ratio =
+      Math.min(
+        MAX_DIMENSION / width,
+        MAX_DIMENSION / height
       );
 
 
-      /* GENERATE ID */
+    width =
+      Math.round(
+        width * ratio
+      );
 
-      const complaintId =
-        generateComplaintId();
+    height =
+      Math.round(
+        height * ratio
+      );
+
+  }
 
 
-      /* CREATE FIREBASE KEY */
-
-      const complaintRef =
-        push(
-          ref(db, "complaints")
-        );
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
 
 
-      /* DATA */
+  canvas.width =
+    width;
+
+  canvas.height =
+    height;
+
+
+  const context =
+    canvas.getContext(
+      "2d",
+      {
+        alpha: false
+      }
+    );
+
+
+  context.drawImage(
+    bitmap,
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  bitmap.close?.();
+
+
+  let quality =
+    0.78;
+
+
+  let blob =
+    await canvasToBlob(
+      canvas,
+      quality
+    );
+
+
+  while (
+    blob &&
+    blob.size > TARGET_SIZE &&
+    quality > 0.52
+  ) {
+
+    quality -= 0.06;
+
+
+    blob =
+      await canvasToBlob(
+        canvas,
+        quality
+      );
+
+  }
+
+
+  if (!blob) {
+
+    throw new Error(
+      "Unable to process photo."
+    );
+
+  }
+
+
+  return blob;
+
+}
+
+
+/* =========================================================
+   OPTIONAL PHOTO UPLOAD
+========================================================= */
+
+async function uploadOptionalPhoto(
+  file,
+  complaintKey
+) {
+
+  /*
+    IMPORTANT:
+    Photo is optional.
+
+    If no photo is selected,
+    complaint continues normally.
+  */
+
+  if (!file) {
+
+    return {
+      url: "",
+      path: ""
+    };
+
+  }
+
+
+  const blob =
+    await compressImage(
+      file
+    );
+
+
+  const fileName =
+    `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}.jpg`;
+
+
+  const path =
+    `complaints/${complaintKey}/${fileName}`;
+
+
+  const fileRef =
+    storageRef(
+      storage,
+      path
+    );
+
+
+  await withTimeout(
+    uploadBytes(
+      fileRef,
+      blob,
+      {
+        contentType:
+          "image/jpeg"
+      }
+    ),
+    45000,
+    "Photo upload timed out."
+  );
+
+
+  const url =
+    await withTimeout(
+      getDownloadURL(
+        fileRef
+      ),
+      15000,
+      "Unable to get photo URL."
+    );
+
+
+  return {
+    url,
+    path
+  };
+
+}
+
+
+/* =========================================================
+   COMPLAINT ID
+========================================================= */
+
+function createComplaintId() {
+
+  const now =
+    new Date();
+
+
+  const year =
+    now.getFullYear();
+
+
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+
+  const day =
+    String(
+      now.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+
+  const random =
+    Math.floor(
+      1000 +
+      Math.random() * 9000
+    );
+
+
+  return (
+    `AE-C-${year}${month}${day}-${random}`
+  );
+
+}
+
+
+/* =========================================================
+   VALIDATION
+========================================================= */
+
+function validateForm(
+  data
+) {
+
+  if (
+    data.name.length < 2
+  ) {
+
+    return "Please enter your full name.";
+
+  }
+
+
+  if (
+    !/^[0-9+\-\s]{7,15}$/.test(
+      data.mobile
+    )
+  ) {
+
+    return "Please enter a valid mobile number.";
+
+  }
+
+
+  if (
+    data.email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+      data.email
+    )
+  ) {
+
+    return "Please enter a valid email address.";
+
+  }
+
+
+  if (!data.category) {
+
+    return "Please select complaint category.";
+
+  }
+
+
+  if (
+    data.subject.length < 3
+  ) {
+
+    return "Please enter complaint subject.";
+
+  }
+
+
+  if (
+    data.description.length < 10
+  ) {
+
+    return "Please explain the complaint in at least 10 characters.";
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =========================================================
+   FORM SUBMISSION
+========================================================= */
+
+$("complaintForm")
+  ?.addEventListener(
+    "submit",
+    async (event) => {
+
+      event.preventDefault();
+
+
+      const form =
+        $("complaintForm");
+
+
+      const button =
+        $("complaintSubmitBtn");
+
 
       const data = {
-        complaintId,
 
-        complainantName:
-          name,
-
-        complainantMobile:
-          mobile,
-
-        mobile,
-
-        complainantAddress:
-          address,
-
-        address,
-
-        complaintAgainstType:
-          againstType,
-
-        complaintAgainstName:
-          againstName,
-
-        complaintAgainstId:
-          (
-            againstType === "member" ||
-            againstType === "volunteer"
-          )
-            ? againstId
-            : "",
-
-        reason,
-
-        description,
-
-        incidentDate,
-
-        incidentTime,
-
-        proofURL: "",
-
-        proofPhotoName:
-          selectedProofFile?.name ||
-          "",
-
-        proofPhotoType:
-          selectedProofFile?.type ||
-          "",
-
-        proofPhotoSize:
-          selectedProofFile?.size ||
-          0,
-
-        proofStoragePending:
-          Boolean(
-            selectedProofFile
+        name:
+          clean(
+            $("complaintName")?.value
           ),
 
-        status:
-          "submitted",
+        mobile:
+          clean(
+            $("complaintMobile")?.value
+          ),
 
-        adminReply:
-          "",
+        email:
+          clean(
+            $("complaintEmail")?.value
+          ),
 
-        createdAt:
-          Date.now(),
+        category:
+          clean(
+            $("complaintCategory")?.value
+          ),
 
-        updatedAt:
-          Date.now()
+        subject:
+          clean(
+            $("complaintSubject")?.value
+          ),
+
+        description:
+          clean(
+            $("complaintDescription")?.value
+          )
+
       };
 
 
-      /* SAVE */
-
-      await set(
-        complaintRef,
-        data
-      );
-
-
-      /* SUCCESS */
-
-      if (successComplaintId) {
-        successComplaintId.textContent =
-          complaintId;
-      }
-
-      complaintFormContent
-        ?.classList.add(
-          "hidden"
+      const validationError =
+        validateForm(
+          data
         );
 
-      complaintSuccess
-        ?.classList.add(
-          "show"
+
+      if (validationError) {
+
+        showMessage(
+          validationError,
+          true
         );
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
+        return;
 
-      console.log(
-        "Complaint saved:",
-        complaintId
-      );
-    }
-
-    catch (error) {
-      console.error(
-        "Complaint submission error:",
-        error
-      );
-
-      let message =
-        "Unable to submit complaint. Please try again.";
-
-      const errorText =
-        String(
-          error?.message || ""
-        ).toLowerCase();
-
-      if (
-        errorText.includes(
-          "permission"
-        )
-      ) {
-        message =
-          "Firebase Database permission denied. Please check Realtime Database rules.";
       }
 
-      if (
-        errorText.includes(
-          "network"
-        )
-      ) {
-        message =
-          "Network error. Please check your internet connection.";
+
+      /*
+        Photo is OPTIONAL.
+      */
+
+      const file =
+        photoInput?.files?.[0] ||
+        null;
+
+
+      let complaintSaved =
+        false;
+
+
+      try {
+
+        if (button) {
+
+          button.disabled =
+            true;
+
+          button.textContent =
+            file
+              ? "UPLOADING..."
+              : "SUBMITTING...";
+
+        }
+
+
+        showMessage(
+          file
+            ? "Preparing proof photo..."
+            : "Submitting complaint..."
+        );
+
+
+        /*
+          Generate Firebase key first.
+        */
+
+        const complaintRef =
+          push(
+            ref(
+              db,
+              "complaints"
+            )
+          );
+
+
+        const complaintKey =
+          complaintRef.key;
+
+
+        if (!complaintKey) {
+
+          throw new Error(
+            "Unable to create complaint."
+          );
+
+        }
+
+
+        const complaintId =
+          createComplaintId();
+
+
+        /*
+          Optional image upload.
+        */
+
+        const uploaded =
+          await uploadOptionalPhoto(
+            file,
+            complaintKey
+          );
+
+
+        if (file) {
+
+          showMessage(
+            "Saving complaint..."
+          );
+
+        }
+
+
+        /*
+          Save complaint.
+        */
+
+        const complaintData = {
+
+          complaintId,
+
+          name:
+            data.name,
+
+          mobile:
+            data.mobile,
+
+          email:
+            data.email,
+
+          category:
+            data.category,
+
+          subject:
+            data.subject,
+
+          description:
+            data.description,
+
+          status:
+            "pending",
+
+          proofPhotoURL:
+            uploaded.url,
+
+          proofPhotoPath:
+            uploaded.path,
+
+          createdAt:
+            Date.now(),
+
+          updatedAt:
+            Date.now()
+
+        };
+
+
+        await withTimeout(
+          set(
+            complaintRef,
+            complaintData
+          ),
+          15000,
+          "Complaint save timed out."
+        );
+
+
+        complaintSaved =
+          true;
+
+
+        /*
+          Admin notification.
+          Notification failure will not
+          cancel the saved complaint.
+        */
+
+        await createAdminNotification(
+          complaintKey,
+          complaintId,
+          data
+        );
+
+
+        showSuccess(
+          complaintId
+        );
+
+
+        form?.reset();
+
+        clearPreview();
+
+
+      } catch (error) {
+
+        console.error(
+          "Complaint submit error:",
+          error
+        );
+
+
+        if (
+          complaintSaved
+        ) {
+
+          showMessage(
+            "Complaint was saved, but notification could not be completed."
+          );
+
+        } else {
+
+          showMessage(
+            error.message ||
+            "Unable to submit complaint. Please try again.",
+            true
+          );
+
+        }
+
+
+      } finally {
+
+        if (button) {
+
+          button.disabled =
+            false;
+
+          button.textContent =
+            "SUBMIT COMPLAINT";
+
+        }
+
       }
 
-      showMessage(
-        message,
-        "error"
-      );
     }
+  );
 
-    finally {
-      setSubmitting(false);
-    }
+
+/* =========================================================
+   ADMIN NOTIFICATION
+========================================================= */
+
+async function createAdminNotification(
+  complaintKey,
+  complaintId,
+  data
+) {
+
+  try {
+
+    const notificationRef =
+      push(
+        ref(
+          db,
+          "adminNotifications"
+        )
+      );
+
+
+    await withTimeout(
+      set(
+        notificationRef,
+        {
+          type:
+            "new_complaint",
+
+          title:
+            "New Complaint",
+
+          message:
+            `${data.name} submitted complaint ${complaintId}: ${data.subject}`,
+
+          complaintKey,
+
+          complaintId,
+
+          category:
+            data.category,
+
+          read:
+            false,
+
+          createdAt:
+            Date.now()
+        }
+      ),
+      10000,
+      "Notification timed out."
+    );
+
+
+  } catch (error) {
+
+    /*
+      Complaint has already been saved.
+      Do not fail the complaint because
+      of notification failure.
+    */
+
+    console.warn(
+      "Admin notification error:",
+      error
+    );
+
   }
-);
+
+}
+
+
+/* =========================================================
+   SUCCESS SCREEN
+========================================================= */
+
+function showSuccess(
+  complaintId
+) {
+
+  const form =
+    $("complaintForm");
+
+  const header =
+    $("complaintFormHeader");
+
+  const success =
+    $("complaintSuccess");
+
+
+  if (
+    $("complaintSuccessId")
+  ) {
+
+    $("complaintSuccessId")
+      .textContent =
+      complaintId;
+
+  }
+
+
+  if (form) {
+
+    form.style.display =
+      "none";
+
+  }
+
+
+  if (header) {
+
+    header.style.display =
+      "none";
+
+  }
+
+
+  success?.classList.add(
+    "show"
+  );
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
 
 
 /* =========================================================
    SUBMIT ANOTHER
 ========================================================= */
 
-submitAnotherComplaint
+$("submitAnotherComplaint")
   ?.addEventListener(
     "click",
     () => {
-      complaintForm?.reset();
 
-      selectedProofFile = null;
+      const form =
+        $("complaintForm");
 
-      clearMessage();
+      const header =
+        $("complaintFormHeader");
 
-      if (complaintProofPreview) {
-        complaintProofPreview.src =
+      const success =
+        $("complaintSuccess");
+
+
+      success?.classList.remove(
+        "show"
+      );
+
+
+      if (form) {
+
+        form.style.display =
           "";
 
-        complaintProofPreview.style.display =
-          "none";
+        form.reset();
+
       }
 
-      complaintSuccess
-        ?.classList.remove(
-          "show"
-        );
 
-      complaintFormContent
-        ?.classList.remove(
-          "hidden"
-        );
+      if (header) {
+
+        header.style.display =
+          "";
+
+      }
+
 
       if (
-        complaintAgainstIdField
+        $("complaintSuccessId")
       ) {
-        complaintAgainstIdField.style.display =
-          "";
+
+        $("complaintSuccessId")
+          .textContent =
+          "—";
+
       }
 
-      complainantName?.focus();
+
+      clearPreview();
+
+      showMessage("");
+
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
     }
   );
 
 
 /* =========================================================
-   TRACKING MESSAGE
-========================================================= */
-
-function showTrackMessage(
-  message,
-  isError = true
-) {
-  if (!trackComplaintMessage) {
-    return;
-  }
-
-  trackComplaintMessage.textContent =
-    message;
-
-  trackComplaintMessage.style.display =
-    "block";
-
-  trackComplaintMessage.style.color =
-    isError
-      ? "#ffd2d7"
-      : "#f5d98a";
-}
-
-function clearTrackMessage() {
-  if (!trackComplaintMessage) {
-    return;
-  }
-
-  trackComplaintMessage.textContent =
-    "";
-
-  trackComplaintMessage.style.display =
-    "none";
-}
-
-
-/* =========================================================
-   FIND COMPLAINT
-========================================================= */
-
-async function findComplaint(
-  complaintId,
-  mobile
-) {
-  const snapshot =
-    await get(
-      ref(db, "complaints")
-    );
-
-  if (!snapshot.exists()) {
-    return null;
-  }
-
-  const records =
-    snapshot.val();
-
-  for (
-    const [key, complaint]
-    of Object.entries(records)
-  ) {
-    if (!complaint) {
-      continue;
-    }
-
-    const storedId =
-      normalize(
-        complaint.complaintId
-      );
-
-    const storedMobile =
-      cleanMobile(
-        complaint.complainantMobile ||
-        complaint.mobile
-      );
-
-    if (
-      storedId ===
-        normalize(complaintId) &&
-      storedMobile === mobile
-    ) {
-      return {
-        key,
-        ...complaint
-      };
-    }
-  }
-
-  return null;
-}
-
-
-/* =========================================================
-   RENDER TRACK RESULT
-========================================================= */
-
-function renderTrackResult(
-  complaint
-) {
-  const againstType =
-    String(
-      complaint.complaintAgainstType ||
-      "Other"
-    );
-
-  const againstName =
-    String(
-      complaint.complaintAgainstName ||
-      "—"
-    );
-
-  document.getElementById(
-    "trackResultId"
-  ).textContent =
-    complaint.complaintId ||
-    "—";
-
-
-  document.getElementById(
-    "trackResultAgainst"
-  ).textContent =
-    `${againstType
-      .charAt(0)
-      .toUpperCase()}${againstType.slice(1)} — ${againstName}`;
-
-
-  document.getElementById(
-    "trackResultReason"
-  ).textContent =
-    complaint.reason ||
-    "—";
-
-
-  document.getElementById(
-    "trackResultStatus"
-  ).textContent =
-    statusLabel(
-      complaint.status
-    );
-
-
-  document.getElementById(
-    "trackResultReply"
-  ).textContent =
-    complaint.adminReply ||
-    "No reply yet";
-
-
-  document.getElementById(
-    "trackResultDate"
-  ).textContent =
-    complaint.createdAt
-      ? formatDateTime(
-          complaint.createdAt
-        )
-      : "—";
-
-
-  complaintTrackResult
-    ?.classList.add(
-      "show"
-    );
-}
-
-
-/* =========================================================
-   TRACK COMPLAINT
-========================================================= */
-
-complaintTrackForm
-  ?.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
-
-      clearTrackMessage();
-
-      complaintTrackResult
-        ?.classList.remove(
-          "show"
-        );
-
-
-      const complaintId =
-        cleanText(
-          trackComplaintId?.value
-        );
-
-      const mobile =
-        cleanMobile(
-          trackComplaintMobile?.value
-        );
-
-
-      if (!complaintId) {
-        showTrackMessage(
-          "Please enter your Complaint ID."
-        );
-
-        return;
-      }
-
-
-      if (mobile.length !== 10) {
-        showTrackMessage(
-          "Please enter the same 10-digit mobile number used while submitting the complaint."
-        );
-
-        return;
-      }
-
-
-      try {
-        if (
-          trackComplaintButton
-        ) {
-          trackComplaintButton.disabled =
-            true;
-
-          trackComplaintButton.textContent =
-            "Checking...";
-        }
-
-
-        const complaint =
-          await findComplaint(
-            complaintId,
-            mobile
-          );
-
-
-        if (!complaint) {
-          showTrackMessage(
-            "Complaint not found. Please check your Complaint ID and registered mobile number."
-          );
-
-          return;
-        }
-
-
-        renderTrackResult(
-          complaint
-        );
-
-        showTrackMessage(
-          "Complaint record found.",
-          false
-        );
-      }
-
-      catch (error) {
-        console.error(
-          "Complaint tracking error:",
-          error
-        );
-
-        showTrackMessage(
-          "Unable to track complaint right now. Please try again."
-        );
-      }
-
-      finally {
-        if (
-          trackComplaintButton
-        ) {
-          trackComplaintButton.disabled =
-            false;
-
-          trackComplaintButton.textContent =
-            "Track Complaint →";
-        }
-      }
-    }
-  );
-
-
-/* =========================================================
-   START
+   READY
 ========================================================= */
 
 console.log(
-  "AAKASH EARTH Public Complaint Portal connected."
+  "AAKASH EARTH Complaint Portal ready."
 );

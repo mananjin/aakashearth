@@ -1,66 +1,22 @@
-/* =========================================================
-   AAKASH EARTH - VOLUNTEER DASHBOARD
-   Realtime Database only
-   Firebase Storage temporarily NOT used
-========================================================= */
-
 import {
   db,
   ref,
+  get,
   onValue,
+  push,
+  set,
   update
 } from "./firebase.js";
-
-
-/* =========================================================
-   SESSION CHECK
-========================================================= */
-
-const loginRole =
-  sessionStorage.getItem("aakashLoginRole");
-
-const volunteerLogin =
-  sessionStorage.getItem("aakashVolunteerLogin");
-
-const volunteerKey =
-  sessionStorage.getItem("aakashVolunteerKey");
-
-const sessionVolunteerId =
-  sessionStorage.getItem("aakashVolunteerId") || "";
-
-if (
-  loginRole !== "volunteer" ||
-  volunteerLogin !== "true" ||
-  !volunteerKey
-) {
-  window.location.replace("login.html");
-  throw new Error("Volunteer login required.");
-}
-
 
 /* =========================================================
    HELPERS
 ========================================================= */
 
-const $ = (selector) =>
-  document.querySelector(selector);
+const $ = id => document.getElementById(id);
+const $$ = selector => [...document.querySelectorAll(selector)];
 
-const $$ = (selector) =>
-  [...document.querySelectorAll(selector)];
-
-function setText(id, value) {
-  const element =
-    document.getElementById(id);
-
-  if (!element) return;
-
-  element.textContent =
-    value === undefined ||
-    value === null ||
-    value === ""
-      ? "—"
-      : value;
-}
+const clean = value => String(value ?? "").trim();
+const normalize = value => clean(value).toLowerCase();
 
 function escapeHTML(value = "") {
   return String(value)
@@ -71,28 +27,22 @@ function escapeHTML(value = "") {
     .replaceAll("'", "&#039;");
 }
 
-function normalize(value = "") {
-  return String(value)
-    .trim()
-    .toLowerCase();
+function objectToArray(data) {
+  if (!data) return [];
+
+  return Object.entries(data).map(([key, value]) => ({
+    key,
+    ...(value || {})
+  }));
 }
 
-function objectToArray(data) {
-  if (!data || typeof data !== "object") {
-    return [];
-  }
-
-  return Object.entries(data).map(
-    ([key, value]) => ({
-      key,
-      ...(value || {})
-    })
-  );
+function numberValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
 }
 
 function safeImage(value = "") {
-  const url =
-    String(value || "").trim();
+  const url = clean(value);
 
   if (
     url.startsWith("https://") ||
@@ -108,190 +58,149 @@ function safeImage(value = "") {
 function formatDate(value) {
   if (!value) return "—";
 
-  const date =
-    new Date(value);
+  const date = new Date(value);
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return String(value);
+  if (Number.isNaN(date.getTime())) {
+    return clean(value) || "—";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }
-  ).format(date);
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  });
 }
 
-function publicStatus(item) {
-  const status =
-    normalize(item?.status);
+function setText(id, value) {
+  const element = $(id);
 
-  return (
-    !status ||
-    status === "active" ||
-    status === "approved" ||
-    status === "published" ||
-    status === "upcoming"
-  );
+  if (element) {
+    element.textContent = value;
+  }
 }
 
-function showTaskMessage(
-  message,
-  type = "success"
-) {
-  const box =
-    $("#volunteerTaskFormMessage");
+function showMessage(id, message, success = false) {
+  const element = $(id);
 
-  if (!box) return;
+  if (!element) return;
 
-  box.textContent = message;
-
-  box.className =
-    `vol-form-message show ${type}`;
-}
-
-function clearTaskMessage() {
-  const box =
-    $("#volunteerTaskFormMessage");
-
-  if (!box) return;
-
-  box.textContent = "";
-
-  box.className =
-    "vol-form-message";
+  element.textContent = message;
+  element.style.color = success
+    ? "#147D64"
+    : "#7A2430";
 }
 
 
 /* =========================================================
-   STATE
+   SESSION
 ========================================================= */
+
+const loginRole =
+  sessionStorage.getItem("aakashLoginRole");
+
+const volunteerLogin =
+  sessionStorage.getItem("aakashVolunteerLogin");
+
+const volunteerKey =
+  sessionStorage.getItem("aakashVolunteerKey");
+
+if (
+  loginRole !== "volunteer" ||
+  volunteerLogin !== "true" ||
+  !volunteerKey
+) {
+  window.location.href = "login.html";
+}
+
 
 let currentVolunteer = null;
-
 let volunteerTasks = [];
-
-let currentTaskFilter = "all";
-
-let selectedTaskKey = null;
-
-let selectedTaskFile = null;
-
-let allVolunteers = [];
-
-let allComplaints = [];
+let volunteers = [];
+let proposals = [];
+let currentTask = null;
 
 
 /* =========================================================
-   SIDEBAR / PANELS
+   PANEL NAVIGATION
 ========================================================= */
-
-const sidebar =
-  $("#volunteerSidebar");
-
-const pageTitle =
-  $("#volunteerPageTitle");
 
 const panelTitles = {
   dashboard: "Dashboard",
-  profile: "My Profile",
-  idcard: "My I-Card",
+  profile: "Profile",
+  idcard: "I-Card",
   tasks: "My Tasks",
-  performance: "Points & Rating",
+  performance: "Performance",
   ranking: "Volunteer Ranking",
   history: "Task History",
-  complaints: "Complaints Against Me",
+  organize: "Organize",
+  complaints: "Complaints",
   festivals: "Festivals",
   sports: "Sports",
   updates: "Updates",
   gallery: "Gallery"
 };
 
+
 function openPanel(panelName) {
-  const target =
-    document.querySelector(
-      `[data-vol-panel-content="${panelName}"]`
-    );
 
-  if (!target) return;
+  $$("[data-volunteer-panel-content]")
+    .forEach(panel => {
 
-  $$(".volunteer-panel").forEach(
-    (panel) => {
-      panel.classList.remove(
-        "active"
+      panel.classList.toggle(
+        "active",
+        panel.dataset.volunteerPanelContent === panelName
       );
-    }
+
+    });
+
+
+  $$("[data-volunteer-panel]")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.volunteerPanel === panelName
+      );
+
+    });
+
+
+  setText(
+    "volunteerPageTitle",
+    panelTitles[panelName] || "Volunteer Portal"
   );
 
-  target.classList.add(
-    "active"
-  );
 
-  $$(
-    ".volunteer-link[data-vol-panel]"
-  ).forEach((button) => {
-    button.classList.toggle(
-      "active",
-      button.dataset.volPanel ===
-        panelName
-    );
-  });
-
-  if (pageTitle) {
-    pageTitle.textContent =
-      panelTitles[panelName] ||
-      "Volunteer Portal";
-  }
-
-  sidebar?.classList.remove(
-    "open"
-  );
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  $("volunteerSidebar")
+    ?.classList.remove("open");
 }
 
-$$(
-  ".volunteer-link[data-vol-panel]"
-).forEach((button) => {
-  button.addEventListener(
-    "click",
-    () => {
-      openPanel(
-        button.dataset.volPanel
-      );
-    }
-  );
-});
 
-$$("[data-open-vol-panel]")
-  .forEach((button) => {
+$$("[data-volunteer-panel]")
+  .forEach(button => {
+
     button.addEventListener(
       "click",
       () => {
+
         openPanel(
-          button.dataset.openVolPanel
+          button.dataset.volunteerPanel
         );
+
       }
     );
+
   });
 
-$("#volunteerMenuBtn")
+
+$("volunteerMenuBtn")
   ?.addEventListener(
     "click",
     () => {
-      sidebar?.classList.toggle(
-        "open"
-      );
+
+      $("volunteerSidebar")
+        ?.classList.toggle("open");
+
     }
   );
 
@@ -300,102 +209,155 @@ $("#volunteerMenuBtn")
    LOGOUT
 ========================================================= */
 
-$("#volunteerLogout")
+$("volunteerLogout")
   ?.addEventListener(
     "click",
     () => {
+
       [
         "aakashLoginRole",
-
         "aakashVolunteerLogin",
         "aakashVolunteerKey",
-        "aakashVolunteerId",
-        "aakashVolunteerName"
-      ].forEach((key) => {
-        sessionStorage.removeItem(
-          key
-        );
+        "aakashVolunteerId"
+      ].forEach(key => {
+        sessionStorage.removeItem(key);
       });
 
-      window.location.replace(
-        "login.html"
-      );
+      window.location.href =
+        "login.html";
+
     }
   );
 
 
 /* =========================================================
-   PROFILE PHOTO
+   LOAD VOLUNTEER PROFILE
 ========================================================= */
 
-function setVolunteerPhoto(
-  elementId,
-  photoURL
-) {
-  const element =
-    document.getElementById(
-      elementId
+async function loadVolunteer() {
+
+  try {
+
+    const snapshot =
+      await get(
+        ref(
+          db,
+          `volunteers/${volunteerKey}`
+        )
+      );
+
+
+    if (!snapshot.exists()) {
+
+      throw new Error(
+        "Volunteer not found"
+      );
+
+    }
+
+
+    currentVolunteer = {
+      key: volunteerKey,
+      ...snapshot.val()
+    };
+
+
+    if (
+      normalize(
+        currentVolunteer.status
+      ) !== "approved"
+    ) {
+
+      sessionStorage.removeItem(
+        "aakashVolunteerLogin"
+      );
+
+      sessionStorage.removeItem(
+        "aakashVolunteerKey"
+      );
+
+      sessionStorage.removeItem(
+        "aakashLoginRole"
+      );
+
+      window.location.href =
+        "login.html";
+
+      return;
+    }
+
+
+    if (
+      !clean(
+        currentVolunteer.volunteerId
+      )
+    ) {
+
+      alert(
+        "Official Volunteer ID has not been generated yet."
+      );
+
+      window.location.href =
+        "login.html";
+
+      return;
+    }
+
+
+    renderVolunteerProfile();
+
+    setupVolunteerIdCard();
+
+  } catch (error) {
+
+    console.error(
+      "Volunteer load error:",
+      error
     );
 
-  if (!element) return;
+    alert(
+      "Unable to load Volunteer account."
+    );
 
-  const image =
-    safeImage(photoURL);
-
-  if (!image) {
-    element.textContent = "🤝";
-    return;
   }
 
-  element.innerHTML = "";
-
-  const img =
-    document.createElement("img");
-
-  img.src = image;
-  img.alt = "Volunteer Photo";
-
-  img.addEventListener(
-    "error",
-    () => {
-      element.textContent =
-        "🤝";
-    }
-  );
-
-  element.appendChild(img);
 }
 
 
 /* =========================================================
-   VOLUNTEER PROFILE
+   PROFILE RENDER
 ========================================================= */
 
 function renderVolunteerProfile() {
-  if (!currentVolunteer) {
-    return;
-  }
 
-  const volunteer =
-    currentVolunteer;
+  if (!currentVolunteer) return;
+
 
   const name =
-    volunteer.name ||
+    currentVolunteer.name ||
     "Volunteer";
 
   const id =
-    volunteer.volunteerId ||
-    sessionVolunteerId ||
+    currentVolunteer.volunteerId ||
     "—";
 
-  const year =
-    volunteer.year || "—";
+  const points =
+    numberValue(
+      currentVolunteer.points
+    );
 
-  const area =
-    volunteer.area || "—";
+  const rating =
+    numberValue(
+      currentVolunteer.rating
+    );
 
-  const status =
-    volunteer.status || "—";
+  const photo =
+    safeImage(
+      currentVolunteer.photoURL ||
+      currentVolunteer.photoUrl ||
+      currentVolunteer.photo ||
+      ""
+    );
 
 
   setText(
@@ -423,23 +385,22 @@ function renderVolunteerProfile() {
     id
   );
 
-  setText(
-    "dashboardVolunteerYear",
-    year
-  );
 
   setText(
     "dashboardVolunteerArea",
-    area
+    currentVolunteer.area || "—"
+  );
+
+  setText(
+    "dashboardVolunteerYear",
+    currentVolunteer.year || "—"
   );
 
   setText(
     "dashboardVolunteerStatus",
-    status
+    currentVolunteer.status || "—"
   );
 
-
-  /* PROFILE */
 
   setText(
     "profileVolunteerName",
@@ -452,160 +413,103 @@ function renderVolunteerProfile() {
   );
 
   setText(
+    "profileVolunteerMobile",
+    currentVolunteer.mobile || "—"
+  );
+
+  setText(
     "profileVolunteerArea",
-    area
+    currentVolunteer.area || "—"
+  );
+
+  setText(
+    "profileVolunteerYear",
+    currentVolunteer.year || "—"
+  );
+
+  setText(
+    "profileVolunteerGender",
+    currentVolunteer.gender || "—"
+  );
+
+  setText(
+    "profileVolunteerAddress",
+    currentVolunteer.address || "—"
+  );
+
+  setText(
+    "profileVolunteerStatus",
+    currentVolunteer.status || "—"
   );
 
 
-  /* DETAILS */
+  setText(
+    "volunteerPoints",
+    points
+  );
 
   setText(
-    "detailVolunteerId",
+    "performanceVolunteerPoints",
+    points
+  );
+
+  setText(
+    "volunteerRating",
+    rating
+      ? rating.toFixed(1)
+      : "0"
+  );
+
+  setText(
+    "performanceVolunteerRating",
+    rating
+      ? rating.toFixed(1)
+      : "0"
+  );
+
+
+  const photoBox =
+    $("sidebarVolunteerPhoto");
+
+  if (photoBox) {
+
+    photoBox.innerHTML = "";
+
+    if (photo) {
+
+      const image =
+        document.createElement("img");
+
+      image.src = photo;
+      image.alt = "";
+
+      image.onerror = () => {
+
+        photoBox.innerHTML = "";
+        photoBox.textContent =
+          name.charAt(0)
+            .toUpperCase() || "V";
+
+      };
+
+      photoBox.appendChild(image);
+
+    } else {
+
+      photoBox.textContent =
+        name.charAt(0)
+          .toUpperCase() || "V";
+
+    }
+
+  }
+
+
+  sessionStorage.setItem(
+    "aakashVolunteerId",
     id
   );
 
-  setText(
-    "detailVolunteerName",
-    name
-  );
-
-  setText(
-    "detailVolunteerMobile",
-    volunteer.mobile || "—"
-  );
-
-  setText(
-    "detailVolunteerDob",
-    volunteer.dob
-      ? formatDate(
-          volunteer.dob
-        )
-      : "—"
-  );
-
-  setText(
-    "detailVolunteerGender",
-    volunteer.gender || "—"
-  );
-
-  setText(
-    "detailVolunteerYear",
-    year
-  );
-
-  setText(
-    "detailVolunteerArea",
-    area
-  );
-
-  setText(
-    "detailVolunteerStatus",
-    status
-  );
-
-  setText(
-    "detailVolunteerAddress",
-    volunteer.address || "—"
-  );
-
-
-  setVolunteerPhoto(
-    "sidebarVolunteerPhoto",
-    volunteer.photoURL
-  );
-
-  setVolunteerPhoto(
-    "profileVolunteerPhoto",
-    volunteer.photoURL
-  );
-
-  updatePerformance();
-
-  renderComplaints();
-}
-
-
-/* =========================================================
-   LIVE VOLUNTEER ACCOUNT
-========================================================= */
-
-onValue(
-  ref(
-    db,
-    `volunteers/${volunteerKey}`
-  ),
-
-  (snapshot) => {
-    if (!snapshot.exists()) {
-      alert(
-        "Volunteer account not found."
-      );
-
-      logoutInvalidSession();
-
-      return;
-    }
-
-    currentVolunteer = {
-      key: volunteerKey,
-      ...snapshot.val()
-    };
-
-    if (
-      normalize(
-        currentVolunteer.status
-      ) !== "approved"
-    ) {
-      alert(
-        "Your volunteer account is not approved."
-      );
-
-      logoutInvalidSession();
-
-      return;
-    }
-
-    if (
-      !currentVolunteer.volunteerId
-    ) {
-      alert(
-        "Official Volunteer ID has not been assigned yet."
-      );
-
-      logoutInvalidSession();
-
-      return;
-    }
-
-    renderVolunteerProfile();
-
-    renderRanking();
-  },
-
-  (error) => {
-    console.error(
-      "Volunteer profile error:",
-      error
-    );
-  }
-);
-
-function logoutInvalidSession() {
-  [
-    "aakashLoginRole",
-    "aakashVolunteerLogin",
-    "aakashVolunteerKey",
-    "aakashVolunteerId",
-    "aakashVolunteerName"
-  ].forEach((key) => {
-    sessionStorage.removeItem(
-      key
-    );
-  });
-
-  window.location.replace(
-    "login.html"
-  );
 }
 
 
@@ -613,341 +517,193 @@ function logoutInvalidSession() {
    I-CARD
 ========================================================= */
 
-function openVolunteerIdCard() {
-  const volunteerId =
-    currentVolunteer?.volunteerId ||
-    sessionVolunteerId;
+function setupVolunteerIdCard() {
 
-  if (!volunteerId) {
-    alert(
-      "Volunteer ID is not available."
-    );
-
+  if (
+    !currentVolunteer?.volunteerId
+  ) {
     return;
   }
 
-  window.location.href =
-    `id-card.html?id=${encodeURIComponent(
-      volunteerId
-    )}&type=volunteer`;
+
+  const url =
+    `id-card.html?type=volunteer&id=${
+      encodeURIComponent(
+        currentVolunteer.volunteerId
+      )
+    }`;
+
+
+  [
+    "viewVolunteerIdCard",
+    "dashboardVolunteerIdCard"
+  ].forEach(id => {
+
+    $(id)?.addEventListener(
+      "click",
+      () => {
+
+        window.location.href =
+          url;
+
+      }
+    );
+
+  });
+
 }
-
-$("#dashboardVolunteerIdCard")
-  ?.addEventListener(
-    "click",
-    openVolunteerIdCard
-  );
-
-$("#viewVolunteerIdCard")
-  ?.addEventListener(
-    "click",
-    openVolunteerIdCard
-  );
 
 
 /* =========================================================
-   TASK HELPERS
+   TASKS
 ========================================================= */
 
-function taskStatus(status) {
-  const value =
-    normalize(status);
+function taskStatusLabel(status) {
 
   const labels = {
     assigned: "Assigned",
-
     pending_review:
       "Pending Review",
-
     completed: "Completed",
-
     rejected: "Rejected"
   };
 
   return (
-    labels[value] ||
-    value ||
+    labels[normalize(status)] ||
+    status ||
     "Assigned"
   );
-}
 
-function taskStatusStyle(status) {
-  const value =
-    normalize(status);
-
-  if (value === "completed") {
-    return `
-      color:#08624d;
-      background:rgba(20,125,100,.09);
-    `;
-  }
-
-  if (value === "rejected") {
-    return `
-      color:#862536;
-      background:rgba(122,36,48,.09);
-    `;
-  }
-
-  if (
-    value === "pending_review"
-  ) {
-    return `
-      color:#88631b;
-      background:rgba(215,173,74,.14);
-    `;
-  }
-
-  return `
-    color:#145e50;
-    background:rgba(20,125,100,.09);
-  `;
 }
 
 
-/* =========================================================
-   TASK CARD
-========================================================= */
+function renderTasks() {
 
-function createTaskCard(task) {
-  const status =
-    normalize(task.status) ||
-    "assigned";
+  const container =
+    $("volunteerTaskList");
 
-  const title =
-    escapeHTML(
-      task.title ||
-      task.taskTitle ||
-      "Volunteer Task"
-    );
+  if (!container) return;
 
-  const description =
-    escapeHTML(
-      task.description ||
-      task.details ||
-      ""
-    );
 
-  const deadline =
-    task.deadline ||
-    task.dueDate ||
-    "";
+  const total =
+    volunteerTasks.length;
 
-  const points =
-    Number(task.points) || 0;
+  const completed =
+    volunteerTasks.filter(
+      task =>
+        normalize(task.status) ===
+        "completed"
+    ).length;
 
-  const canSubmit =
-    status === "assigned" ||
-    status === "rejected";
 
-  return `
-    <article class="vol-card">
+  setText(
+    "volunteerTotalTasks",
+    total
+  );
 
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:flex-start;
-          gap:15px;
-        "
-      >
+  setText(
+    "volunteerCompletedTasks",
+    completed
+  );
 
-        <div>
+  setText(
+    "performanceCompletedTasks",
+    completed
+  );
 
-          <strong
-            style="
-              display:block;
-              color:#071a2b;
-              font-family:Cinzel,serif;
-              font-size:14px;
-            "
-          >
-            ${title}
+
+  if (!volunteerTasks.length) {
+
+    container.innerHTML = `
+      <div class="simple-item">
+        No tasks assigned.
+      </div>
+    `;
+
+    renderTaskHistory();
+
+    return;
+  }
+
+
+  container.innerHTML =
+    volunteerTasks.map(task => {
+
+      const status =
+        normalize(task.status);
+
+      const canSubmit =
+        status === "assigned" ||
+        status === "rejected";
+
+
+      return `
+        <div class="simple-item">
+
+          <strong>
+            ${escapeHTML(
+              task.title || "Task"
+            )}
           </strong>
 
+          <p>
+            ${escapeHTML(
+              task.description || ""
+            )}
+          </p>
+
+          <small>
+            Status:
+            <b>
+              ${escapeHTML(
+                taskStatusLabel(
+                  task.status
+                )
+              )}
+            </b>
+
+            &nbsp; • &nbsp;
+
+            Points:
+            ${numberValue(
+              task.points
+            )}
+
+            &nbsp; • &nbsp;
+
+            Deadline:
+            ${escapeHTML(
+              formatDate(
+                task.deadline
+              )
+            )}
+          </small>
+
           ${
-            description
+            canSubmit
               ? `
-                <p
-                  style="
-                    margin-top:8px;
-                    color:#687681;
-                    font-size:10px;
-                    line-height:1.6;
-                  "
-                >
-                  ${description}
-                </p>
+                <div style="margin-top:10px;">
+
+                  <button
+                    class="secondary-btn"
+                    data-open-volunteer-task="${escapeHTML(task.key)}"
+                  >
+                    Open Task
+                  </button>
+
+                </div>
               `
               : ""
           }
 
         </div>
+      `;
+
+    }).join("");
 
 
-        <span
-          style="
-            flex-shrink:0;
-            padding:7px 10px;
-            border-radius:30px;
-            font-size:8px;
-            font-weight:800;
-            ${taskStatusStyle(
-              status
-            )}
-          "
-        >
-          ${taskStatus(status)}
-        </span>
+  renderTaskHistory();
 
-      </div>
-
-
-      <div
-        style="
-          display:flex;
-          flex-wrap:wrap;
-          gap:12px;
-          margin-top:15px;
-          color:#687681;
-          font-size:9px;
-        "
-      >
-
-        <span>
-          📅 Deadline:
-          ${
-            deadline
-              ? formatDate(
-                  deadline
-                )
-              : "No deadline"
-          }
-        </span>
-
-        <span>
-          ⭐ ${points} Points
-        </span>
-
-      </div>
-
-
-      ${
-        task.adminReply
-          ? `
-            <div
-              style="
-                margin-top:13px;
-                padding:11px;
-                border-radius:10px;
-                background:#f7f2e7;
-                color:#58646c;
-                font-size:9px;
-                line-height:1.5;
-              "
-            >
-              <strong>
-                Admin:
-              </strong>
-
-              ${escapeHTML(
-                task.adminReply
-              )}
-            </div>
-          `
-          : ""
-      }
-
-
-      ${
-        canSubmit
-          ? `
-            <button
-              type="button"
-              class="
-                vol-submit-btn
-                open-vol-task
-              "
-              data-task-key="${
-                task.key
-              }"
-              style="
-                margin-top:15px;
-              "
-            >
-              ${
-                status === "rejected"
-                  ? "Resubmit Task →"
-                  : "Complete Task →"
-              }
-            </button>
-          `
-          : ""
-      }
-
-    </article>
-  `;
-}
-
-
-/* =========================================================
-   TASK FILTER
-========================================================= */
-
-function getFilteredTasks() {
-  if (
-    currentTaskFilter === "all"
-  ) {
-    return volunteerTasks;
-  }
-
-  return volunteerTasks.filter(
-    (task) =>
-      normalize(task.status) ===
-      currentTaskFilter
-  );
-}
-
-
-/* =========================================================
-   RENDER TASKS
-========================================================= */
-
-function renderTasks() {
-  const container =
-    $("#volunteerTaskList");
-
-  if (!container) return;
-
-  const tasks =
-    getFilteredTasks();
-
-  if (!tasks.length) {
-    container.innerHTML = `
-      <div class="vol-empty">
-        No tasks found in this category.
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML =
-    tasks
-      .map(createTaskCard)
-      .join("");
-
-  $$(".open-vol-task")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          openTaskModal(
-            button.dataset.taskKey
-          );
-        }
-      );
-    });
 }
 
 
@@ -956,31 +712,33 @@ function renderTasks() {
 ========================================================= */
 
 function renderTaskHistory() {
+
   const container =
-    $("#volunteerTaskHistory");
+    $("volunteerTaskHistory");
 
   if (!container) return;
 
+
   const history =
     volunteerTasks.filter(
-      (task) => {
+      task => {
+
         const status =
           normalize(task.status);
 
         return (
-          status ===
-            "pending_review" ||
-          status ===
-            "completed" ||
-          status ===
-            "rejected"
+          status === "completed" ||
+          status === "rejected"
         );
+
       }
     );
 
+
   if (!history.length) {
+
     container.innerHTML = `
-      <div class="vol-empty">
+      <div class="simple-item">
         No task history available.
       </div>
     `;
@@ -988,666 +746,1006 @@ function renderTaskHistory() {
     return;
   }
 
-  container.innerHTML = `
-    <div class="vol-table-wrap">
 
-      <table class="vol-table">
+  container.innerHTML =
+    history.map(task => `
 
-        <thead>
-          <tr>
-            <th>Task</th>
-            <th>Status</th>
-            <th>Points</th>
-            <th>Rating</th>
-            <th>Submitted</th>
-          </tr>
-        </thead>
+      <div class="simple-item">
 
-        <tbody>
+        <strong>
+          ${escapeHTML(
+            task.title || "Task"
+          )}
+        </strong>
 
-          ${history
-            .map(
-              (task) => `
-                <tr>
-
-                  <td>
-                    ${escapeHTML(
-                      task.title ||
-                      task.taskTitle ||
-                      "Task"
-                    )}
-                  </td>
-
-                  <td>
-                    ${taskStatus(
-                      task.status
-                    )}
-                  </td>
-
-                  <td>
-                    ${
-                      Number(
-                        task.points
-                      ) || 0
-                    }
-                  </td>
-
-                  <td>
-                    ${
-                      task.rating ||
-                      "—"
-                    }
-                  </td>
-
-                  <td>
-                    ${
-                      task.submittedAt
-                        ? formatDate(
-                            task.submittedAt
-                          )
-                        : "—"
-                    }
-                  </td>
-
-                </tr>
-              `
+        <p>
+          ${escapeHTML(
+            taskStatusLabel(
+              task.status
             )
-            .join("")}
+          )}
 
-        </tbody>
+          •
 
-      </table>
+          ${numberValue(
+            task.points
+          )} Points
+        </p>
 
-    </div>
-  `;
+        ${
+          task.adminRemark
+            ? `
+              <small>
+                Admin:
+                ${escapeHTML(
+                  task.adminRemark
+                )}
+              </small>
+            `
+            : ""
+        }
+
+      </div>
+
+    `).join("");
+
 }
 
 
 /* =========================================================
-   TASK STATS
+   OPEN TASK MODAL
 ========================================================= */
 
-function updateTaskStats() {
-  const completed =
-    volunteerTasks.filter(
-      (task) =>
-        normalize(
-          task.status
-        ) === "completed"
-    );
-
-  setText(
-    "volunteerTotalTasks",
-    volunteerTasks.length
-  );
-
-  setText(
-    "volunteerCompletedTasks",
-    completed.length
-  );
-
-  setText(
-    "performanceCompleted",
-    completed.length
-  );
-
-  updatePerformance();
-}
-
-
-/* =========================================================
-   LIVE TASKS
-========================================================= */
-
-onValue(
-  ref(
-    db,
-    `volunteerTasks/${volunteerKey}`
-  ),
-
-  (snapshot) => {
-    volunteerTasks =
-      objectToArray(
-        snapshot.val()
-      ).sort(
-        (a, b) =>
-          Number(
-            b.createdAt || 0
-          ) -
-          Number(
-            a.createdAt || 0
-          )
-      );
-
-    renderTasks();
-
-    renderTaskHistory();
-
-    updateTaskStats();
-  },
-
-  (error) => {
-    console.error(
-      "Volunteer task error:",
-      error
-    );
-
-    const container =
-      $("#volunteerTaskList");
-
-    if (container) {
-      container.innerHTML = `
-        <div class="vol-empty">
-          Unable to load your tasks.
-        </div>
-      `;
-    }
-  }
-);
-
-
-/* =========================================================
-   TASK FILTER BUTTONS
-========================================================= */
-
-$$(".vol-task-filter")
-  .forEach((button) => {
-    button.addEventListener(
-      "click",
-      () => {
-        currentTaskFilter =
-          button.dataset
-            .volTaskFilter ||
-          "all";
-
-        $$(".vol-task-filter")
-          .forEach((item) => {
-            item.classList.toggle(
-              "active",
-              item === button
-            );
-          });
-
-        renderTasks();
-      }
-    );
-  });
-
-
-/* =========================================================
-   PERFORMANCE
-========================================================= */
-
-function calculateTaskPoints() {
-  return volunteerTasks
-    .filter(
-      (task) =>
-        normalize(
-          task.status
-        ) === "completed"
-    )
-    .reduce(
-      (total, task) =>
-        total +
-        (Number(task.points) || 0),
-      0
-    );
-}
-
-function calculateTaskRating() {
-  const ratings =
-    volunteerTasks
-      .filter(
-        (task) =>
-          normalize(
-            task.status
-          ) === "completed"
-      )
-      .map(
-        (task) =>
-          Number(task.rating)
-      )
-      .filter(
-        (rating) =>
-          Number.isFinite(rating) &&
-          rating > 0
-      );
-
-  if (!ratings.length) {
-    return "-";
-  }
-
-  return (
-    ratings.reduce(
-      (a, b) => a + b,
-      0
-    ) / ratings.length
-  ).toFixed(1);
-}
-
-function getVolunteerPoints(
-  volunteer
-) {
-  const points =
-    Number(volunteer?.points);
-
-  if (
-    volunteer?.points !==
-      undefined &&
-    Number.isFinite(points)
-  ) {
-    return points;
-  }
-
-  if (
-    volunteer?.key ===
-    volunteerKey
-  ) {
-    return calculateTaskPoints();
-  }
-
-  return 0;
-}
-
-function getVolunteerRating(
-  volunteer
-) {
-  const rating =
-    Number(volunteer?.rating);
-
-  if (
-    volunteer?.rating !==
-      undefined &&
-    Number.isFinite(rating) &&
-    rating > 0
-  ) {
-    return rating;
-  }
-
-  if (
-    volunteer?.key ===
-    volunteerKey
-  ) {
-    const taskRating =
-      calculateTaskRating();
-
-    return taskRating === "-"
-      ? 0
-      : Number(taskRating);
-  }
-
-  return 0;
-}
-
-function updatePerformance() {
-  if (!currentVolunteer) {
-    return;
-  }
-
-  const savedPoints =
-    Number(
-      currentVolunteer.points
-    );
-
-  const points =
-    currentVolunteer.points !==
-      undefined &&
-    Number.isFinite(savedPoints)
-      ? savedPoints
-      : calculateTaskPoints();
-
-  const savedRating =
-    Number(
-      currentVolunteer.rating
-    );
-
-  let rating = "-";
-
-  if (
-    currentVolunteer.rating !==
-      undefined &&
-    Number.isFinite(savedRating) &&
-    savedRating > 0
-  ) {
-    rating =
-      savedRating.toFixed(1);
-  } else {
-    rating =
-      calculateTaskRating();
-  }
-
-  setText(
-    "volunteerPoints",
-    points
-  );
-
-  setText(
-    "performancePoints",
-    points
-  );
-
-  setText(
-    "volunteerRating",
-    rating
-  );
-
-  setText(
-    "performanceRating",
-    rating
-  );
-
-  renderRanking();
-}
-
-
-/* =========================================================
-   TASK MODAL
-========================================================= */
-
-const taskModal =
-  $("#volunteerTaskModal");
-
-const proofInput =
-  $("#volunteerTaskProofPhoto");
-
-const proofPreview =
-  $("#volunteerTaskProofPreview");
-
-function openTaskModal(taskKey) {
-  const task =
-    volunteerTasks.find(
-      (item) =>
-        item.key === taskKey
-    );
-
-  if (!task) return;
-
-  selectedTaskKey =
-    taskKey;
-
-  selectedTaskFile =
-    null;
-
-  setText(
-    "volunteerTaskModalTitle",
-    task.title ||
-    task.taskTitle ||
-    "Complete Task"
-  );
-
-  setText(
-    "volunteerTaskModalDescription",
-    task.description ||
-    task.details ||
-    "—"
-  );
-
-  setText(
-    "volunteerTaskModalDeadline",
-    task.deadline ||
-    task.dueDate
-      ? formatDate(
-          task.deadline ||
-          task.dueDate
-        )
-      : "No deadline"
-  );
-
-  setText(
-    "volunteerTaskModalPoints",
-    Number(task.points) || 0
-  );
-
-  if (proofInput) {
-    proofInput.value = "";
-  }
-
-  if (proofPreview) {
-    proofPreview.src = "";
-
-    proofPreview.style.display =
-      "none";
-  }
-
-  clearTaskMessage();
-
-  taskModal?.classList.add(
-    "open"
-  );
-}
-
-function closeTaskModal() {
-  taskModal?.classList.remove(
-    "open"
-  );
-
-  selectedTaskKey = null;
-
-  selectedTaskFile = null;
-
-  if (proofInput) {
-    proofInput.value = "";
-  }
-
-  if (proofPreview) {
-    proofPreview.src = "";
-
-    proofPreview.style.display =
-      "none";
-  }
-
-  clearTaskMessage();
-}
-
-$("#closeVolunteerTaskModal")
+$("volunteerTaskList")
   ?.addEventListener(
     "click",
-    closeTaskModal
+    event => {
+
+      const button =
+        event.target.closest(
+          "[data-open-volunteer-task]"
+        );
+
+      if (!button) return;
+
+
+      currentTask =
+        volunteerTasks.find(
+          task =>
+            task.key ===
+            button.dataset.openVolunteerTask
+        );
+
+
+      if (!currentTask) return;
+
+
+      setText(
+        "volunteerTaskModalTitle",
+        currentTask.title || "Task"
+      );
+
+      setText(
+        "volunteerTaskModalDescription",
+        currentTask.description || "—"
+      );
+
+      setText(
+        "volunteerTaskModalDeadline",
+        formatDate(
+          currentTask.deadline
+        )
+      );
+
+      setText(
+        "volunteerTaskModalPoints",
+        numberValue(
+          currentTask.points
+        )
+      );
+
+
+      if (
+        $("volunteerTaskProofPhoto")
+      ) {
+
+        $("volunteerTaskProofPhoto")
+          .value = "";
+
+      }
+
+
+      if (
+        $("volunteerTaskProofPreview")
+      ) {
+
+        $("volunteerTaskProofPreview")
+          .innerHTML = "";
+
+      }
+
+
+      showMessage(
+        "volunteerTaskFormMessage",
+        ""
+      );
+
+
+      $("volunteerTaskModal")
+        ?.classList.add("show");
+
+    }
   );
 
-taskModal?.addEventListener(
-  "click",
-  (event) => {
-    if (
-      event.target === taskModal
-    ) {
-      closeTaskModal();
+
+$("closeVolunteerTaskModal")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      $("volunteerTaskModal")
+        ?.classList.remove("show");
+
     }
-  }
-);
+  );
 
 
 /* =========================================================
    TASK PHOTO PREVIEW
-   NO STORAGE
 ========================================================= */
 
-proofInput?.addEventListener(
-  "change",
-  () => {
-    clearTaskMessage();
+$("volunteerTaskProofPhoto")
+  ?.addEventListener(
+    "change",
+    event => {
 
-    const file =
-      proofInput.files?.[0];
+      const file =
+        event.target.files?.[0];
 
-    selectedTaskFile = null;
+      const preview =
+        $("volunteerTaskProofPreview");
 
-    if (!file) {
-      if (proofPreview) {
-        proofPreview.style.display =
-          "none";
+
+      if (!preview) return;
+
+
+      if (!file) {
+
+        preview.innerHTML = "";
+
+        return;
       }
 
-      return;
-    }
 
-    if (
-      !file.type.startsWith(
-        "image/"
-      )
-    ) {
-      proofInput.value = "";
+      if (
+        !file.type.startsWith(
+          "image/"
+        )
+      ) {
 
-      showTaskMessage(
-        "Please select a valid image file.",
-        "error"
-      );
+        event.target.value = "";
 
-      return;
-    }
+        preview.innerHTML = "";
 
-    const maxSize =
-      5 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      proofInput.value = "";
-
-      showTaskMessage(
-        "Photo must be 5 MB or smaller.",
-        "error"
-      );
-
-      return;
-    }
-
-    selectedTaskFile =
-      file;
-
-    const reader =
-      new FileReader();
-
-    reader.onload = () => {
-      if (!proofPreview) return;
-
-      proofPreview.src =
-        reader.result;
-
-      proofPreview.style.display =
-        "block";
-    };
-
-    reader.onerror = () => {
-      selectedTaskFile = null;
-
-      proofInput.value = "";
-
-      showTaskMessage(
-        "Unable to preview selected photo.",
-        "error"
-      );
-    };
-
-    reader.readAsDataURL(
-      file
-    );
-  }
-);
-
-
-/* =========================================================
-   SUBMIT TASK FOR REVIEW
-========================================================= */
-
-$("#submitVolunteerTaskProof")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedTaskKey) {
-        showTaskMessage(
-          "Task not selected.",
-          "error"
+        showMessage(
+          "volunteerTaskFormMessage",
+          "Please select an image."
         );
 
         return;
       }
 
-      const button =
-        $("#submitVolunteerTaskProof");
 
-      try {
-        button.disabled = true;
+      const localURL =
+        URL.createObjectURL(file);
 
-        showTaskMessage(
-          "Submitting task...",
-          "success"
+
+      preview.innerHTML = `
+        <img
+          src="${localURL}"
+          alt=""
+          style="
+            max-width:160px;
+            border-radius:10px;
+          "
+        >
+      `;
+
+    }
+  );
+
+
+/* =========================================================
+   SUBMIT TASK PROOF
+   STORAGE TEMPORARILY NOT USED
+========================================================= */
+
+$("submitVolunteerTaskProof")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      if (!currentTask) return;
+
+
+      const file =
+        $("volunteerTaskProofPhoto")
+          ?.files?.[0];
+
+
+      if (!file) {
+
+        showMessage(
+          "volunteerTaskFormMessage",
+          "Please select task proof photo."
         );
 
-        /*
-          Firebase Storage temporarily disabled.
+        return;
+      }
 
-          We save:
-          - status
-          - filename
-          - photo metadata
-          - submission time
 
-          Actual image URL remains blank.
-        */
+      try {
 
         await update(
           ref(
             db,
-            `volunteerTasks/${volunteerKey}/${selectedTaskKey}`
+            `volunteerTasks/${volunteerKey}/${currentTask.key}`
           ),
           {
+
             status:
               "pending_review",
 
             proofURL: "",
 
-            proofPhotoName:
-              selectedTaskFile?.name ||
-              "",
+            proofFileName:
+              file.name,
 
-            proofPhotoType:
-              selectedTaskFile?.type ||
-              "",
+            proofFileType:
+              file.type,
 
-            proofPhotoSize:
-              selectedTaskFile?.size ||
-              0,
+            proofFileSize:
+              file.size,
 
             proofStoragePending:
-              Boolean(
-                selectedTaskFile
-              ),
+              true,
 
             submittedAt:
               Date.now(),
 
             updatedAt:
               Date.now()
+
           }
         );
 
-        showTaskMessage(
-          "Task submitted for admin review. Photo upload is temporarily disabled while Storage is being fixed.",
-          "success"
+
+        showMessage(
+          "volunteerTaskFormMessage",
+          "Task submitted for Admin review.",
+          true
         );
+
 
         setTimeout(
-          closeTaskModal,
-          1800
-        );
-      }
+          () => {
 
-      catch (error) {
+            $("volunteerTaskModal")
+              ?.classList.remove("show");
+
+          },
+          800
+        );
+
+      } catch (error) {
+
         console.error(
-          "Task submission error:",
+          "Task submit error:",
           error
         );
 
-        showTaskMessage(
-          "Unable to submit task. Please try again.",
-          "error"
+
+        showMessage(
+          "volunteerTaskFormMessage",
+          "Unable to submit task."
         );
+
       }
 
-      finally {
-        button.disabled = false;
-      }
     }
   );
+
+
+/* =========================================================
+   SPORTS ORGANIZE UI
+========================================================= */
+
+function updateSportsSettingsVisibility() {
+
+  const type =
+    $("volunteerOrganizeType")
+      ?.value;
+
+
+  const settings =
+    $("volunteerSportsRegistrationSettings");
+
+
+  if (!settings) return;
+
+
+  settings.classList.toggle(
+    "show",
+    type === "sports"
+  );
+
+}
+
+
+$("volunteerOrganizeType")
+  ?.addEventListener(
+    "change",
+    updateSportsSettingsVisibility
+  );
+
+
+function updateSportsRegistrationOptions() {
+
+  const enabled =
+    $("volunteerSportsRegistrationEnabled")
+      ?.checked === true;
+
+
+  $("volunteerSportsRegistrationOptions")
+    ?.classList.toggle(
+      "show",
+      enabled
+    );
+
+}
+
+
+$("volunteerSportsRegistrationEnabled")
+  ?.addEventListener(
+    "change",
+    updateSportsRegistrationOptions
+  );
+
+
+updateSportsSettingsVisibility();
+updateSportsRegistrationOptions();
+
+
+/* =========================================================
+   GET SPORTS CONFIG
+========================================================= */
+
+function getSportsConfiguration() {
+
+  return {
+
+    registrationEnabled:
+      $("volunteerSportsRegistrationEnabled")
+        ?.checked === true,
+
+    gameName:
+      clean(
+        $("volunteerSportsGameName")
+          ?.value
+      ),
+
+    participationType:
+      clean(
+        $("volunteerSportsParticipationType")
+          ?.value
+      ) || "individual",
+
+    registrationLastDate:
+      clean(
+        $("volunteerSportsRegistrationLastDate")
+          ?.value
+      ),
+
+    maxParticipants:
+      numberValue(
+        $("volunteerSportsMaxParticipants")
+          ?.value
+      ),
+
+    minAge:
+      numberValue(
+        $("volunteerSportsMinAge")
+          ?.value
+      ),
+
+    maxAge:
+      numberValue(
+        $("volunteerSportsMaxAge")
+          ?.value
+      ),
+
+    teamSize:
+      numberValue(
+        $("volunteerSportsTeamSize")
+          ?.value
+      ),
+
+    entryFee:
+      numberValue(
+        $("volunteerSportsEntryFee")
+          ?.value
+      ),
+
+    rules:
+      clean(
+        $("volunteerSportsRules")
+          ?.value
+      ),
+
+    registrationFields: {
+
+      name: true,
+
+      mobile: true,
+
+      age:
+        $("volunteerSportsFieldAge")
+          ?.checked === true,
+
+      gender:
+        $("volunteerSportsFieldGender")
+          ?.checked === true,
+
+      area:
+        $("volunteerSportsFieldArea")
+          ?.checked === true,
+
+      teamName:
+        $("volunteerSportsFieldTeamName")
+          ?.checked === true
+
+    }
+
+  };
+
+}
+
+
+/* =========================================================
+   VALIDATE SPORTS CONFIG
+========================================================= */
+
+function validateSportsConfiguration(
+  config
+) {
+
+  if (
+    !config.registrationEnabled
+  ) {
+
+    return "";
+
+  }
+
+
+  if (!config.gameName) {
+
+    return (
+      "Please enter Sport / Game Name."
+    );
+
+  }
+
+
+  if (
+    config.minAge > 0 &&
+    config.maxAge > 0 &&
+    config.minAge >
+      config.maxAge
+  ) {
+
+    return (
+      "Minimum age cannot be greater than maximum age."
+    );
+
+  }
+
+
+  if (
+    config.participationType ===
+      "team" &&
+    config.teamSize <= 0
+  ) {
+
+    return (
+      "Please enter Team Size."
+    );
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =========================================================
+   ORGANIZE FORM SUBMIT
+========================================================= */
+
+$("volunteerOrganizeForm")
+  ?.addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+
+      if (!currentVolunteer) {
+
+        return;
+
+      }
+
+
+      showMessage(
+        "volunteerOrganizeMessage",
+        ""
+      );
+
+
+      const type =
+        clean(
+          $("volunteerOrganizeType")
+            ?.value
+        );
+
+
+      const title =
+        clean(
+          $("volunteerOrganizeTitle")
+            ?.value
+        );
+
+
+      const date =
+        clean(
+          $("volunteerOrganizeDate")
+            ?.value
+        );
+
+
+      const time =
+        clean(
+          $("volunteerOrganizeTime")
+            ?.value
+        );
+
+
+      const venue =
+        clean(
+          $("volunteerOrganizeVenue")
+            ?.value
+        );
+
+
+      const description =
+        clean(
+          $("volunteerOrganizeDescription")
+            ?.value
+        );
+
+
+      if (
+        !type ||
+        !title ||
+        !description
+      ) {
+
+        showMessage(
+          "volunteerOrganizeMessage",
+          "Please complete required fields."
+        );
+
+        return;
+      }
+
+
+      let sportsConfig = null;
+
+
+      if (type === "sports") {
+
+        sportsConfig =
+          getSportsConfiguration();
+
+
+        const error =
+          validateSportsConfiguration(
+            sportsConfig
+          );
+
+
+        if (error) {
+
+          showMessage(
+            "volunteerOrganizeMessage",
+            error
+          );
+
+          return;
+        }
+
+      }
+
+
+      try {
+
+        const proposalRef =
+          push(
+            ref(
+              db,
+              "proposals"
+            )
+          );
+
+
+        const proposal = {
+
+          proposalId:
+            proposalRef.key,
+
+          type,
+
+          title,
+
+          date,
+
+          time,
+
+          venue,
+
+          description,
+
+
+          organizerType:
+            "volunteer",
+
+          organizerKey:
+            volunteerKey,
+
+          organizerId:
+            currentVolunteer.volunteerId ||
+            "",
+
+          organizerName:
+            currentVolunteer.name ||
+            "Volunteer",
+
+
+          status:
+            "pending",
+
+          adminRemark:
+            "",
+
+          createdAt:
+            Date.now(),
+
+          updatedAt:
+            Date.now()
+
+        };
+
+
+        /*
+          SPORTS CONFIGURATION
+        */
+
+        if (
+          type === "sports"
+        ) {
+
+          proposal.sportsConfig =
+            sportsConfig;
+
+
+          /*
+            Duplicate important fields
+            at root level too.
+
+            This makes Admin/Public
+            rendering easier.
+          */
+
+          proposal.registrationEnabled =
+            sportsConfig.registrationEnabled;
+
+          proposal.gameName =
+            sportsConfig.gameName;
+
+          proposal.participationType =
+            sportsConfig.participationType;
+
+          proposal.registrationLastDate =
+            sportsConfig.registrationLastDate;
+
+          proposal.maxParticipants =
+            sportsConfig.maxParticipants;
+
+          proposal.minAge =
+            sportsConfig.minAge;
+
+          proposal.maxAge =
+            sportsConfig.maxAge;
+
+          proposal.teamSize =
+            sportsConfig.teamSize;
+
+          proposal.entryFee =
+            sportsConfig.entryFee;
+
+          proposal.sportsRules =
+            sportsConfig.rules;
+
+          proposal.registrationFields =
+            sportsConfig.registrationFields;
+
+        }
+
+
+        await set(
+          proposalRef,
+          proposal
+        );
+
+
+        showMessage(
+          "volunteerOrganizeMessage",
+
+          type === "sports"
+            ? "Sports proposal with Registration Form sent to Admin."
+            : "Proposal sent to Admin successfully.",
+
+          true
+        );
+
+
+        event.target.reset();
+
+
+        /*
+          RESET DEFAULT SPORTS
+          SETTINGS
+        */
+
+        if (
+          $("volunteerSportsRegistrationEnabled")
+        ) {
+
+          $("volunteerSportsRegistrationEnabled")
+            .checked = true;
+
+        }
+
+
+        if (
+          $("volunteerSportsFieldAge")
+        ) {
+
+          $("volunteerSportsFieldAge")
+            .checked = true;
+
+        }
+
+
+        if (
+          $("volunteerSportsFieldGender")
+        ) {
+
+          $("volunteerSportsFieldGender")
+            .checked = true;
+
+        }
+
+
+        if (
+          $("volunteerSportsFieldTeamName")
+        ) {
+
+          $("volunteerSportsFieldTeamName")
+            .checked = true;
+
+        }
+
+
+        updateSportsSettingsVisibility();
+
+        updateSportsRegistrationOptions();
+
+
+      } catch (error) {
+
+        console.error(
+          "Proposal error:",
+          error
+        );
+
+
+        showMessage(
+          "volunteerOrganizeMessage",
+          "Unable to send proposal."
+        );
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   MY PROPOSALS
+========================================================= */
+
+function renderMyProposals() {
+
+  const container =
+    $("volunteerOrganizeList");
+
+  if (!container) return;
+
+
+  const mine =
+    proposals
+      .filter(proposal => {
+
+        return (
+          proposal.organizerType ===
+            "volunteer" &&
+          proposal.organizerKey ===
+            volunteerKey
+        );
+
+      })
+      .sort(
+        (a, b) =>
+          numberValue(
+            b.createdAt
+          ) -
+          numberValue(
+            a.createdAt
+          )
+      );
+
+
+  if (!mine.length) {
+
+    container.innerHTML = `
+      <div class="simple-item">
+        No proposals submitted yet.
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    mine.map(proposal => {
+
+      const isSports =
+        normalize(
+          proposal.type
+        ) === "sports";
+
+
+      return `
+
+        <div class="simple-item">
+
+          <strong>
+            ${escapeHTML(
+              proposal.title ||
+              "Proposal"
+            )}
+          </strong>
+
+          <p>
+            ${escapeHTML(
+              (
+                proposal.type ||
+                ""
+              ).toUpperCase()
+            )}
+
+            •
+
+            ${escapeHTML(
+              proposal.status ||
+              "pending"
+            )}
+          </p>
+
+
+          ${
+            proposal.date
+              ? `
+                <small>
+                  Date:
+                  ${escapeHTML(
+                    formatDate(
+                      proposal.date
+                    )
+                  )}
+                </small>
+              `
+              : ""
+          }
+
+
+          ${
+            isSports &&
+            proposal.registrationEnabled
+              ? `
+
+                <p
+                  style="
+                    color:#147D64;
+                    font-weight:900;
+                  "
+                >
+                  ✓ Registration Form Enabled
+                </p>
+
+                <small>
+
+                  Game:
+                  ${escapeHTML(
+                    proposal.gameName ||
+                    "—"
+                  )}
+
+                  •
+
+                  ${
+                    numberValue(
+                      proposal.entryFee
+                    ) > 0
+
+                      ? `₹${numberValue(
+                          proposal.entryFee
+                        )} Entry`
+
+                      : "Free Entry"
+                  }
+
+                </small>
+
+              `
+              : ""
+          }
+
+
+          ${
+            proposal.adminRemark
+              ? `
+                <p>
+                  Admin:
+                  ${escapeHTML(
+                    proposal.adminRemark
+                  )}
+                </p>
+              `
+              : ""
+          }
+
+        </div>
+
+      `;
+
+    }).join("");
+
+}
 
 
 /* =========================================================
@@ -1655,699 +1753,564 @@ $("#submitVolunteerTaskProof")
 ========================================================= */
 
 function renderRanking() {
-  const body =
-    $("#volunteerRankingList");
-
-  if (!body) return;
 
   const approved =
-    allVolunteers
+    volunteers
       .filter(
-        (volunteer) =>
+        volunteer =>
           normalize(
             volunteer.status
           ) === "approved"
       )
-      .map(
-        (volunteer) => ({
-          ...volunteer,
-
-          calculatedPoints:
-            getVolunteerPoints(
-              volunteer
-            ),
-
-          calculatedRating:
-            getVolunteerRating(
-              volunteer
-            )
-        })
-      )
       .sort(
         (a, b) => {
-          if (
-            b.calculatedPoints !==
-            a.calculatedPoints
-          ) {
-            return (
-              b.calculatedPoints -
-              a.calculatedPoints
+
+          const pointDifference =
+            numberValue(
+              b.points
+            ) -
+            numberValue(
+              a.points
             );
+
+
+          if (
+            pointDifference !== 0
+          ) {
+
+            return pointDifference;
+
           }
 
+
           return (
-            b.calculatedRating -
-            a.calculatedRating
+            numberValue(
+              b.rating
+            ) -
+            numberValue(
+              a.rating
+            )
           );
+
         }
       );
 
+
+  const myIndex =
+    approved.findIndex(
+      volunteer =>
+        volunteer.key ===
+        volunteerKey
+    );
+
+
+  const rank =
+    myIndex >= 0
+      ? myIndex + 1
+      : "—";
+
+
+  setText(
+    "volunteerRank",
+    rank
+  );
+
+  setText(
+    "performanceVolunteerRank",
+    rank
+  );
+
+
+  const body =
+    $("volunteerRankingList");
+
+  if (!body) return;
+
+
   if (!approved.length) {
+
     body.innerHTML = `
       <tr>
         <td colspan="5">
-          No approved volunteers available.
+          No ranking available.
         </td>
       </tr>
     `;
 
-    setText(
-      "volunteerRank",
-      "-"
-    );
-
     return;
   }
 
-  let myRank = "-";
 
   body.innerHTML =
-    approved
-      .map(
-        (volunteer, index) => {
-          const rank =
-            index + 1;
+    approved.map(
+      (volunteer, index) => {
 
-          if (
-            volunteer.key ===
-            volunteerKey
-          ) {
-            myRank = rank;
-          }
+        const isMe =
+          volunteer.key ===
+          volunteerKey;
 
-          const rankIcon =
-            rank === 1
-              ? "🥇"
-              : rank === 2
-                ? "🥈"
-                : rank === 3
-                  ? "🥉"
-                  : `#${rank}`;
 
-          const rating =
-            volunteer.calculatedRating >
-            0
-              ? volunteer
-                  .calculatedRating
-                  .toFixed(1)
-              : "—";
+        return `
 
-          return `
-            <tr
+          <tr
+            ${
+              isMe
+                ? `style="background:rgba(214,173,69,.12);"`
+                : ""
+            }
+          >
+
+            <td>
+              #${index + 1}
+            </td>
+
+            <td>
+              ${escapeHTML(
+                volunteer.name ||
+                "Volunteer"
+              )}
               ${
-                volunteer.key ===
-                volunteerKey
-                  ? `
-                    style="
-                      background:
-                      rgba(20,125,100,.06);
-                    "
-                  `
+                isMe
+                  ? " (You)"
                   : ""
               }
-            >
+            </td>
 
-              <td>
-                <strong>
-                  ${rankIcon}
-                </strong>
-              </td>
+            <td>
+              ${escapeHTML(
+                volunteer.volunteerId ||
+                "—"
+              )}
+            </td>
+
+            <td>
+              ${numberValue(
+                volunteer.points
+              )}
+            </td>
+
+            <td>
+              ${
+                numberValue(
+                  volunteer.rating
+                )
+                  ? numberValue(
+                      volunteer.rating
+                    ).toFixed(1)
+                  : "0"
+              }
+            </td>
+
+          </tr>
+
+        `;
+
+      }
+    ).join("");
+
+}
+
+
+/* =========================================================
+   COMPLAINTS
+========================================================= */
+
+function loadComplaints() {
+
+  onValue(
+    ref(
+      db,
+      "complaints"
+    ),
+    snapshot => {
+
+      const complaints =
+        objectToArray(
+          snapshot.val()
+        );
+
+
+      const mine =
+        complaints.filter(
+          complaint => {
+
+            const mobileMatch =
+              currentVolunteer?.mobile &&
+              clean(
+                complaint.complainantMobile ||
+                complaint.mobile
+              ) ===
+              clean(
+                currentVolunteer.mobile
+              );
+
+
+            const nameMatch =
+              normalize(
+                complaint.complainantName
+              ) ===
+              normalize(
+                currentVolunteer?.name
+              );
+
+
+            return (
+              mobileMatch ||
+              nameMatch
+            );
+
+          }
+        );
+
+
+      const body =
+        $("volunteerComplaintList");
+
+
+      if (!body) return;
+
+
+      if (!mine.length) {
+
+        body.innerHTML = `
+          <tr>
+            <td colspan="5">
+              No complaints found.
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+
+      body.innerHTML =
+        mine.map(
+          complaint => `
+
+            <tr>
 
               <td>
                 ${escapeHTML(
-                  volunteer.name ||
-                  "Volunteer"
-                )}
-
-                ${
-                  volunteer.key ===
-                  volunteerKey
-                    ? `
-                      <strong
-                        style="
-                          color:#147d64;
-                          font-size:8px;
-                        "
-                      >
-                        (YOU)
-                      </strong>
-                    `
-                    : ""
-                }
-              </td>
-
-              <td>
-                ${escapeHTML(
-                  volunteer.volunteerId ||
+                  complaint.complaintId ||
                   "—"
                 )}
               </td>
 
               <td>
-                ${
-                  volunteer
-                    .calculatedPoints
-                }
+                ${escapeHTML(
+                  complaint.complaintAgainstName ||
+                  "—"
+                )}
               </td>
 
               <td>
-                ${rating}
+                ${escapeHTML(
+                  complaint.reason ||
+                  "—"
+                )}
+              </td>
+
+              <td>
+                ${escapeHTML(
+                  complaint.status ||
+                  "submitted"
+                )}
+              </td>
+
+              <td>
+                ${escapeHTML(
+                  complaint.adminReply ||
+                  "—"
+                )}
               </td>
 
             </tr>
-          `;
-        }
-      )
-      .join("");
 
-  setText(
-    "volunteerRank",
-    myRank === "-"
-      ? "-"
-      : `#${myRank}`
+          `
+        ).join("");
+
+    }
   );
+
 }
 
-onValue(
-  ref(db, "volunteers"),
 
-  (snapshot) => {
-    allVolunteers =
+/* =========================================================
+   PUBLIC CONTENT
+========================================================= */
+
+function renderPublicContent(
+  path,
+  containerId,
+  sportsMode = false
+) {
+
+  onValue(
+    ref(
+      db,
+      path
+    ),
+    snapshot => {
+
+      const container =
+        $(containerId);
+
+      if (!container) return;
+
+
+      const list =
+        objectToArray(
+          snapshot.val()
+        )
+          .filter(item => {
+
+            const status =
+              normalize(
+                item.status
+              );
+
+            return (
+              !status ||
+              [
+                "active",
+                "approved",
+                "published",
+                "upcoming"
+              ].includes(status)
+            );
+
+          })
+          .sort(
+            (a, b) =>
+              numberValue(
+                b.createdAt
+              ) -
+              numberValue(
+                a.createdAt
+              )
+          );
+
+
+      if (!list.length) {
+
+        container.innerHTML = `
+          <div class="simple-item">
+            No records available.
+          </div>
+        `;
+
+        return;
+      }
+
+
+      container.innerHTML =
+        list.map(item => `
+
+          <div class="simple-item">
+
+            <strong>
+              ${escapeHTML(
+                item.title ||
+                item.name ||
+                "Update"
+              )}
+            </strong>
+
+
+            ${
+              item.date
+                ? `
+                  <p>
+                    ${escapeHTML(
+                      formatDate(
+                        item.date
+                      )
+                    )}
+                  </p>
+                `
+                : ""
+            }
+
+
+            ${
+              item.venue
+                ? `
+                  <p>
+                    📍
+                    ${escapeHTML(
+                      item.venue
+                    )}
+                  </p>
+                `
+                : ""
+            }
+
+
+            ${
+              item.description
+                ? `
+                  <p>
+                    ${escapeHTML(
+                      item.description
+                    )}
+                  </p>
+                `
+                : ""
+            }
+
+
+            ${
+              sportsMode &&
+              item.registrationEnabled
+                ? `
+
+                  <p
+                    style="
+                      color:#147D64;
+                      font-weight:900;
+                    "
+                  >
+                    ✓ Registration Open
+                  </p>
+
+                  <small>
+
+                    ${
+                      escapeHTML(
+                        item.gameName ||
+                        item.title ||
+                        "Sports"
+                      )
+                    }
+
+                    ${
+                      item.registrationLastDate
+                        ? `
+                          • Last Date:
+                          ${escapeHTML(
+                            formatDate(
+                              item.registrationLastDate
+                            )
+                          )}
+                        `
+                        : ""
+                    }
+
+                  </small>
+
+                `
+                : ""
+            }
+
+          </div>
+
+        `).join("");
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   TASKS LIVE
+========================================================= */
+
+onValue(
+  ref(
+    db,
+    `volunteerTasks/${volunteerKey}`
+  ),
+  snapshot => {
+
+    volunteerTasks =
+      objectToArray(
+        snapshot.val()
+      )
+        .sort(
+          (a, b) =>
+            numberValue(
+              b.createdAt
+            ) -
+            numberValue(
+              a.createdAt
+            )
+        );
+
+
+    renderTasks();
+
+  }
+);
+
+
+/* =========================================================
+   VOLUNTEERS LIVE / RANKING
+========================================================= */
+
+onValue(
+  ref(
+    db,
+    "volunteers"
+  ),
+  snapshot => {
+
+    volunteers =
       objectToArray(
         snapshot.val()
       );
+
 
     renderRanking();
-  },
 
-  (error) => {
-    console.error(
-      "Ranking error:",
-      error
-    );
   }
 );
 
 
 /* =========================================================
-   COMPLAINTS AGAINST VOLUNTEER
+   PROPOSALS LIVE
 ========================================================= */
 
-function complaintBelongsToMe(
-  complaint
-) {
-  if (!currentVolunteer) {
-    return false;
-  }
-
-  if (
-    normalize(
-      complaint
-        .complaintAgainstType
-    ) !== "volunteer"
-  ) {
-    return false;
-  }
-
-  const complaintId =
-    normalize(
-      complaint
-        .complaintAgainstId
-    );
-
-  const myId =
-    normalize(
-      currentVolunteer
-        .volunteerId ||
-      sessionVolunteerId
-    );
-
-  if (
-    complaintId &&
-    myId &&
-    complaintId === myId
-  ) {
-    return true;
-  }
-
-  /*
-    Fallback for older records
-    where ID was not stored.
-  */
-
-  if (!complaintId) {
-    return (
-      normalize(
-        complaint
-          .complaintAgainstName
-      ) ===
-      normalize(
-        currentVolunteer.name
-      )
-    );
-  }
-
-  return false;
-}
-
-function renderComplaints() {
-  const body =
-    $("#volunteerComplaintList");
-
-  if (!body) return;
-
-  const complaints =
-    allComplaints
-      .filter(
-        complaintBelongsToMe
-      )
-      .sort(
-        (a, b) =>
-          Number(
-            b.createdAt || 0
-          ) -
-          Number(
-            a.createdAt || 0
-          )
-      );
-
-  if (!complaints.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="5">
-          No complaints are linked to your Volunteer ID.
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  body.innerHTML =
-    complaints
-      .map(
-        (complaint) => `
-          <tr>
-
-            <td>
-              ${escapeHTML(
-                complaint.complaintId ||
-                "—"
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                complaint.reason ||
-                "—"
-              )}
-            </td>
-
-            <td>
-              ${
-                complaint.incidentDate
-                  ? formatDate(
-                      complaint
-                        .incidentDate
-                    )
-                  : "—"
-              }
-            </td>
-
-            <td>
-              ${escapeHTML(
-                String(
-                  complaint.status ||
-                  "submitted"
-                ).replaceAll(
-                  "_",
-                  " "
-                )
-              )}
-            </td>
-
-            <td>
-              ${escapeHTML(
-                complaint.adminReply ||
-                "No reply yet"
-              )}
-            </td>
-
-          </tr>
-        `
-      )
-      .join("");
-}
-
 onValue(
-  ref(db, "complaints"),
+  ref(
+    db,
+    "proposals"
+  ),
+  snapshot => {
 
-  (snapshot) => {
-    allComplaints =
+    proposals =
       objectToArray(
         snapshot.val()
       );
 
-    renderComplaints();
-  },
 
-  (error) => {
-    console.error(
-      "Complaint error:",
-      error
-    );
+    renderMyProposals();
+
   }
 );
 
 
 /* =========================================================
-   PUBLIC MODULE CARD
-========================================================= */
-
-function createModuleCard(
-  item,
-  icon = "✦"
-) {
-  const title =
-    escapeHTML(
-      item.title ||
-      item.name ||
-      "AAKASH EARTH"
-    );
-
-  const description =
-    escapeHTML(
-      item.description ||
-      item.details ||
-      item.message ||
-      ""
-    );
-
-  const image =
-    safeImage(
-      item.photoURL ||
-      item.imageURL ||
-      item.image ||
-      ""
-    );
-
-  return `
-    <article
-      class="vol-card"
-      style="
-        overflow:hidden;
-        padding:0;
-      "
-    >
-
-      <div
-        style="
-          height:160px;
-          overflow:hidden;
-          display:grid;
-          place-items:center;
-          background:
-            linear-gradient(
-              135deg,
-              #0b5b4b,
-              #071a2b
-            );
-          color:#f2d78b;
-          font-size:40px;
-        "
-      >
-
-        ${
-          image
-            ? `
-              <img
-                src="${image}"
-                alt="${title}"
-                loading="lazy"
-                style="
-                  width:100%;
-                  height:100%;
-                  object-fit:cover;
-                "
-              >
-            `
-            : icon
-        }
-
-      </div>
-
-
-      <div style="padding:17px;">
-
-        <strong
-          style="
-            display:block;
-            color:#071a2b;
-            font-family:Cinzel,serif;
-            font-size:12px;
-          "
-        >
-          ${title}
-        </strong>
-
-        ${
-          description
-            ? `
-              <p
-                style="
-                  margin-top:7px;
-                  color:#687681;
-                  font-size:9px;
-                  line-height:1.55;
-                "
-              >
-                ${description}
-              </p>
-            `
-            : ""
-        }
-
-      </div>
-
-    </article>
-  `;
-}
-
-function renderPublicModule(
-  containerId,
-  data,
-  icon,
-  emptyMessage
-) {
-  const container =
-    document.getElementById(
-      containerId
-    );
-
-  if (!container) return;
-
-  const items =
-    data.filter(
-      publicStatus
-    );
-
-  if (!items.length) {
-    container.innerHTML = `
-      <div class="vol-empty">
-        ${escapeHTML(
-          emptyMessage
-        )}
-      </div>
-    `;
-
-    return;
-  }
-
-  container.innerHTML =
-    items
-      .map(
-        (item) =>
-          createModuleCard(
-            item,
-            icon
-          )
-      )
-      .join("");
-}
-
-
-/* =========================================================
-   FESTIVALS
-========================================================= */
-
-onValue(
-  ref(db, "festivals"),
-
-  (snapshot) => {
-    renderPublicModule(
-      "volunteerFestivalList",
-
-      objectToArray(
-        snapshot.val()
-      ),
-
-      "🪔",
-
-      "Festival information will appear here."
-    );
-  },
-
-  (error) => {
-    console.error(
-      "Festival error:",
-      error
-    );
-  }
-);
-
-
-/* =========================================================
-   SPORTS
-========================================================= */
-
-onValue(
-  ref(db, "sports"),
-
-  (snapshot) => {
-    renderPublicModule(
-      "volunteerSportsList",
-
-      objectToArray(
-        snapshot.val()
-      ),
-
-      "🏆",
-
-      "Sports activities will appear here."
-    );
-  },
-
-  (error) => {
-    console.error(
-      "Sports error:",
-      error
-    );
-  }
-);
-
-
-/* =========================================================
-   UPDATES
-========================================================= */
-
-onValue(
-  ref(db, "updates"),
-
-  (snapshot) => {
-    renderPublicModule(
-      "volunteerUpdatesList",
-
-      objectToArray(
-        snapshot.val()
-      ),
-
-      "📢",
-
-      "Community updates will appear here."
-    );
-  },
-
-  (error) => {
-    console.error(
-      "Updates error:",
-      error
-    );
-  }
-);
-
-
-/* =========================================================
-   GALLERY
-========================================================= */
-
-onValue(
-  ref(db, "gallery"),
-
-  (snapshot) => {
-    renderPublicModule(
-      "volunteerGalleryList",
-
-      objectToArray(
-        snapshot.val()
-      ),
-
-      "▣",
-
-      "Gallery will appear here."
-    );
-  },
-
-  (error) => {
-    console.error(
-      "Gallery error:",
-      error
-    );
-  }
-);
-
-
-/* =========================================================
-   ESCAPE CLOSE MODAL
+   ESCAPE KEY
 ========================================================= */
 
 document.addEventListener(
   "keydown",
-  (event) => {
-    if (
-      event.key === "Escape" &&
-      taskModal?.classList.contains(
-        "open"
-      )
-    ) {
-      closeTaskModal();
-    }
-  }
-);
-
-
-/* =========================================================
-   CLOSE SIDEBAR ON MOBILE OUTSIDE CLICK
-========================================================= */
-
-document.addEventListener(
-  "click",
-  (event) => {
-    if (
-      window.innerWidth > 900 ||
-      !sidebar?.classList.contains(
-        "open"
-      )
-    ) {
-      return;
-    }
-
-    const menuButton =
-      $("#volunteerMenuBtn");
+  event => {
 
     if (
-      sidebar.contains(
-        event.target
-      ) ||
-      menuButton?.contains(
-        event.target
-      )
+      event.key === "Escape"
     ) {
-      return;
+
+      $("volunteerTaskModal")
+        ?.classList.remove("show");
+
+      $("volunteerSidebar")
+        ?.classList.remove("open");
+
     }
 
-    sidebar.classList.remove(
-      "open"
-    );
   }
 );
 
@@ -2356,6 +2319,43 @@ document.addEventListener(
    START
 ========================================================= */
 
+async function startVolunteerPortal() {
+
+  await loadVolunteer();
+
+  loadComplaints();
+
+
+  renderPublicContent(
+    "festivals",
+    "volunteerFestivalList"
+  );
+
+
+  renderPublicContent(
+    "sports",
+    "volunteerSportsList",
+    true
+  );
+
+
+  renderPublicContent(
+    "updates",
+    "volunteerUpdatesList"
+  );
+
+
+  renderPublicContent(
+    "gallery",
+    "volunteerGalleryList"
+  );
+
+}
+
+
+startVolunteerPortal();
+
+
 console.log(
-  "AAKASH EARTH Volunteer Dashboard connected."
+  "AAKASH EARTH Volunteer Portal + Sports Registration Proposal System connected."
 );

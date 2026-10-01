@@ -1,18 +1,22 @@
 /* =========================================================
-   AAKASH EARTH - ADMIN CONTROL PANEL
-   Firebase Realtime Database
-   Storage temporarily NOT used
+   AAKASH EARTH
+   ADMIN DASHBOARD
+   Complete replacement: admin.js
 ========================================================= */
 
 import {
   db,
+  storage,
   ref,
   set,
   push,
   get,
   onValue,
   update,
-  remove
+  remove,
+  storageRef,
+  uploadBytes,
+  getDownloadURL
 } from "./firebase.js";
 
 
@@ -23,1278 +27,962 @@ import {
 const $ = (id) =>
   document.getElementById(id);
 
-const $$ = (selector) =>
-  [...document.querySelectorAll(selector)];
+const clean = (value) =>
+  String(value ?? "").trim();
 
-function clean(value = "") {
-  return String(value).trim();
-}
+const upper = (value) =>
+  clean(value).toUpperCase();
 
-function normalize(value = "") {
-  return clean(value).toLowerCase();
-}
-
-function mobile(value = "") {
-  let result =
-    String(value).replace(/\D/g, "");
-
-  if (
-    result.length === 12 &&
-    result.startsWith("91")
-  ) {
-    result = result.slice(-10);
-  }
-
-  return result.slice(-10);
-}
-
-function escapeHTML(value = "") {
-  return String(value)
+const escapeHTML = (value) =>
+  String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
 
-function arrayFromObject(data) {
-  if (!data) return [];
+const safeNumber = (value) => {
 
-  return Object.entries(data)
-    .map(([key, value]) => ({
-      key,
-      ...(value || {})
-    }));
-}
+  const number =
+    Number(value);
 
-function formatDate(value) {
-  if (!value) return "—";
+  return Number.isFinite(number)
+    ? number
+    : 0;
 
-  const date = new Date(value);
+};
 
-  if (Number.isNaN(date.getTime())) {
-    return escapeHTML(value);
-  }
+const withTimeout = (
+  promise,
+  milliseconds,
+  message = "Request timed out."
+) => {
 
-  return new Intl.DateTimeFormat(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }
-  ).format(date);
-}
+  let timer;
 
-function formatDateTime(value) {
-  if (!value) return "—";
+  const timeout =
+    new Promise((_, reject) => {
 
-  const date = new Date(value);
+      timer = setTimeout(
+        () => reject(
+          new Error(message)
+        ),
+        milliseconds
+      );
 
-  if (Number.isNaN(date.getTime())) {
+    });
+
+  return Promise.race([
+    promise,
+    timeout
+  ]).finally(() => {
+
+    clearTimeout(timer);
+
+  });
+
+};
+
+const formatDateTime = (value) => {
+
+  if (!value) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  ).format(date);
-}
-
-function statusLabel(value = "") {
-  const map = {
-    active: "Active",
-    inactive: "Inactive",
-    pending: "Pending",
-    approved: "Approved",
-    rejected: "Rejected",
-    assigned: "Assigned",
-    pending_review: "Pending Review",
-    completed: "Completed",
-    submitted: "Submitted",
-    under_review: "Under Review",
-    in_progress: "In Progress",
-    resolved: "Resolved",
-    published: "Published"
-  };
-
-  const key = normalize(value);
-
-  return (
-    map[key] ||
-    clean(value).replaceAll("_", " ") ||
-    "—"
-  );
-}
-
-function randomCode(length = 6) {
-  const chars =
-    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-  let output = "";
+  const date =
+    new Date(value);
 
   if (
-    window.crypto &&
-    window.crypto.getRandomValues
+    Number.isNaN(
+      date.getTime()
+    )
   ) {
-    const values =
-      new Uint32Array(length);
-
-    window.crypto.getRandomValues(values);
-
-    values.forEach((value) => {
-      output +=
-        chars[value % chars.length];
-    });
-
-    return output;
+    return "—";
   }
 
-  for (let i = 0; i < length; i++) {
-    output +=
-      chars[
-        Math.floor(
-          Math.random() * chars.length
-        )
-      ];
+  return date.toLocaleString(
+    "en-IN",
+    {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }
+  );
+
+};
+
+const formatDate = (value) => {
+
+  if (!value) {
+    return "—";
   }
 
-  return output;
-}
+  const date =
+    new Date(value);
 
-function showMessage(
-  element,
-  message,
-  type = "success"
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return clean(value) || "—";
+  }
+
+  return date.toLocaleDateString(
+    "en-IN",
+    {
+      dateStyle: "medium"
+    }
+  );
+
+};
+
+function setMessage(
+  id,
+  message = "",
+  error = false
 ) {
-  if (!element) return;
 
-  element.textContent = message;
+  const element = $(id);
 
-  element.className =
-    `admin-message show ${type}`;
-}
+  if (!element) {
+    return;
+  }
 
-function clearMessage(element) {
-  if (!element) return;
+  element.textContent =
+    message;
 
-  element.textContent = "";
-  element.className = "admin-message";
-}
+  element.style.color =
+    error
+      ? "#8d3c35"
+      : "#77570f";
 
-function confirmAction(message) {
-  return window.confirm(message);
 }
 
 
 /* =========================================================
-   ADMIN SESSION
+   ADMIN SESSION CHECK
 ========================================================= */
 
-function checkAdminSession() {
-  const role =
-    sessionStorage.getItem(
-      "aakashLoginRole"
+function getSession() {
+
+  try {
+
+    return JSON.parse(
+      sessionStorage.getItem(
+        "aePortalSession"
+      ) || "null"
     );
 
-  const adminLogin =
-    sessionStorage.getItem(
-      "aakashAdminLogin"
-    );
+  } catch {
 
-  /*
-    Existing login.js may have only role saved,
-    so admin role is accepted too.
-  */
+    return null;
 
-  if (
-    role !== "admin" &&
-    adminLogin !== "true"
-  ) {
-    window.location.href =
-      "login.html";
   }
+
 }
 
-checkAdminSession();
+const session =
+  getSession();
+
+if (
+  !session ||
+  session.loggedIn !== true ||
+  session.role !== "admin"
+) {
+
+  window.location.replace(
+    "login.html"
+  );
+
+  throw new Error(
+    "Admin session required."
+  );
+
+}
 
 
 /* =========================================================
    STATE
 ========================================================= */
 
-let members = [];
-let volunteers = [];
-let complaints = [];
-let proposals = [];
-let receipts = [];
+const state = {
 
-let memberTasks = [];
-let volunteerTasks = [];
+  members: {},
+  volunteers: {},
+  tasks: {},
+  complaints: {},
+  sports: {},
+  sportsRegistrations: {},
+  events: {},
+  gallery: {},
+  committee: {},
+  notifications: {},
+  loginActivity: {},
+  adminProfile: {}
 
-let festivals = [];
-let sports = [];
-let updatesData = [];
-let gallery = [];
-
-let selectedVolunteerKey = null;
-let selectedTask = null;
-let selectedComplaintKey = null;
-let selectedProposalKey = null;
+};
 
 
 /* =========================================================
-   SIDEBAR / PANELS
+   INITIAL UI
 ========================================================= */
 
-const adminSidebar =
-  $("adminSidebar");
+$("adminCurrentYear") &&
+(
+  $("adminCurrentYear").textContent =
+    new Date().getFullYear()
+);
 
-const adminPageTitle =
-  $("adminPageTitle");
+if ($("dashboardAdminId")) {
 
-const panelTitles = {
-  dashboard: "Dashboard",
-  members: "Members",
-  volunteers: "Volunteers",
-  tasks: "Assign Tasks",
-  taskreview: "Task Review",
-  complaints: "Complaints",
-  proposals: "Proposals",
-  receipts: "Receipts / Vargani",
-  festivals: "Festivals",
-  sports: "Sports",
-  updates: "Updates",
-  gallery: "Gallery"
-};
+  $("dashboardAdminId").textContent =
+    `Admin ID: ${session.userId || "admin"}`;
 
-function openPanel(name) {
-  $$("[data-admin-panel-content]")
-    .forEach((panel) => {
-      panel.classList.toggle(
-        "active",
-        panel.dataset
-          .adminPanelContent === name
-      );
-    });
-
-  $$("[data-admin-panel]")
-    .forEach((button) => {
-      button.classList.toggle(
-        "active",
-        button.dataset
-          .adminPanel === name
-      );
-    });
-
-  if (adminPageTitle) {
-    adminPageTitle.textContent =
-      panelTitles[name] || "Admin";
-  }
-
-  adminSidebar?.classList.remove("open");
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
 }
-
-$$("[data-admin-panel]")
-  .forEach((button) => {
-    button.addEventListener(
-      "click",
-      () => {
-        openPanel(
-          button.dataset.adminPanel
-        );
-      }
-    );
-  });
-
-$$("[data-open-admin-panel]")
-  .forEach((button) => {
-    button.addEventListener(
-      "click",
-      () => {
-        openPanel(
-          button.dataset
-            .openAdminPanel
-        );
-      }
-    );
-  });
-
-$("adminMenuBtn")
-  ?.addEventListener(
-    "click",
-    () => {
-      adminSidebar
-        ?.classList.toggle("open");
-    }
-  );
 
 
 /* =========================================================
    LOGOUT
 ========================================================= */
 
-$("adminLogout")
+$("adminLogoutBtn")
   ?.addEventListener(
     "click",
     () => {
-      sessionStorage.removeItem(
-        "aakashLoginRole"
+
+      [
+        "aePortalSession",
+        "aeLoggedIn",
+        "aeRole",
+        "aeUserId",
+        "aeRecordKey"
+      ].forEach(
+        (key) =>
+          sessionStorage.removeItem(key)
       );
 
-      sessionStorage.removeItem(
-        "aakashAdminLogin"
+      window.location.replace(
+        "login.html"
       );
 
-      sessionStorage.removeItem(
-        "aakashAdminUsername"
-      );
-
-      window.location.href =
-        "login.html";
     }
   );
 
 
 /* =========================================================
-   MODAL HELPERS
+   IMAGE COMPRESSION
+   Photo is ALWAYS optional.
 ========================================================= */
 
-function openModal(element) {
-  element?.classList.add("open");
-}
+const MAX_ORIGINAL_SIZE =
+  15 * 1024 * 1024;
 
-function closeModal(element) {
-  element?.classList.remove("open");
-}
+const TARGET_SIZE =
+  700 * 1024;
 
-const addMemberModal =
-  $("addMemberModal");
-
-const volunteerReviewModal =
-  $("volunteerReviewModal");
-
-const taskReviewModal =
-  $("taskReviewModal");
-
-const complaintAdminModal =
-  $("complaintAdminModal");
-
-const proposalReviewModal =
-  $("proposalReviewModal");
+const MAX_DIMENSION =
+  1280;
 
 
-$("openAddMemberModal")
-  ?.addEventListener(
-    "click",
-    () => {
-      clearMessage(
-        $("addMemberMessage")
+async function compressImage(file) {
+
+  if (!file) {
+    return null;
+  }
+
+  if (
+    !file.type.startsWith(
+      "image/"
+    )
+  ) {
+
+    throw new Error(
+      "Please select a valid image."
+    );
+
+  }
+
+  if (
+    file.size >
+    MAX_ORIGINAL_SIZE
+  ) {
+
+    throw new Error(
+      "Image must be smaller than 15 MB."
+    );
+
+  }
+
+
+  const bitmap =
+    await createImageBitmap(file);
+
+
+  let width =
+    bitmap.width;
+
+  let height =
+    bitmap.height;
+
+
+  if (
+    width > MAX_DIMENSION ||
+    height > MAX_DIMENSION
+  ) {
+
+    const ratio =
+      Math.min(
+        MAX_DIMENSION / width,
+        MAX_DIMENSION / height
       );
 
-      openModal(addMemberModal);
-    }
-  );
+    width =
+      Math.round(
+        width * ratio
+      );
 
-$("closeAddMemberModal")
-  ?.addEventListener(
-    "click",
-    () => closeModal(addMemberModal)
-  );
+    height =
+      Math.round(
+        height * ratio
+      );
 
-$("closeVolunteerReviewModal")
-  ?.addEventListener(
-    "click",
-    () =>
-      closeModal(
-        volunteerReviewModal
-      )
-  );
+  }
 
-$("closeTaskReviewModal")
-  ?.addEventListener(
-    "click",
-    () =>
-      closeModal(taskReviewModal)
-  );
 
-$("closeComplaintAdminModal")
-  ?.addEventListener(
-    "click",
-    () =>
-      closeModal(
-        complaintAdminModal
-      )
-  );
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
 
-$("closeProposalReviewModal")
-  ?.addEventListener(
-    "click",
-    () =>
-      closeModal(
-        proposalReviewModal
-      )
-  );
+  canvas.width =
+    width;
 
-$$(".admin-modal")
-  .forEach((modal) => {
-    modal.addEventListener(
-      "click",
-      (event) => {
-        if (event.target === modal) {
-          closeModal(modal);
-        }
+  canvas.height =
+    height;
+
+
+  const context =
+    canvas.getContext(
+      "2d",
+      {
+        alpha: false
       }
     );
-  });
 
 
-/* =========================================================
-   MEMBER ID
-========================================================= */
-
-function generateMemberId(year) {
-  return (
-    `AE-MEM-${year}-` +
-    randomCode(6)
+  context.drawImage(
+    bitmap,
+    0,
+    0,
+    width,
+    height
   );
+
+
+  bitmap.close?.();
+
+
+  let quality =
+    0.78;
+
+  let blob =
+    await canvasToBlob(
+      canvas,
+      quality
+    );
+
+
+  while (
+    blob &&
+    blob.size > TARGET_SIZE &&
+    quality > 0.52
+  ) {
+
+    quality -= 0.06;
+
+    blob =
+      await canvasToBlob(
+        canvas,
+        quality
+      );
+
+  }
+
+
+  if (!blob) {
+
+    throw new Error(
+      "Unable to process image."
+    );
+
+  }
+
+
+  return blob;
+
 }
 
-function generateVolunteerId(year) {
-  return (
-    `AE-VOL-${year}-` +
-    randomCode(6)
-  );
-}
 
+function canvasToBlob(
+  canvas,
+  quality
+) {
 
-/* =========================================================
-   ADD MEMBER
-========================================================= */
+  return new Promise(
+    (resolve) => {
 
-$("newMemberMobile")
-  ?.addEventListener(
-    "input",
-    (event) => {
-      event.target.value =
-        mobile(event.target.value);
+      canvas.toBlob(
+        resolve,
+        "image/jpeg",
+        quality
+      );
+
     }
   );
 
-$("adminAddMemberForm")
+}
+
+
+/* =========================================================
+   OPTIONAL IMAGE UPLOAD
+========================================================= */
+
+async function uploadOptionalImage(
+  file,
+  folder
+) {
+
+  if (!file) {
+
+    return {
+      url: "",
+      path: ""
+    };
+
+  }
+
+
+  const blob =
+    await compressImage(file);
+
+
+  const filename =
+    `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 9)}.jpg`;
+
+
+  const path =
+    `${folder}/${filename}`;
+
+
+  const fileRef =
+    storageRef(
+      storage,
+      path
+    );
+
+
+  await withTimeout(
+    uploadBytes(
+      fileRef,
+      blob,
+      {
+        contentType:
+          "image/jpeg"
+      }
+    ),
+    45000,
+    "Photo upload timed out."
+  );
+
+
+  const url =
+    await withTimeout(
+      getDownloadURL(
+        fileRef
+      ),
+      15000,
+      "Unable to get photo URL."
+    );
+
+
+  return {
+    url,
+    path
+  };
+
+}
+
+
+/* =========================================================
+   MEMBER CREATE
+========================================================= */
+
+$("adminMemberForm")
   ?.addEventListener(
     "submit",
     async (event) => {
+
       event.preventDefault();
 
-      const message =
-        $("addMemberMessage");
+      const button =
+        $("adminMemberSubmit");
 
-      clearMessage(message);
+      setMessage(
+        "adminMemberMessage",
+        ""
+      );
+
 
       const name =
         clean(
-          $("newMemberName")?.value
+          $("adminMemberName")?.value
         );
 
-      const memberMobile =
-        mobile(
-          $("newMemberMobile")?.value
+      const memberId =
+        upper(
+          $("adminMemberId")?.value
         );
 
-      const position =
+      const mobile =
         clean(
-          $("newMemberPosition")?.value
-        ) || "Member";
-
-      const year =
-        clean(
-          $("newMemberYear")?.value
+          $("adminMemberMobile")?.value
         );
 
-      const username =
+      const email =
         clean(
-          $("newMemberUsername")?.value
+          $("adminMemberEmail")?.value
         );
 
       const password =
         clean(
-          $("newMemberPassword")?.value
+          $("adminMemberPassword")?.value
         );
 
-      const address =
+      const year =
         clean(
-          $("newMemberAddress")?.value
+          $("adminMemberYear")?.value
         );
 
-      if (name.length < 2) {
-        showMessage(
-          message,
-          "Enter member name.",
-          "error"
+      const status =
+        clean(
+          $("adminMemberStatus")?.value
+        ) || "active";
+
+      const photoFile =
+        $("adminMemberPhoto")
+          ?.files?.[0] || null;
+
+
+      if (
+        !name ||
+        !memberId ||
+        !password
+      ) {
+
+        setMessage(
+          "adminMemberMessage",
+          "Name, Member ID and Password are required.",
+          true
         );
+
         return;
+
       }
 
-      if (!/^\d{10}$/.test(memberMobile)) {
-        showMessage(
-          message,
-          "Enter valid 10-digit mobile number.",
-          "error"
+
+      if (
+        findDuplicateId(
+          state.members,
+          memberId,
+          [
+            "memberId",
+            "memberID",
+            "userId",
+            "id"
+          ]
+        )
+      ) {
+
+        setMessage(
+          "adminMemberMessage",
+          "This Member ID already exists.",
+          true
         );
+
         return;
+
       }
 
-      if (!year) {
-        showMessage(
-          message,
-          "Enter member year.",
-          "error"
-        );
-        return;
-      }
-
-      if (!username) {
-        showMessage(
-          message,
-          "Enter username.",
-          "error"
-        );
-        return;
-      }
-
-      if (!password) {
-        showMessage(
-          message,
-          "Enter password.",
-          "error"
-        );
-        return;
-      }
-
-      const duplicate =
-        members.some((member) =>
-          normalize(member.username) ===
-            normalize(username) ||
-          mobile(member.mobile) ===
-            memberMobile
-        );
-
-      if (duplicate) {
-        showMessage(
-          message,
-          "Username or mobile number already exists.",
-          "error"
-        );
-        return;
-      }
-
-      const submit =
-        $("addMemberSubmit");
 
       try {
-        if (submit) {
-          submit.disabled = true;
-          submit.textContent =
-            "Creating Member...";
-        }
 
-        const memberId =
-          generateMemberId(year);
+        button.disabled = true;
+        button.textContent =
+          photoFile
+            ? "UPLOADING..."
+            : "SAVING...";
 
-        const newRef =
-          push(ref(db, "members"));
 
-        await set(newRef, {
-          memberId,
-          name,
-          mobile: memberMobile,
-          position,
-          year,
-          username,
-          password,
-          address,
-          photoURL: "",
-          status: "active",
-          points: 0,
-          rating: 0,
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        });
+        const photo =
+          await uploadOptionalImage(
+            photoFile,
+            "members"
+          );
 
-        showMessage(
-          message,
-          `Member created successfully. ID: ${memberId}`,
-          "success"
+
+        const recordRef =
+          push(
+            ref(
+              db,
+              "members"
+            )
+          );
+
+
+        await withTimeout(
+          set(
+            recordRef,
+            {
+              memberId,
+              name,
+              mobile,
+              email,
+              password,
+              year,
+              status,
+
+              photoURL:
+                photo.url,
+
+              photoPath:
+                photo.path,
+
+              createdAt:
+                Date.now(),
+
+              updatedAt:
+                Date.now()
+            }
+          ),
+          15000,
+          "Unable to save member."
         );
+
 
         event.target.reset();
 
+
+        setMessage(
+          "adminMemberMessage",
+          `Member ${memberId} created successfully.`
+        );
+
+
+        createNotification(
+          "member_created",
+          "Member Created",
+          `${name} (${memberId}) was added.`
+        );
+
+
       } catch (error) {
+
         console.error(error);
 
-        showMessage(
-          message,
-          "Unable to create member. Check Firebase Database rules.",
-          "error"
+        setMessage(
+          "adminMemberMessage",
+          error.message ||
+          "Unable to create member.",
+          true
         );
 
       } finally {
-        if (submit) {
-          submit.disabled = false;
-          submit.textContent =
-            "Create Member Account →";
-        }
+
+        button.disabled = false;
+        button.textContent =
+          "SAVE MEMBER";
+
       }
+
     }
   );
 
 
 /* =========================================================
-   MEMBERS LIVE
+   VOLUNTEER CREATE
 ========================================================= */
 
-onValue(
-  ref(db, "members"),
-  (snapshot) => {
-    members =
-      arrayFromObject(
-        snapshot.val()
+$("adminVolunteerForm")
+  ?.addEventListener(
+    "submit",
+    async (event) => {
+
+      event.preventDefault();
+
+      const button =
+        $("adminVolunteerSubmit");
+
+
+      setMessage(
+        "adminVolunteerMessage",
+        ""
       );
 
-    renderMembers();
-    updateDashboardStats();
-    populateTaskUsers();
-  }
-);
 
-function renderMembers() {
-  const body =
-    $("adminMemberList");
-
-  if (!body) return;
-
-  const search =
-    normalize(
-      $("memberAdminSearch")?.value
-    );
-
-  const status =
-    normalize(
-      $("memberAdminStatusFilter")?.value ||
-      "all"
-    );
-
-  const filtered =
-    members.filter((member) => {
-      const haystack =
-        normalize(
-          `${member.name || ""}
-           ${member.memberId || ""}
-           ${member.mobile || ""}
-           ${member.username || ""}`
+      const name =
+        clean(
+          $("adminVolunteerName")?.value
         );
 
-      const searchMatch =
-        !search ||
-        haystack.includes(search);
-
-      const statusMatch =
-        status === "all" ||
-        normalize(member.status) ===
-          status;
-
-      return searchMatch &&
-        statusMatch;
-    });
-
-  if (!filtered.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No members found.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  body.innerHTML =
-    filtered
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
-      )
-      .map((member) => `
-        <tr>
-          <td>
-            <strong>
-              ${escapeHTML(member.name || "—")}
-            </strong>
-            <br>
-            ${escapeHTML(member.username || "")}
-          </td>
-
-          <td>
-            ${escapeHTML(member.memberId || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(member.mobile || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(member.position || "Member")}
-          </td>
-
-          <td>
-            ${escapeHTML(member.year || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(statusLabel(member.status))}
-          </td>
-
-          <td>
-            <div class="admin-actions">
-
-              <button
-                class="admin-mini-btn gold"
-                data-member-toggle="${member.key}"
-              >
-                ${
-                  normalize(member.status) ===
-                  "active"
-                    ? "Deactivate"
-                    : "Activate"
-                }
-              </button>
-
-              <button
-                class="admin-mini-btn red"
-                data-member-delete="${member.key}"
-              >
-                Delete
-              </button>
-
-            </div>
-          </td>
-        </tr>
-      `)
-      .join("");
-
-  $$("[data-member-toggle]")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        async () => {
-          const key =
-            button.dataset.memberToggle;
-
-          const member =
-            members.find(
-              (item) =>
-                item.key === key
-            );
-
-          if (!member) return;
-
-          const nextStatus =
-            normalize(member.status) ===
-            "active"
-              ? "inactive"
-              : "active";
-
-          await update(
-            ref(db, `members/${key}`),
-            {
-              status: nextStatus,
-              updatedAt: Date.now()
-            }
-          );
-        }
-      );
-    });
-
-  $$("[data-member-delete]")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        async () => {
-          const key =
-            button.dataset.memberDelete;
-
-          if (
-            !confirmAction(
-              "Delete this member permanently?"
-            )
-          ) {
-            return;
-          }
-
-          await remove(
-            ref(db, `members/${key}`)
-          );
-        }
-      );
-    });
-}
-
-$("memberAdminSearch")
-  ?.addEventListener(
-    "input",
-    renderMembers
-  );
-
-$("memberAdminStatusFilter")
-  ?.addEventListener(
-    "change",
-    renderMembers
-  );
-
-
-/* =========================================================
-   VOLUNTEERS LIVE
-========================================================= */
-
-onValue(
-  ref(db, "volunteers"),
-  (snapshot) => {
-    volunteers =
-      arrayFromObject(
-        snapshot.val()
-      );
-
-    renderVolunteers();
-    updateDashboardStats();
-    populateTaskUsers();
-  }
-);
-
-function renderVolunteers() {
-  const body =
-    $("adminVolunteerList");
-
-  if (!body) return;
-
-  const search =
-    normalize(
-      $("volunteerAdminSearch")?.value
-    );
-
-  const filter =
-    normalize(
-      $("volunteerAdminStatusFilter")?.value ||
-      "all"
-    );
-
-  const filtered =
-    volunteers.filter((volunteer) => {
-      const haystack =
-        normalize(
-          `${volunteer.name || ""}
-           ${volunteer.volunteerId || ""}
-           ${volunteer.applicationId || ""}
-           ${volunteer.mobile || ""}
-           ${volunteer.area || ""}`
+      const volunteerId =
+        upper(
+          $("adminVolunteerId")?.value
         );
 
-      return (
-        (!search ||
-          haystack.includes(search)) &&
-        (
-          filter === "all" ||
-          normalize(volunteer.status) ===
-            filter
-        )
-      );
-    });
-
-  if (!filtered.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No volunteers found.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  body.innerHTML =
-    filtered
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
-      )
-      .map((volunteer) => `
-        <tr>
-          <td>
-            <strong>
-              ${escapeHTML(volunteer.name || "—")}
-            </strong>
-            <br>
-            ${escapeHTML(volunteer.applicationId || "")}
-          </td>
-
-          <td>
-            ${escapeHTML(volunteer.volunteerId || "Not Assigned")}
-          </td>
-
-          <td>
-            ${escapeHTML(volunteer.mobile || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(volunteer.area || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(volunteer.year || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(statusLabel(volunteer.status))}
-          </td>
-
-          <td>
-            <button
-              class="admin-mini-btn gold"
-              data-review-volunteer="${volunteer.key}"
-            >
-              View / Review
-            </button>
-          </td>
-        </tr>
-      `)
-      .join("");
-
-  $$("[data-review-volunteer]")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          openVolunteerReview(
-            button.dataset
-              .reviewVolunteer
-          );
-        }
-      );
-    });
-}
-
-$("volunteerAdminSearch")
-  ?.addEventListener(
-    "input",
-    renderVolunteers
-  );
-
-$("volunteerAdminStatusFilter")
-  ?.addEventListener(
-    "change",
-    renderVolunteers
-  );
-
-
-/* =========================================================
-   VOLUNTEER REVIEW
-========================================================= */
-
-function openVolunteerReview(key) {
-  const volunteer =
-    volunteers.find(
-      (item) => item.key === key
-    );
-
-  if (!volunteer) return;
-
-  selectedVolunteerKey = key;
-
-  $("reviewVolunteerName").textContent =
-    volunteer.name || "Volunteer";
-
-  $("reviewVolunteerDetails").innerHTML = `
-    <div class="admin-card">
-
-      <p>
-        <strong>Application ID:</strong>
-        ${escapeHTML(volunteer.applicationId || "—")}
-      </p>
-
-      <p>
-        <strong>Volunteer ID:</strong>
-        ${escapeHTML(volunteer.volunteerId || "Not assigned")}
-      </p>
-
-      <p>
-        <strong>Mobile:</strong>
-        ${escapeHTML(volunteer.mobile || "—")}
-      </p>
-
-      <p>
-        <strong>DOB:</strong>
-        ${escapeHTML(volunteer.dob || "—")}
-      </p>
-
-      <p>
-        <strong>Gender:</strong>
-        ${escapeHTML(volunteer.gender || "—")}
-      </p>
-
-      <p>
-        <strong>Year:</strong>
-        ${escapeHTML(volunteer.year || "—")}
-      </p>
-
-      <p>
-        <strong>Area:</strong>
-        ${escapeHTML(volunteer.area || "—")}
-      </p>
-
-      <p>
-        <strong>Address:</strong>
-        ${escapeHTML(volunteer.address || "—")}
-      </p>
-
-      <p>
-        <strong>Reason:</strong>
-        ${escapeHTML(volunteer.reason || "—")}
-      </p>
-
-      <p>
-        <strong>Photo File:</strong>
-        ${escapeHTML(volunteer.photoFileName || "No photo")}
-      </p>
-
-      <p>
-        <strong>Status:</strong>
-        ${escapeHTML(statusLabel(volunteer.status))}
-      </p>
-
-    </div>
-  `;
-
-  clearMessage(
-    $("volunteerReviewMessage")
-  );
-
-  openModal(
-    volunteerReviewModal
-  );
-}
-
-$("approveVolunteerBtn")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedVolunteerKey) {
-        return;
-      }
-
-      const volunteer =
-        volunteers.find(
-          (item) =>
-            item.key ===
-            selectedVolunteerKey
+      const mobile =
+        clean(
+          $("adminVolunteerMobile")?.value
         );
 
-      if (!volunteer) return;
-
-      const message =
-        $("volunteerReviewMessage");
-
-      try {
-        const volunteerId =
-          volunteer.volunteerId ||
-          generateVolunteerId(
-            volunteer.year ||
-            new Date().getFullYear()
-          );
-
-        await update(
-          ref(
-            db,
-            `volunteers/${selectedVolunteerKey}`
-          ),
-          {
-            volunteerId,
-            status: "approved",
-            approvedAt: Date.now(),
-            updatedAt: Date.now()
-          }
+      const email =
+        clean(
+          $("adminVolunteerEmail")?.value
         );
 
-        showMessage(
-          message,
-          `Volunteer approved. ID: ${volunteerId}`,
-          "success"
+      const password =
+        clean(
+          $("adminVolunteerPassword")?.value
         );
 
-      } catch (error) {
-        console.error(error);
-
-        showMessage(
-          message,
-          "Unable to approve volunteer.",
-          "error"
+      const points =
+        Math.max(
+          0,
+          safeNumber(
+            $("adminVolunteerPoints")
+              ?.value
+          )
         );
-      }
-    }
-  );
 
-$("rejectVolunteerBtn")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedVolunteerKey) {
-        return;
-      }
+      const status =
+        clean(
+          $("adminVolunteerStatus")?.value
+        ) || "active";
+
+      const photoFile =
+        $("adminVolunteerPhoto")
+          ?.files?.[0] || null;
+
 
       if (
-        !confirmAction(
-          "Reject this volunteer application?"
+        !name ||
+        !volunteerId ||
+        !password
+      ) {
+
+        setMessage(
+          "adminVolunteerMessage",
+          "Name, Volunteer ID and Password are required.",
+          true
+        );
+
+        return;
+
+      }
+
+
+      if (
+        findDuplicateId(
+          state.volunteers,
+          volunteerId,
+          [
+            "volunteerId",
+            "volunteerID",
+            "userId",
+            "id"
+          ]
         )
       ) {
+
+        setMessage(
+          "adminVolunteerMessage",
+          "This Volunteer ID already exists.",
+          true
+        );
+
         return;
+
       }
+
 
       try {
-        await update(
-          ref(
-            db,
-            `volunteers/${selectedVolunteerKey}`
+
+        button.disabled = true;
+
+        button.textContent =
+          photoFile
+            ? "UPLOADING..."
+            : "SAVING...";
+
+
+        const photo =
+          await uploadOptionalImage(
+            photoFile,
+            "volunteers"
+          );
+
+
+        const recordRef =
+          push(
+            ref(
+              db,
+              "volunteers"
+            )
+          );
+
+
+        await withTimeout(
+          set(
+            recordRef,
+            {
+              volunteerId,
+              name,
+              mobile,
+              email,
+              password,
+              points,
+              status,
+
+              photoURL:
+                photo.url,
+
+              photoPath:
+                photo.path,
+
+              createdAt:
+                Date.now(),
+
+              updatedAt:
+                Date.now()
+            }
           ),
-          {
-            status: "rejected",
-            updatedAt: Date.now()
-          }
+          15000,
+          "Unable to save volunteer."
         );
 
-        showMessage(
-          $("volunteerReviewMessage"),
-          "Volunteer application rejected.",
-          "success"
+
+        event.target.reset();
+
+        if (
+          $("adminVolunteerPoints")
+        ) {
+
+          $("adminVolunteerPoints").value =
+            "0";
+
+        }
+
+
+        setMessage(
+          "adminVolunteerMessage",
+          `Volunteer ${volunteerId} created successfully.`
         );
+
+
+        createNotification(
+          "volunteer_created",
+          "Volunteer Created",
+          `${name} (${volunteerId}) was added.`
+        );
+
 
       } catch (error) {
+
         console.error(error);
 
-        showMessage(
-          $("volunteerReviewMessage"),
-          "Unable to reject application.",
-          "error"
+        setMessage(
+          "adminVolunteerMessage",
+          error.message ||
+          "Unable to create volunteer.",
+          true
         );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          "SAVE VOLUNTEER";
+
       }
+
     }
   );
 
 
 /* =========================================================
-   TASK ASSIGNMENT
+   DUPLICATE ID CHECK
 ========================================================= */
 
-$("adminTaskUserType")
-  ?.addEventListener(
-    "change",
-    populateTaskUsers
+function findDuplicateId(
+  records,
+  targetId,
+  fields
+) {
+
+  const normalized =
+    upper(targetId);
+
+
+  return Object.values(
+    records || {}
+  ).some(
+    (record) => {
+
+      if (
+        !record ||
+        typeof record !== "object"
+      ) {
+        return false;
+      }
+
+
+      return fields.some(
+        (field) =>
+          upper(
+            record[field]
+          ) === normalized
+      );
+
+    }
   );
 
-function populateTaskUsers() {
-  const type =
-    normalize(
-      $("adminTaskUserType")?.value
-    );
-
-  const select =
-    $("adminTaskUser");
-
-  if (!select) return;
-
-  if (type === "member") {
-    const activeMembers =
-      members.filter(
-        (item) =>
-          normalize(item.status) ===
-          "active"
-      );
-
-    select.innerHTML =
-      `<option value="">Select Member</option>` +
-      activeMembers
-        .map((item) => `
-          <option value="${escapeHTML(item.key)}">
-            ${escapeHTML(item.name || "Member")}
-            (${escapeHTML(item.memberId || "")})
-          </option>
-        `)
-        .join("");
-
-    return;
-  }
-
-  if (type === "volunteer") {
-    const approved =
-      volunteers.filter(
-        (item) =>
-          normalize(item.status) ===
-          "approved"
-      );
-
-    select.innerHTML =
-      `<option value="">Select Volunteer</option>` +
-      approved
-        .map((item) => `
-          <option value="${escapeHTML(item.key)}">
-            ${escapeHTML(item.name || "Volunteer")}
-            (${escapeHTML(item.volunteerId || "")})
-          </option>
-        `)
-        .join("");
-
-    return;
-  }
-
-  select.innerHTML =
-    `<option value="">Select type first</option>`;
 }
+
+
+/* =========================================================
+   TASK CREATE
+========================================================= */
 
 $("adminTaskForm")
   ?.addEventListener(
     "submit",
     async (event) => {
+
       event.preventDefault();
 
-      const message =
-        $("adminTaskMessage");
+      const button =
+        $("adminTaskSubmit");
 
-      clearMessage(message);
-
-      const type =
-        normalize(
-          $("adminTaskUserType")?.value
-        );
-
-      const userKey =
-        clean(
-          $("adminTaskUser")?.value
-        );
 
       const title =
         clean(
           $("adminTaskTitle")?.value
+        );
+
+      const volunteerKey =
+        clean(
+          $("adminTaskVolunteer")?.value
         );
 
       const description =
@@ -1302,262 +990,1567 @@ $("adminTaskForm")
           $("adminTaskDescription")?.value
         );
 
-      const deadline =
-        clean(
-          $("adminTaskDeadline")?.value
-        );
-
       const points =
         Math.max(
           0,
-          Number(
-            $("adminTaskPoints")?.value ||
-            0
+          safeNumber(
+            $("adminTaskPoints")?.value
           )
         );
 
+      const dueDate =
+        clean(
+          $("adminTaskDueDate")?.value
+        );
+
+
       if (
-        !["member", "volunteer"]
-          .includes(type)
+        !title ||
+        !volunteerKey ||
+        !description
       ) {
-        showMessage(
-          message,
-          "Select Member or Volunteer.",
-          "error"
+
+        setMessage(
+          "adminTaskMessage",
+          "Task title, volunteer and description are required.",
+          true
         );
+
         return;
+
       }
 
-      if (!userKey || !title) {
-        showMessage(
-          message,
-          "Select person and enter task title.",
-          "error"
+
+      const volunteer =
+        state.volunteers[
+          volunteerKey
+        ];
+
+
+      if (!volunteer) {
+
+        setMessage(
+          "adminTaskMessage",
+          "Selected volunteer was not found.",
+          true
         );
+
         return;
+
       }
 
-      const person =
-        type === "member"
-          ? members.find(
-              (item) =>
-                item.key === userKey
-            )
-          : volunteers.find(
-              (item) =>
-                item.key === userKey
-            );
-
-      if (!person) {
-        showMessage(
-          message,
-          "Selected person was not found.",
-          "error"
-        );
-        return;
-      }
-
-      const path =
-        type === "member"
-          ? `memberTasks/${userKey}`
-          : `volunteerTasks/${userKey}`;
 
       try {
-        const newTask =
-          push(ref(db, path));
 
-        await set(newTask, {
-          title,
-          description,
-          deadline,
-          points,
-          status: "assigned",
-          personType: type,
-          personKey: userKey,
-          personId:
-            type === "member"
-              ? person.memberId || ""
-              : person.volunteerId || "",
-          personName:
-            person.name || "",
-          proofURL: "",
-          proofPhotoName: "",
-          adminRemark: "",
-          rating: 0,
-          createdAt: Date.now(),
-          updatedAt: Date.now()
-        });
+        button.disabled = true;
+        button.textContent =
+          "ASSIGNING...";
 
-        showMessage(
-          message,
-          `Task assigned to ${person.name || "user"}.`,
-          "success"
+
+        const taskRef =
+          push(
+            ref(
+              db,
+              "tasks"
+            )
+          );
+
+
+        await withTimeout(
+          set(
+            taskRef,
+            {
+              title,
+              description,
+
+              volunteerKey,
+
+              volunteerId:
+                clean(
+                  volunteer.volunteerId ??
+                  volunteer.userId
+                ),
+
+              volunteerName:
+                clean(
+                  volunteer.name ??
+                  volunteer.fullName
+                ),
+
+              points,
+
+              dueDate,
+
+              status:
+                "assigned",
+
+              proofPhotoURL:
+                "",
+
+              createdAt:
+                Date.now(),
+
+              updatedAt:
+                Date.now()
+            }
+          ),
+          15000,
+          "Unable to assign task."
         );
+
 
         event.target.reset();
 
-        populateTaskUsers();
+        if ($("adminTaskPoints")) {
+
+          $("adminTaskPoints").value =
+            "10";
+
+        }
+
+
+        setMessage(
+          "adminTaskMessage",
+          "Task assigned successfully."
+        );
+
+
+        createNotification(
+          "task_created",
+          "Task Assigned",
+          `${title} assigned to ${clean(
+            volunteer.name
+          ) || "volunteer"}.`
+        );
+
 
       } catch (error) {
-        console.error(error);
 
-        showMessage(
-          message,
+        setMessage(
+          "adminTaskMessage",
+          error.message ||
           "Unable to assign task.",
-          "error"
+          true
         );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          "ASSIGN TASK";
+
       }
+
     }
   );
 
 
 /* =========================================================
-   TASKS LIVE
+   SPORTS CREATE
 ========================================================= */
 
-function flattenTasks(
-  data,
-  type
-) {
-  const output = [];
+$("adminSportsForm")
+  ?.addEventListener(
+    "submit",
+    async (event) => {
 
-  if (!data) return output;
+      event.preventDefault();
 
-  Object.entries(data)
-    .forEach(
-      ([personKey, taskObject]) => {
-        if (!taskObject) return;
+      const button =
+        $("adminSportsSubmit");
 
-        Object.entries(taskObject)
-          .forEach(
-            ([taskKey, task]) => {
-              output.push({
-                personKey,
-                taskKey,
-                type,
-                ...(task || {})
-              });
-            }
-          );
+
+      const name =
+        clean(
+          $("adminSportsName")?.value
+        );
+
+      const date =
+        clean(
+          $("adminSportsDate")?.value
+        );
+
+      const venue =
+        clean(
+          $("adminSportsVenue")?.value
+        );
+
+      const lastDate =
+        clean(
+          $("adminSportsLastDate")?.value
+        );
+
+      const fee =
+        Math.max(
+          0,
+          safeNumber(
+            $("adminSportsFee")?.value
+          )
+        );
+
+      const age =
+        clean(
+          $("adminSportsAge")?.value
+        );
+
+      const rules =
+        clean(
+          $("adminSportsRules")?.value
+        );
+
+      const photoFile =
+        $("adminSportsPhoto")
+          ?.files?.[0] || null;
+
+
+      if (!name) {
+
+        setMessage(
+          "adminSportsMessage",
+          "Sports name is required.",
+          true
+        );
+
+        return;
+
       }
-    );
 
-  return output;
-}
 
-onValue(
-  ref(db, "memberTasks"),
-  (snapshot) => {
-    memberTasks =
-      flattenTasks(
-        snapshot.val(),
-        "member"
-      );
+      try {
 
-    renderTaskReview();
-    updateDashboardStats();
-  }
-);
+        button.disabled = true;
 
-onValue(
-  ref(db, "volunteerTasks"),
-  (snapshot) => {
-    volunteerTasks =
-      flattenTasks(
-        snapshot.val(),
-        "volunteer"
-      );
+        button.textContent =
+          photoFile
+            ? "UPLOADING..."
+            : "SAVING...";
 
-    renderTaskReview();
-    updateDashboardStats();
-  }
-);
 
-function getTaskPerson(task) {
-  if (task.type === "member") {
-    return members.find(
-      (item) =>
-        item.key ===
-        task.personKey
-    );
-  }
+        const photo =
+          await uploadOptionalImage(
+            photoFile,
+            "sports"
+          );
 
-  return volunteers.find(
-    (item) =>
-      item.key ===
-      task.personKey
+
+        const sportsRef =
+          push(
+            ref(
+              db,
+              "sports"
+            )
+          );
+
+
+        await withTimeout(
+          set(
+            sportsRef,
+            {
+              name,
+              title: name,
+              date,
+              venue,
+              lastDate,
+              registrationLastDate:
+                lastDate,
+              fee,
+              age,
+              rules,
+
+              photoURL:
+                photo.url,
+
+              imageURL:
+                photo.url,
+
+              photoPath:
+                photo.path,
+
+              status:
+                "active",
+
+              createdAt:
+                Date.now(),
+
+              updatedAt:
+                Date.now()
+            }
+          ),
+          15000,
+          "Unable to save sports event."
+        );
+
+
+        event.target.reset();
+
+        if ($("adminSportsFee")) {
+
+          $("adminSportsFee").value =
+            "0";
+
+        }
+
+
+        setMessage(
+          "adminSportsMessage",
+          "Sports event saved successfully."
+        );
+
+
+      } catch (error) {
+
+        setMessage(
+          "adminSportsMessage",
+          error.message ||
+          "Unable to save sports event.",
+          true
+        );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          "SAVE SPORTS EVENT";
+
+      }
+
+    }
   );
+
+
+/* =========================================================
+   EVENT CREATE
+   Public page currently reads "festivals".
+========================================================= */
+
+$("adminEventForm")
+  ?.addEventListener(
+    "submit",
+    async (event) => {
+
+      event.preventDefault();
+
+      const button =
+        $("adminEventSubmit");
+
+
+      const name =
+        clean(
+          $("adminEventName")?.value
+        );
+
+      const date =
+        clean(
+          $("adminEventDate")?.value
+        );
+
+      const time =
+        clean(
+          $("adminEventTime")?.value
+        );
+
+      const venue =
+        clean(
+          $("adminEventVenue")?.value
+        );
+
+      const description =
+        clean(
+          $("adminEventDescription")?.value
+        );
+
+      const photoFile =
+        $("adminEventPhoto")
+          ?.files?.[0] || null;
+
+
+      if (!name) {
+
+        setMessage(
+          "adminEventMessage",
+          "Event name is required.",
+          true
+        );
+
+        return;
+
+      }
+
+
+      try {
+
+        button.disabled = true;
+
+        button.textContent =
+          photoFile
+            ? "UPLOADING..."
+            : "SAVING...";
+
+
+        const photo =
+          await uploadOptionalImage(
+            photoFile,
+            "festivals"
+          );
+
+
+        const eventRef =
+          push(
+            ref(
+              db,
+              "festivals"
+            )
+          );
+
+
+        await withTimeout(
+          set(
+            eventRef,
+            {
+              name,
+              title: name,
+              date,
+              time,
+              venue,
+              description,
+
+              photoURL:
+                photo.url,
+
+              imageURL:
+                photo.url,
+
+              photoPath:
+                photo.path,
+
+              createdAt:
+                Date.now(),
+
+              updatedAt:
+                Date.now()
+            }
+          ),
+          15000,
+          "Unable to save event."
+        );
+
+
+        event.target.reset();
+
+
+        setMessage(
+          "adminEventMessage",
+          "Event saved successfully."
+        );
+
+
+      } catch (error) {
+
+        setMessage(
+          "adminEventMessage",
+          error.message ||
+          "Unable to save event.",
+          true
+        );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          "SAVE EVENT";
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   GALLERY CREATE
+   Photo remains OPTIONAL.
+========================================================= */
+
+$("adminGalleryForm")
+  ?.addEventListener(
+    "submit",
+    async (event) => {
+
+      event.preventDefault();
+
+      const button =
+        $("adminGallerySubmit");
+
+
+      const title =
+        clean(
+          $("adminGalleryTitle")?.value
+        );
+
+      const year =
+        clean(
+          $("adminGalleryYear")?.value
+        );
+
+      const photoFile =
+        $("adminGalleryPhoto")
+          ?.files?.[0] || null;
+
+
+      try {
+
+        button.disabled = true;
+
+        button.textContent =
+          photoFile
+            ? "UPLOADING..."
+            : "SAVING...";
+
+
+        const photo =
+          await uploadOptionalImage(
+            photoFile,
+            "gallery"
+          );
+
+
+        const galleryRef =
+          push(
+            ref(
+              db,
+              "gallery"
+            )
+          );
+
+
+        await withTimeout(
+          set(
+            galleryRef,
+            {
+              title,
+              year,
+
+              photoURL:
+                photo.url,
+
+              imageURL:
+                photo.url,
+
+              photoPath:
+                photo.path,
+
+              createdAt:
+                Date.now(),
+
+              updatedAt:
+                Date.now()
+            }
+          ),
+          15000,
+          "Unable to save gallery item."
+        );
+
+
+        event.target.reset();
+
+
+        setMessage(
+          "adminGalleryMessage",
+          "Gallery item saved successfully."
+        );
+
+
+      } catch (error) {
+
+        setMessage(
+          "adminGalleryMessage",
+          error.message ||
+          "Unable to save gallery item.",
+          true
+        );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          "SAVE GALLERY ITEM";
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   COMMITTEE CREATE
+   Legacy public database path is retained
+   for compatibility with main.js.
+========================================================= */
+
+$("adminCommitteeForm")
+  ?.addEventListener(
+    "submit",
+    async (event) => {
+
+      event.preventDefault();
+
+      const button =
+        $("adminCommitteeSubmit");
+
+
+      const name =
+        clean(
+          $("adminCommitteeName")?.value
+        );
+
+      const position =
+        clean(
+          $("adminCommitteePosition")?.value
+        );
+
+      const mobile =
+        clean(
+          $("adminCommitteeMobile")?.value
+        );
+
+      const year =
+        clean(
+          $("adminCommitteeYear")?.value
+        );
+
+      const photoFile =
+        $("adminCommitteePhoto")
+          ?.files?.[0] || null;
+
+
+      if (
+        !name ||
+        !position
+      ) {
+
+        setMessage(
+          "adminCommitteeMessage",
+          "Name and position are required.",
+          true
+        );
+
+        return;
+
+      }
+
+
+      try {
+
+        button.disabled = true;
+
+        button.textContent =
+          photoFile
+            ? "UPLOADING..."
+            : "SAVING...";
+
+
+        const photo =
+          await uploadOptionalImage(
+            photoFile,
+            "committee"
+          );
+
+
+        const recordRef =
+          push(
+            ref(
+              db,
+              "yuwaMandal"
+            )
+          );
+
+
+        await withTimeout(
+          set(
+            recordRef,
+            {
+              name,
+              position,
+              mobile,
+              year,
+
+              photoURL:
+                photo.url,
+
+              imageURL:
+                photo.url,
+
+              photoPath:
+                photo.path,
+
+              createdAt:
+                Date.now(),
+
+              updatedAt:
+                Date.now()
+            }
+          ),
+          15000,
+          "Unable to save committee record."
+        );
+
+
+        event.target.reset();
+
+
+        setMessage(
+          "adminCommitteeMessage",
+          "Committee member saved successfully."
+        );
+
+
+      } catch (error) {
+
+        setMessage(
+          "adminCommitteeMessage",
+          error.message ||
+          "Unable to save committee member.",
+          true
+        );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          "SAVE COMMITTEE MEMBER";
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   ADMIN PROFILE
+========================================================= */
+
+$("adminProfileForm")
+  ?.addEventListener(
+    "submit",
+    async (event) => {
+
+      event.preventDefault();
+
+      const button =
+        $("adminProfileSubmit");
+
+
+      const name =
+        clean(
+          $("adminProfileName")?.value
+        );
+
+      const mobile =
+        clean(
+          $("adminProfileMobile")?.value
+        );
+
+      const email =
+        clean(
+          $("adminProfileEmail")?.value
+        );
+
+      const address =
+        clean(
+          $("adminProfileAddress")?.value
+        );
+
+
+      try {
+
+        button.disabled = true;
+        button.textContent =
+          "SAVING...";
+
+
+        await withTimeout(
+          update(
+            ref(
+              db,
+              "admin/profile"
+            ),
+            {
+              name,
+              mobile,
+              email,
+              address,
+              updatedAt:
+                Date.now()
+            }
+          ),
+          15000,
+          "Unable to save profile."
+        );
+
+
+        setMessage(
+          "adminProfileMessage",
+          "Admin profile saved successfully."
+        );
+
+
+      } catch (error) {
+
+        setMessage(
+          "adminProfileMessage",
+          error.message ||
+          "Unable to save profile.",
+          true
+        );
+
+      } finally {
+
+        button.disabled = false;
+        button.textContent =
+          "SAVE PROFILE";
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   ADMIN CREDENTIAL FORM
+
+   Current admin credentials are hardcoded
+   in login.js, therefore silently saving a
+   different Firebase value would break the
+   expected behaviour.
+
+   We do not pretend this changes login.
+========================================================= */
+
+$("adminCredentialForm")
+  ?.addEventListener(
+    "submit",
+    (event) => {
+
+      event.preventDefault();
+
+
+      const newId =
+        clean(
+          $("newAdminUserId")?.value
+        );
+
+      const password =
+        clean(
+          $("newAdminPassword")?.value
+        );
+
+      const confirm =
+        clean(
+          $("confirmAdminPassword")?.value
+        );
+
+
+      if (
+        !newId ||
+        !password ||
+        !confirm
+      ) {
+
+        setMessage(
+          "adminCredentialMessage",
+          "Enter new User ID, new password and confirmation.",
+          true
+        );
+
+        return;
+
+      }
+
+
+      if (
+        password !== confirm
+      ) {
+
+        setMessage(
+          "adminCredentialMessage",
+          "Password confirmation does not match.",
+          true
+        );
+
+        return;
+
+      }
+
+
+      setMessage(
+        "adminCredentialMessage",
+        "Current login credentials are controlled by login.js. Credential change will be enabled after moving Admin login to database authentication.",
+        true
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   FIREBASE WATCHERS
+========================================================= */
+
+watchCollection(
+  "members",
+  (data) => {
+
+    state.members =
+      data;
+
+    renderMembers();
+    updateDashboard();
+  }
+);
+
+
+watchCollection(
+  "volunteers",
+  (data) => {
+
+    state.volunteers =
+      data;
+
+    renderVolunteers();
+    renderVolunteerSelect();
+    updateDashboard();
+  }
+);
+
+
+watchCollection(
+  "tasks",
+  (data) => {
+
+    state.tasks =
+      data;
+
+    renderTasks();
+    updateDashboard();
+  }
+);
+
+
+watchCollection(
+  "complaints",
+  (data) => {
+
+    state.complaints =
+      data;
+
+    renderComplaints();
+    updateDashboard();
+  }
+);
+
+
+watchCollection(
+  "sports",
+  (data) => {
+
+    state.sports =
+      data;
+
+    renderSports();
+  }
+);
+
+
+watchCollection(
+  "sportsRegistrations",
+  (data) => {
+
+    state.sportsRegistrations =
+      data;
+
+    renderSports();
+  }
+);
+
+
+watchCollection(
+  "festivals",
+  (data) => {
+
+    state.events =
+      data;
+
+    renderEvents();
+  }
+);
+
+
+watchCollection(
+  "gallery",
+  (data) => {
+
+    state.gallery =
+      data;
+
+    renderGallery();
+  }
+);
+
+
+watchCollection(
+  "yuwaMandal",
+  (data) => {
+
+    state.committee =
+      data;
+
+    renderCommittee();
+  }
+);
+
+
+watchCollection(
+  "adminNotifications",
+  (data) => {
+
+    state.notifications =
+      data;
+
+    renderNotifications();
+    renderRecentActivity();
+
+  }
+);
+
+
+watchCollection(
+  "loginActivity",
+  (data) => {
+
+    state.loginActivity =
+      data;
+
+    renderRecentActivity();
+
+  }
+);
+
+
+onValue(
+  ref(
+    db,
+    "admin/profile"
+  ),
+  (snapshot) => {
+
+    state.adminProfile =
+      snapshot.exists()
+        ? snapshot.val()
+        : {};
+
+    renderAdminProfile();
+
+  },
+  (error) => {
+
+    console.warn(
+      "Admin profile watcher:",
+      error
+    );
+
+  }
+);
+
+
+function watchCollection(
+  path,
+  callback
+) {
+
+  onValue(
+    ref(
+      db,
+      path
+    ),
+    (snapshot) => {
+
+      callback(
+        snapshot.exists()
+          ? snapshot.val()
+          : {}
+      );
+
+    },
+    (error) => {
+
+      console.warn(
+        `${path} watcher:`,
+        error
+      );
+
+      callback({});
+
+    }
+  );
+
 }
 
-function renderTaskReview() {
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function updateDashboard() {
+
+  if ($("adminMemberCount")) {
+
+    $("adminMemberCount")
+      .textContent =
+      Object.keys(
+        state.members
+      ).length;
+
+  }
+
+
+  if ($("adminVolunteerCount")) {
+
+    $("adminVolunteerCount")
+      .textContent =
+      Object.keys(
+        state.volunteers
+      ).length;
+
+  }
+
+
+  if ($("adminComplaintCount")) {
+
+    const count =
+      Object.values(
+        state.complaints
+      ).filter(
+        (item) => {
+
+          const status =
+            clean(
+              item?.status
+            ).toLowerCase();
+
+          return ![
+            "resolved",
+            "closed"
+          ].includes(status);
+
+        }
+      ).length;
+
+
+    $("adminComplaintCount")
+      .textContent =
+      count;
+
+  }
+
+
+  if ($("adminTaskCount")) {
+
+    const count =
+      Object.values(
+        state.tasks
+      ).filter(
+        (task) => {
+
+          const status =
+            clean(
+              task?.status
+            ).toLowerCase();
+
+          return ![
+            "completed",
+            "approved",
+            "rejected"
+          ].includes(status);
+
+        }
+      ).length;
+
+
+    $("adminTaskCount")
+      .textContent =
+      count;
+
+  }
+
+}
+
+
+/* =========================================================
+   MEMBERS TABLE
+========================================================= */
+
+function renderMembers() {
+
   const body =
-    $("adminTaskReviewList");
+    $("adminMembersTable");
 
-  if (!body) return;
-
-  const typeFilter =
-    normalize(
-      $("taskReviewTypeFilter")?.value ||
-      "all"
-    );
-
-  const statusFilter =
-    normalize(
-      $("taskReviewStatusFilter")?.value ||
-      "pending_review"
-    );
-
-  const allTasks = [
-    ...memberTasks,
-    ...volunteerTasks
-  ];
-
-  const filtered =
-    allTasks.filter((task) => {
-      const typeMatch =
-        typeFilter === "all" ||
-        task.type === typeFilter;
-
-      const statusMatch =
-        statusFilter === "all" ||
-        normalize(task.status) ===
-          statusFilter;
-
-      return typeMatch &&
-        statusMatch;
-    });
-
-  if (!filtered.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No task submissions found.
-        </td>
-      </tr>
-    `;
+  if (!body) {
     return;
   }
 
+
+  const records =
+    Object.entries(
+      state.members
+    ).sort(
+      (a, b) =>
+        safeNumber(
+          b[1]?.createdAt
+        ) -
+        safeNumber(
+          a[1]?.createdAt
+        )
+    );
+
+
+  if (!records.length) {
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="6" class="table-empty">
+          No members found.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+
   body.innerHTML =
-    filtered
-      .sort(
-        (a, b) =>
-          Number(
-            b.submittedAt ||
-            b.updatedAt ||
-            b.createdAt ||
-            0
-          ) -
-          Number(
-            a.submittedAt ||
-            a.updatedAt ||
-            a.createdAt ||
-            0
-          )
-      )
-      .map((task) => {
-        const person =
-          getTaskPerson(task);
+    records.map(
+      ([key, member]) => {
+
+        const id =
+          clean(
+            member.memberId ??
+            member.userId ??
+            member.id
+          ) || "—";
+
+        const name =
+          clean(
+            member.name ??
+            member.fullName
+          ) || "—";
+
+        const mobile =
+          clean(
+            member.mobile
+          ) || "—";
+
+        const year =
+          clean(
+            member.year
+          ) || "—";
+
+        const status =
+          clean(
+            member.status
+          ) || "active";
+
+
+        return `
+          <tr>
+            <td>${escapeHTML(id)}</td>
+
+            <td>
+              <strong>
+                ${escapeHTML(name)}
+              </strong>
+            </td>
+
+            <td>
+              ${escapeHTML(mobile)}
+            </td>
+
+            <td>
+              ${escapeHTML(year)}
+            </td>
+
+            <td>
+              <span class="status-badge">
+                ${escapeHTML(status)}
+              </span>
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="table-action-btn"
+                data-delete-member="${escapeHTML(key)}"
+              >
+                DELETE
+              </button>
+            </td>
+          </tr>
+        `;
+
+      }
+    ).join("");
+
+}
+
+
+/* =========================================================
+   VOLUNTEERS TABLE
+========================================================= */
+
+function renderVolunteers() {
+
+  const body =
+    $("adminVolunteersTable");
+
+  if (!body) {
+    return;
+  }
+
+
+  const records =
+    Object.entries(
+      state.volunteers
+    ).sort(
+      (a, b) =>
+        safeNumber(
+          b[1]?.points
+        ) -
+        safeNumber(
+          a[1]?.points
+        )
+    );
+
+
+  if (!records.length) {
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="6" class="table-empty">
+          No volunteers found.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+
+  body.innerHTML =
+    records.map(
+      ([key, volunteer]) => {
+
+        const id =
+          clean(
+            volunteer.volunteerId ??
+            volunteer.userId ??
+            volunteer.id
+          ) || "—";
+
+        const name =
+          clean(
+            volunteer.name ??
+            volunteer.fullName
+          ) || "—";
+
+        const mobile =
+          clean(
+            volunteer.mobile
+          ) || "—";
+
+        const points =
+          safeNumber(
+            volunteer.points
+          );
+
+        const status =
+          clean(
+            volunteer.status
+          ) || "active";
+
+
+        return `
+          <tr>
+
+            <td>
+              ${escapeHTML(id)}
+            </td>
+
+            <td>
+              <strong>
+                ${escapeHTML(name)}
+              </strong>
+            </td>
+
+            <td>
+              ${escapeHTML(mobile)}
+            </td>
+
+            <td>
+              ${points}
+            </td>
+
+            <td>
+              <span class="status-badge">
+                ${escapeHTML(status)}
+              </span>
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="table-action-btn"
+                data-delete-volunteer="${escapeHTML(key)}"
+              >
+                DELETE
+              </button>
+            </td>
+
+          </tr>
+        `;
+
+      }
+    ).join("");
+
+}
+
+
+/* =========================================================
+   VOLUNTEER SELECT
+========================================================= */
+
+function renderVolunteerSelect() {
+
+  const select =
+    $("adminTaskVolunteer");
+
+  if (!select) {
+    return;
+  }
+
+
+  const current =
+    select.value;
+
+
+  const options =
+    Object.entries(
+      state.volunteers
+    ).map(
+      ([key, volunteer]) => {
+
+        const id =
+          clean(
+            volunteer.volunteerId ??
+            volunteer.userId
+          );
+
+        const name =
+          clean(
+            volunteer.name ??
+            volunteer.fullName
+          );
+
+
+        return `
+          <option value="${escapeHTML(key)}">
+            ${escapeHTML(name || "Volunteer")}
+            ${id ? ` (${escapeHTML(id)})` : ""}
+          </option>
+        `;
+
+      }
+    ).join("");
+
+
+  select.innerHTML = `
+    <option value="">
+      Select Volunteer
+    </option>
+    ${options}
+  `;
+
+
+  if (
+    current &&
+    state.volunteers[current]
+  ) {
+
+    select.value =
+      current;
+
+  }
+
+}
+
+
+/* =========================================================
+   TASK TABLE
+========================================================= */
+
+function renderTasks() {
+
+  const body =
+    $("adminTasksTable");
+
+  if (!body) {
+    return;
+  }
+
+
+  const records =
+    Object.entries(
+      state.tasks
+    ).sort(
+      (a, b) =>
+        safeNumber(
+          b[1]?.createdAt
+        ) -
+        safeNumber(
+          a[1]?.createdAt
+        )
+    );
+
+
+  if (!records.length) {
+
+    body.innerHTML = `
+      <tr>
+        <td colspan="6" class="table-empty">
+          No tasks found.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+
+  body.innerHTML =
+    records.map(
+      ([key, task]) => {
+
+        const status =
+          clean(
+            task.status
+          ) || "assigned";
+
+        const proof =
+          clean(
+            task.proofPhotoURL ??
+            task.proofURL
+          );
+
 
         return `
           <tr>
@@ -1565,1638 +2558,1532 @@ function renderTaskReview() {
             <td>
               <strong>
                 ${escapeHTML(
-                  task.personName ||
-                  person?.name ||
-                  "—"
+                  clean(task.title) || "Task"
                 )}
               </strong>
             </td>
 
             <td>
-              ${escapeHTML(statusLabel(task.type))}
+              ${escapeHTML(
+                clean(task.volunteerName) ||
+                clean(task.volunteerId) ||
+                "—"
+              )}
             </td>
 
             <td>
-              ${escapeHTML(task.title || "—")}
+              ${safeNumber(task.points)}
+            </td>
+
+            <td>
+              <span class="status-badge">
+                ${escapeHTML(status)}
+              </span>
             </td>
 
             <td>
               ${
-                task.proofURL
-                  ? `<a href="${escapeHTML(task.proofURL)}" target="_blank">View Proof</a>`
-                  : escapeHTML(
-                      task.proofPhotoName ||
-                      "No proof photo"
-                    )
+                proof
+                  ? `
+                    <a
+                      class="table-action-btn"
+                      href="${escapeHTML(proof)}"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      VIEW
+                    </a>
+                  `
+                  : "—"
               }
             </td>
 
             <td>
-              ${Number(task.points || 0)}
-            </td>
+              ${
+                status.toLowerCase() ===
+                "submitted"
+                  ? `
+                    <button
+                      type="button"
+                      class="table-action-btn"
+                      data-approve-task="${escapeHTML(key)}"
+                    >
+                      APPROVE
+                    </button>
+                  `
+                  : ""
+              }
 
-            <td>
-              ${escapeHTML(statusLabel(task.status))}
-            </td>
-
-            <td>
               <button
-                class="admin-mini-btn gold"
-                data-task-review="${task.type}|${task.personKey}|${task.taskKey}"
+                type="button"
+                class="table-action-btn"
+                data-delete-task="${escapeHTML(key)}"
               >
-                Review
+                DELETE
               </button>
             </td>
 
           </tr>
         `;
-      })
-      .join("");
 
-  $$("[data-task-review]")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          const [
-            type,
-            personKey,
-            taskKey
-          ] =
-            button.dataset
-              .taskReview
-              .split("|");
-
-          openTaskReview(
-            type,
-            personKey,
-            taskKey
-          );
-        }
-      );
-    });
-}
-
-$("taskReviewTypeFilter")
-  ?.addEventListener(
-    "change",
-    renderTaskReview
-  );
-
-$("taskReviewStatusFilter")
-  ?.addEventListener(
-    "change",
-    renderTaskReview
-  );
-
-
-/* =========================================================
-   TASK REVIEW MODAL
-========================================================= */
-
-function openTaskReview(
-  type,
-  personKey,
-  taskKey
-) {
-  const source =
-    type === "member"
-      ? memberTasks
-      : volunteerTasks;
-
-  const task =
-    source.find(
-      (item) =>
-        item.personKey === personKey &&
-        item.taskKey === taskKey
-    );
-
-  if (!task) return;
-
-  selectedTask = task;
-
-  const person =
-    getTaskPerson(task);
-
-  $("taskReviewModalTitle").textContent =
-    task.title || "Review Task";
-
-  $("taskReviewDetails").innerHTML = `
-    <div class="admin-card">
-
-      <p>
-        <strong>Person:</strong>
-        ${escapeHTML(
-          task.personName ||
-          person?.name ||
-          "—"
-        )}
-      </p>
-
-      <p>
-        <strong>Type:</strong>
-        ${escapeHTML(statusLabel(type))}
-      </p>
-
-      <p>
-        <strong>Description:</strong>
-        ${escapeHTML(task.description || "—")}
-      </p>
-
-      <p>
-        <strong>Deadline:</strong>
-        ${escapeHTML(formatDate(task.deadline))}
-      </p>
-
-      <p>
-        <strong>Submitted Proof:</strong>
-        ${escapeHTML(task.proofPhotoName || "No photo filename")}
-      </p>
-
-      <p>
-        <strong>Status:</strong>
-        ${escapeHTML(statusLabel(task.status))}
-      </p>
-
-    </div>
-  `;
-
-  $("taskReviewPoints").value =
-    Number(task.points || 0);
-
-  $("taskReviewRating").value =
-    task.rating
-      ? String(task.rating)
-      : "";
-
-  $("taskReviewRemark").value =
-    task.adminRemark || "";
-
-  clearMessage(
-    $("taskReviewMessage")
-  );
-
-  openModal(taskReviewModal);
-}
-
-async function updatePersonStats(
-  task,
-  points,
-  rating
-) {
-  const personPath =
-    task.type === "member"
-      ? `members/${task.personKey}`
-      : `volunteers/${task.personKey}`;
-
-  const snapshot =
-    await get(
-      ref(db, personPath)
-    );
-
-  if (!snapshot.exists()) {
-    return;
-  }
-
-  const person =
-    snapshot.val() || {};
-
-  const oldPoints =
-    Number(person.points || 0);
-
-  const oldRating =
-    Number(person.rating || 0);
-
-  const oldRatingCount =
-    Number(
-      person.ratingCount || 0
-    );
-
-  const updates = {
-    points:
-      oldPoints + points,
-    updatedAt:
-      Date.now()
-  };
-
-  if (rating > 0) {
-    const newCount =
-      oldRatingCount + 1;
-
-    updates.rating =
-      (
-        (
-          oldRating *
-          oldRatingCount
-        ) +
-        rating
-      ) / newCount;
-
-    updates.ratingCount =
-      newCount;
-  }
-
-  await update(
-    ref(db, personPath),
-    updates
-  );
-}
-
-$("approveTaskBtn")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedTask) return;
-
-      const message =
-        $("taskReviewMessage");
-
-      const points =
-        Math.max(
-          0,
-          Number(
-            $("taskReviewPoints")?.value ||
-            0
-          )
-        );
-
-      const rating =
-        Math.min(
-          5,
-          Math.max(
-            0,
-            Number(
-              $("taskReviewRating")?.value ||
-              0
-            )
-          )
-        );
-
-      const remark =
-        clean(
-          $("taskReviewRemark")?.value
-        );
-
-      const path =
-        selectedTask.type === "member"
-          ? `memberTasks/${selectedTask.personKey}/${selectedTask.taskKey}`
-          : `volunteerTasks/${selectedTask.personKey}/${selectedTask.taskKey}`;
-
-      try {
-        /*
-          Prevent accidental double-points if an
-          already completed task is opened again.
-        */
-
-        if (
-          normalize(
-            selectedTask.status
-          ) !== "completed"
-        ) {
-          await updatePersonStats(
-            selectedTask,
-            points,
-            rating
-          );
-        }
-
-        await update(
-          ref(db, path),
-          {
-            points,
-            rating,
-            adminRemark: remark,
-            status: "completed",
-            reviewedAt: Date.now(),
-            updatedAt: Date.now()
-          }
-        );
-
-        showMessage(
-          message,
-          "Task approved. Points and rating updated.",
-          "success"
-        );
-
-      } catch (error) {
-        console.error(error);
-
-        showMessage(
-          message,
-          "Unable to approve task.",
-          "error"
-        );
       }
-    }
-  );
+    ).join("");
 
-$("rejectTaskBtn")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedTask) return;
-
-      const remark =
-        clean(
-          $("taskReviewRemark")?.value
-        );
-
-      const path =
-        selectedTask.type === "member"
-          ? `memberTasks/${selectedTask.personKey}/${selectedTask.taskKey}`
-          : `volunteerTasks/${selectedTask.personKey}/${selectedTask.taskKey}`;
-
-      try {
-        await update(
-          ref(db, path),
-          {
-            status: "rejected",
-            adminRemark:
-              remark ||
-              "Please review and submit again.",
-            reviewedAt: Date.now(),
-            updatedAt: Date.now()
-          }
-        );
-
-        showMessage(
-          $("taskReviewMessage"),
-          "Task rejected / sent for resubmission.",
-          "success"
-        );
-
-      } catch (error) {
-        console.error(error);
-
-        showMessage(
-          $("taskReviewMessage"),
-          "Unable to update task.",
-          "error"
-        );
-      }
-    }
-  );
+}
 
 
 /* =========================================================
    COMPLAINTS
 ========================================================= */
 
-onValue(
-  ref(db, "complaints"),
-  (snapshot) => {
-    complaints =
-      arrayFromObject(
-        snapshot.val()
-      );
-
-    renderComplaints();
-    updateDashboardStats();
-  }
-);
-
 function renderComplaints() {
+
   const body =
-    $("adminComplaintList");
+    $("adminComplaintsTable");
 
-  if (!body) return;
+  if (!body) {
+    return;
+  }
 
-  const search =
-    normalize(
-      $("adminComplaintSearch")?.value
-    );
 
-  const status =
-    normalize(
-      $("adminComplaintStatusFilter")?.value ||
-      "all"
-    );
-
-  const filtered =
-    complaints.filter((item) => {
-      const haystack =
-        normalize(
-          `${item.complaintId || ""}
-           ${item.complainantName || ""}
-           ${item.complainantMobile || item.mobile || ""}
-           ${item.complaintAgainstName || ""}
-           ${item.reason || ""}`
-        );
-
-      return (
-        (!search ||
-          haystack.includes(search)) &&
-        (
-          status === "all" ||
-          normalize(item.status) ===
-            status
+  const records =
+    Object.entries(
+      state.complaints
+    ).sort(
+      (a, b) =>
+        safeNumber(
+          b[1]?.createdAt ??
+          b[1]?.timestamp
+        ) -
+        safeNumber(
+          a[1]?.createdAt ??
+          a[1]?.timestamp
         )
-      );
-    });
+    );
 
-  if (!filtered.length) {
+
+  if (!records.length) {
+
     body.innerHTML = `
       <tr>
-        <td colspan="7">
+        <td colspan="6" class="table-empty">
           No complaints found.
         </td>
       </tr>
     `;
+
     return;
+
   }
+
 
   body.innerHTML =
-    filtered
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
-      )
-      .map((item) => `
-        <tr>
+    records.map(
+      ([key, complaint]) => {
 
-          <td>
-            <strong>
-              ${escapeHTML(item.complaintId || "—")}
-            </strong>
-          </td>
+        const status =
+          clean(
+            complaint.status
+          ) || "pending";
 
-          <td>
-            ${escapeHTML(item.complainantName || "—")}
-            <br>
-            ${escapeHTML(
-              item.complainantMobile ||
-              item.mobile ||
-              ""
-            )}
-          </td>
 
-          <td>
-            ${escapeHTML(
-              `${statusLabel(item.complaintAgainstType)} — ${item.complaintAgainstName || "—"}`
-            )}
-          </td>
+        return `
+          <tr>
 
-          <td>
-            ${escapeHTML(item.reason || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(statusLabel(item.status))}
-          </td>
-
-          <td>
-            ${escapeHTML(formatDate(item.createdAt))}
-          </td>
-
-          <td>
-            <button
-              class="admin-mini-btn gold"
-              data-complaint-view="${item.key}"
-            >
-              Open
-            </button>
-          </td>
-
-        </tr>
-      `)
-      .join("");
-
-  $$("[data-complaint-view]")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          openComplaint(
-            button.dataset
-              .complaintView
-          );
-        }
-      );
-    });
-}
-
-$("adminComplaintSearch")
-  ?.addEventListener(
-    "input",
-    renderComplaints
-  );
-
-$("adminComplaintStatusFilter")
-  ?.addEventListener(
-    "change",
-    renderComplaints
-  );
-
-
-/* =========================================================
-   COMPLAINT REVIEW
-========================================================= */
-
-function openComplaint(key) {
-  const complaint =
-    complaints.find(
-      (item) => item.key === key
-    );
-
-  if (!complaint) return;
-
-  selectedComplaintKey = key;
-
-  $("complaintModalId").textContent =
-    complaint.complaintId ||
-    "Complaint";
-
-  $("complaintAdminDetails").innerHTML = `
-    <div class="admin-card">
-
-      <p>
-        <strong>Complainant:</strong>
-        ${escapeHTML(complaint.complainantName || "—")}
-      </p>
-
-      <p>
-        <strong>Mobile:</strong>
-        ${escapeHTML(
-          complaint.complainantMobile ||
-          complaint.mobile ||
-          "—"
-        )}
-      </p>
-
-      <p>
-        <strong>Address:</strong>
-        ${escapeHTML(
-          complaint.complainantAddress ||
-          complaint.address ||
-          "—"
-        )}
-      </p>
-
-      <p>
-        <strong>Against:</strong>
-        ${escapeHTML(
-          `${statusLabel(complaint.complaintAgainstType)} — ${complaint.complaintAgainstName || "—"}`
-        )}
-      </p>
-
-      <p>
-        <strong>Against ID:</strong>
-        ${escapeHTML(complaint.complaintAgainstId || "—")}
-      </p>
-
-      <p>
-        <strong>Reason:</strong>
-        ${escapeHTML(complaint.reason || "—")}
-      </p>
-
-      <p>
-        <strong>Description:</strong>
-        ${escapeHTML(complaint.description || "—")}
-      </p>
-
-      <p>
-        <strong>Incident:</strong>
-        ${escapeHTML(complaint.incidentDate || "—")}
-        ${escapeHTML(complaint.incidentTime || "")}
-      </p>
-
-      <p>
-        <strong>Proof File:</strong>
-        ${escapeHTML(complaint.proofPhotoName || "No proof")}
-      </p>
-
-      <p>
-        <strong>Submitted:</strong>
-        ${escapeHTML(formatDateTime(complaint.createdAt))}
-      </p>
-
-    </div>
-  `;
-
-  $("complaintAdminStatus").value =
-    normalize(
-      complaint.status ||
-      "submitted"
-    );
-
-  $("complaintAdminReply").value =
-    complaint.adminReply || "";
-
-  clearMessage(
-    $("complaintAdminMessage")
-  );
-
-  openModal(
-    complaintAdminModal
-  );
-}
-
-$("saveComplaintAdminBtn")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedComplaintKey) {
-        return;
-      }
-
-      const status =
-        normalize(
-          $("complaintAdminStatus")?.value
-        );
-
-      const reply =
-        clean(
-          $("complaintAdminReply")?.value
-        );
-
-      try {
-        await update(
-          ref(
-            db,
-            `complaints/${selectedComplaintKey}`
-          ),
-          {
-            status,
-            adminReply: reply,
-            updatedAt: Date.now()
-          }
-        );
-
-        showMessage(
-          $("complaintAdminMessage"),
-          "Complaint updated successfully.",
-          "success"
-        );
-
-      } catch (error) {
-        console.error(error);
-
-        showMessage(
-          $("complaintAdminMessage"),
-          "Unable to update complaint.",
-          "error"
-        );
-      }
-    }
-  );
-
-
-/* =========================================================
-   PROPOSALS
-========================================================= */
-
-onValue(
-  ref(db, "proposals"),
-  (snapshot) => {
-    proposals =
-      arrayFromObject(
-        snapshot.val()
-      );
-
-    renderProposals();
-    updateDashboardStats();
-  }
-);
-
-function renderProposals() {
-  const body =
-    $("adminProposalList");
-
-  if (!body) return;
-
-  const status =
-    normalize(
-      $("adminProposalStatusFilter")?.value ||
-      "pending"
-    );
-
-  const filtered =
-    proposals.filter(
-      (item) =>
-        status === "all" ||
-        normalize(item.status) ===
-          status
-    );
-
-  if (!filtered.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No proposals found.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  body.innerHTML =
-    filtered
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
-      )
-      .map((item) => `
-        <tr>
-
-          <td>
-            <strong>
-              ${escapeHTML(item.organizerName || "—")}
-            </strong>
-            <br>
-            ${escapeHTML(item.organizerId || "")}
-          </td>
-
-          <td>
-            ${escapeHTML(statusLabel(item.type))}
-          </td>
-
-          <td>
-            ${escapeHTML(item.title || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(formatDate(item.date))}
-          </td>
-
-          <td>
-            ${escapeHTML(item.venue || "—")}
-          </td>
-
-          <td>
-            ${escapeHTML(statusLabel(item.status))}
-          </td>
-
-          <td>
-            <button
-              class="admin-mini-btn gold"
-              data-proposal-view="${item.key}"
-            >
-              Review
-            </button>
-          </td>
-
-        </tr>
-      `)
-      .join("");
-
-  $$("[data-proposal-view]")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          openProposal(
-            button.dataset
-              .proposalView
-          );
-        }
-      );
-    });
-}
-
-$("adminProposalStatusFilter")
-  ?.addEventListener(
-    "change",
-    renderProposals
-  );
-
-
-/* =========================================================
-   PROPOSAL REVIEW
-========================================================= */
-
-function openProposal(key) {
-  const proposal =
-    proposals.find(
-      (item) => item.key === key
-    );
-
-  if (!proposal) return;
-
-  selectedProposalKey = key;
-
-  $("proposalReviewTitle").textContent =
-    proposal.title || "Proposal";
-
-  $("proposalReviewDetails").innerHTML = `
-    <div class="admin-card">
-
-      <p>
-        <strong>Organizer:</strong>
-        ${escapeHTML(proposal.organizerName || "—")}
-      </p>
-
-      <p>
-        <strong>Organizer ID:</strong>
-        ${escapeHTML(proposal.organizerId || "—")}
-      </p>
-
-      <p>
-        <strong>Type:</strong>
-        ${escapeHTML(statusLabel(proposal.type))}
-      </p>
-
-      <p>
-        <strong>Date:</strong>
-        ${escapeHTML(formatDate(proposal.date))}
-      </p>
-
-      <p>
-        <strong>Time:</strong>
-        ${escapeHTML(proposal.time || "—")}
-      </p>
-
-      <p>
-        <strong>Venue:</strong>
-        ${escapeHTML(proposal.venue || "—")}
-      </p>
-
-      <p>
-        <strong>Description:</strong>
-        ${escapeHTML(proposal.description || "—")}
-      </p>
-
-      <p>
-        <strong>Status:</strong>
-        ${escapeHTML(statusLabel(proposal.status))}
-      </p>
-
-    </div>
-  `;
-
-  clearMessage(
-    $("proposalReviewMessage")
-  );
-
-  openModal(
-    proposalReviewModal
-  );
-}
-
-async function publishProposal(
-  proposal
-) {
-  const allowed = [
-    "festival",
-    "sports",
-    "update",
-    "gallery",
-    "event"
-  ];
-
-  const type =
-    normalize(proposal.type);
-
-  if (!allowed.includes(type)) {
-    return;
-  }
-
-  /*
-    Event proposals are published
-    into festivals for current website
-    compatibility.
-  */
-
-  const path =
-    type === "event"
-      ? "festivals"
-      : type === "update"
-        ? "updates"
-        : type;
-
-  const newRef =
-    push(ref(db, path));
-
-  await set(newRef, {
-    title: proposal.title || "",
-    date: proposal.date || "",
-    time: proposal.time || "",
-    venue: proposal.venue || "",
-    description:
-      proposal.description || "",
-    organizerType:
-      proposal.organizerType ||
-      "member",
-    organizerKey:
-      proposal.organizerKey || "",
-    organizerId:
-      proposal.organizerId || "",
-    organizerName:
-      proposal.organizerName || "",
-    sourceProposalKey:
-      proposal.key,
-    status: "published",
-    createdAt: Date.now(),
-    updatedAt: Date.now()
-  });
-}
-
-$("approveProposalBtn")
-  ?.addEventListener(
-    "click",
-    async () => {
-      const proposal =
-        proposals.find(
-          (item) =>
-            item.key ===
-            selectedProposalKey
-        );
-
-      if (!proposal) return;
-
-      try {
-        /*
-          Avoid duplicate publish
-          if already approved.
-        */
-
-        if (
-          normalize(proposal.status) !==
-          "approved"
-        ) {
-          await publishProposal(
-            proposal
-          );
-        }
-
-        await update(
-          ref(
-            db,
-            `proposals/${proposal.key}`
-          ),
-          {
-            status: "approved",
-            approvedBy: "admin",
-            approvedAt: Date.now(),
-            updatedAt: Date.now()
-          }
-        );
-
-        showMessage(
-          $("proposalReviewMessage"),
-          "Proposal approved and published.",
-          "success"
-        );
-
-      } catch (error) {
-        console.error(error);
-
-        showMessage(
-          $("proposalReviewMessage"),
-          "Unable to approve proposal.",
-          "error"
-        );
-      }
-    }
-  );
-
-$("rejectProposalBtn")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedProposalKey) {
-        return;
-      }
-
-      try {
-        await update(
-          ref(
-            db,
-            `proposals/${selectedProposalKey}`
-          ),
-          {
-            status: "rejected",
-            approvedBy: "admin",
-            updatedAt: Date.now()
-          }
-        );
-
-        showMessage(
-          $("proposalReviewMessage"),
-          "Proposal rejected.",
-          "success"
-        );
-
-      } catch (error) {
-        console.error(error);
-
-        showMessage(
-          $("proposalReviewMessage"),
-          "Unable to reject proposal.",
-          "error"
-        );
-      }
-    }
-  );
-
-
-/* =========================================================
-   RECEIPTS
-========================================================= */
-
-onValue(
-  ref(db, "receipts"),
-  (snapshot) => {
-    receipts =
-      arrayFromObject(
-        snapshot.val()
-      );
-
-    renderReceipts();
-  }
-);
-
-function renderReceipts() {
-  const body =
-    $("adminReceiptList");
-
-  if (!body) return;
-
-  const search =
-    normalize(
-      $("adminReceiptSearch")?.value
-    );
-
-  const filtered =
-    receipts.filter((item) => {
-      const haystack =
-        normalize(
-          `${item.receiptId || item.receiptNo || ""}
-           ${item.name || item.donorName || ""}
-           ${item.mobile || ""}
-           ${item.createdByName || ""}`
-        );
-
-      return (
-        !search ||
-        haystack.includes(search)
-      );
-    });
-
-  if (!filtered.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No receipt records found.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-
-  body.innerHTML =
-    filtered
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
-      )
-      .map((item) => `
-        <tr>
-
-          <td>
-            <strong>
+            <td>
               ${escapeHTML(
-                item.receiptId ||
-                item.receiptNo ||
-                item.key
+                clean(complaint.name) || "—"
               )}
-            </strong>
-          </td>
+            </td>
 
-          <td>
-            ${escapeHTML(
-              item.name ||
-              item.donorName ||
-              "—"
-            )}
-          </td>
+            <td>
+              ${escapeHTML(
+                clean(complaint.mobile) || "—"
+              )}
+            </td>
 
-          <td>
-            ${escapeHTML(item.mobile || "—")}
-          </td>
+            <td>
+              ${escapeHTML(
+                clean(
+                  complaint.subject ??
+                  complaint.title
+                ) || "—"
+              )}
+            </td>
 
-          <td>
-            ₹${escapeHTML(item.amount || "0")}
-          </td>
+            <td>
+              <span class="status-badge">
+                ${escapeHTML(status)}
+              </span>
+            </td>
 
-          <td>
-            ${escapeHTML(item.purpose || "Vargani")}
-          </td>
+            <td>
+              ${escapeHTML(
+                formatDateTime(
+                  complaint.createdAt ??
+                  complaint.timestamp
+                )
+              )}
+            </td>
 
-          <td>
-            ${escapeHTML(
-              item.createdByName ||
-              item.memberName ||
-              item.volunteerName ||
-              "—"
-            )}
-          </td>
+            <td>
 
-          <td>
-            ${escapeHTML(formatDateTime(item.createdAt))}
-          </td>
+              ${
+                ![
+                  "resolved",
+                  "closed"
+                ].includes(
+                  status.toLowerCase()
+                )
+                  ? `
+                    <button
+                      type="button"
+                      class="table-action-btn"
+                      data-resolve-complaint="${escapeHTML(key)}"
+                    >
+                      RESOLVE
+                    </button>
+                  `
+                  : ""
+              }
 
-        </tr>
-      `)
-      .join("");
+            </td>
+
+          </tr>
+        `;
+
+      }
+    ).join("");
+
 }
-
-$("adminReceiptSearch")
-  ?.addEventListener(
-    "input",
-    renderReceipts
-  );
-
-
-/* =========================================================
-   CONTENT LISTENER HELPER
-========================================================= */
-
-function listenContent(
-  path,
-  callback
-) {
-  onValue(
-    ref(db, path),
-    (snapshot) => {
-      callback(
-        arrayFromObject(
-          snapshot.val()
-        )
-      );
-    }
-  );
-}
-
-
-/* =========================================================
-   FESTIVALS
-========================================================= */
-
-listenContent(
-  "festivals",
-  (data) => {
-    festivals = data;
-
-    renderContentCards(
-      "adminFestivalList",
-      festivals,
-      "festivals"
-    );
-  }
-);
-
-$("adminFestivalForm")
-  ?.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
-
-      await createContent({
-        path: "festivals",
-        form: event.target,
-        message:
-          $("adminFestivalMessage"),
-        data: {
-          title:
-            clean(
-              $("adminFestivalTitle")?.value
-            ),
-          date:
-            $("adminFestivalDate")?.value ||
-            "",
-          venue:
-            clean(
-              $("adminFestivalVenue")?.value
-            ),
-          description:
-            clean(
-              $("adminFestivalDescription")?.value
-            )
-        }
-      });
-    }
-  );
 
 
 /* =========================================================
    SPORTS
 ========================================================= */
 
-listenContent(
-  "sports",
-  (data) => {
-    sports = data;
+function renderSports() {
 
-    renderContentCards(
-      "adminSportsList",
-      sports,
-      "sports"
-    );
+  const container =
+    $("adminSportsList");
+
+  if (!container) {
+    return;
   }
-);
 
-$("adminSportsForm")
-  ?.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
 
-      await createContent({
-        path: "sports",
-        form: event.target,
-        message:
-          $("adminSportsMessage"),
-        data: {
-          title:
-            clean(
-              $("adminSportsTitle")?.value
-            ),
-          date:
-            $("adminSportsDate")?.value ||
-            "",
-          venue:
-            clean(
-              $("adminSportsVenue")?.value
-            ),
-          description:
-            clean(
-              $("adminSportsDescription")?.value
-            )
-        }
-      });
-    }
-  );
+  const sports =
+    Object.entries(
+      state.sports
+    );
+
+
+  if (!sports.length) {
+
+    container.innerHTML =
+      `<div class="notification-empty">
+        No sports events found.
+      </div>`;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    sports.map(
+      ([key, item]) => {
+
+        const registrations =
+          state.sportsRegistrations[
+            key
+          ] || {};
+
+        const registrationCount =
+          typeof registrations === "object"
+            ? Object.keys(
+                registrations
+              ).length
+            : 0;
+
+
+        return `
+          <div class="dashboard-activity-item">
+
+            <div class="activity-mark"></div>
+
+            <div style="flex:1">
+
+              <strong>
+                ${escapeHTML(
+                  clean(
+                    item.name ??
+                    item.title
+                  ) || "Sports Event"
+                )}
+              </strong>
+
+              <span>
+                Date:
+                ${escapeHTML(
+                  formatDate(item.date)
+                )}
+                • Venue:
+                ${escapeHTML(
+                  clean(item.venue) || "—"
+                )}
+                • Registrations:
+                ${registrationCount}
+              </span>
+
+            </div>
+
+            <button
+              type="button"
+              class="table-action-btn"
+              data-delete-sports="${escapeHTML(key)}"
+            >
+              DELETE
+            </button>
+
+          </div>
+        `;
+
+      }
+    ).join("");
+
+}
 
 
 /* =========================================================
-   UPDATES
+   EVENTS
 ========================================================= */
 
-listenContent(
-  "updates",
-  (data) => {
-    updatesData = data;
+function renderEvents() {
 
-    renderContentCards(
-      "adminUpdatesList",
-      updatesData,
-      "updates"
-    );
+  const container =
+    $("adminEventsList");
+
+  if (!container) {
+    return;
   }
-);
 
-$("adminUpdateForm")
-  ?.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
 
-      await createContent({
-        path: "updates",
-        form: event.target,
-        message:
-          $("adminUpdateMessage"),
-        data: {
-          title:
-            clean(
-              $("adminUpdateTitle")?.value
-            ),
-          description:
-            clean(
-              $("adminUpdateDescription")?.value
-            )
-        }
-      });
-    }
-  );
+  const records =
+    Object.entries(
+      state.events
+    );
+
+
+  if (!records.length) {
+
+    container.innerHTML =
+      `<div class="notification-empty">
+        No events found.
+      </div>`;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    records.map(
+      ([key, item]) => `
+        <div class="dashboard-activity-item">
+
+          <div class="activity-mark"></div>
+
+          <div style="flex:1">
+
+            <strong>
+              ${escapeHTML(
+                clean(
+                  item.name ??
+                  item.title
+                ) || "Event"
+              )}
+            </strong>
+
+            <span>
+              ${escapeHTML(
+                formatDate(item.date)
+              )}
+              •
+              ${escapeHTML(
+                clean(item.venue) || "Venue not added"
+              )}
+            </span>
+
+          </div>
+
+          <button
+            type="button"
+            class="table-action-btn"
+            data-delete-event="${escapeHTML(key)}"
+          >
+            DELETE
+          </button>
+
+        </div>
+      `
+    ).join("");
+
+}
 
 
 /* =========================================================
    GALLERY
 ========================================================= */
 
-listenContent(
-  "gallery",
-  (data) => {
-    gallery = data;
+function renderGallery() {
 
-    renderContentCards(
-      "adminGalleryList",
-      gallery,
-      "gallery"
-    );
+  const container =
+    $("adminGalleryList");
+
+  if (!container) {
+    return;
   }
-);
 
-$("adminGalleryForm")
+
+  const records =
+    Object.entries(
+      state.gallery
+    );
+
+
+  if (!records.length) {
+
+    container.innerHTML =
+      `<div class="notification-empty">
+        No gallery items found.
+      </div>`;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    records.map(
+      ([key, item]) => {
+
+        const photo =
+          clean(
+            item.photoURL ??
+            item.imageURL ??
+            item.image
+          );
+
+
+        return `
+          <div class="dashboard-activity-item">
+
+            <div class="activity-mark"></div>
+
+            <div style="flex:1">
+
+              <strong>
+                ${escapeHTML(
+                  clean(item.title) ||
+                  "Gallery Item"
+                )}
+              </strong>
+
+              <span>
+                Year:
+                ${escapeHTML(
+                  clean(item.year) || "—"
+                )}
+                ${
+                  photo
+                    ? " • Photo available"
+                    : " • No photo"
+                }
+              </span>
+
+            </div>
+
+            <button
+              type="button"
+              class="table-action-btn"
+              data-delete-gallery="${escapeHTML(key)}"
+            >
+              DELETE
+            </button>
+
+          </div>
+        `;
+
+      }
+    ).join("");
+
+}
+
+
+/* =========================================================
+   COMMITTEE
+========================================================= */
+
+function renderCommittee() {
+
+  const container =
+    $("adminCommitteeList");
+
+  if (!container) {
+    return;
+  }
+
+
+  const records =
+    Object.entries(
+      state.committee
+    );
+
+
+  if (!records.length) {
+
+    container.innerHTML =
+      `<div class="notification-empty">
+        No committee records found.
+      </div>`;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    records.map(
+      ([key, item]) => `
+        <div class="dashboard-activity-item">
+
+          <div class="activity-mark"></div>
+
+          <div style="flex:1">
+
+            <strong>
+              ${escapeHTML(
+                clean(item.name) ||
+                "Committee Member"
+              )}
+            </strong>
+
+            <span>
+              ${escapeHTML(
+                clean(item.position) ||
+                "Position not added"
+              )}
+              •
+              ${escapeHTML(
+                clean(item.year) || "—"
+              )}
+            </span>
+
+          </div>
+
+          <button
+            type="button"
+            class="table-action-btn"
+            data-delete-committee="${escapeHTML(key)}"
+          >
+            DELETE
+          </button>
+
+        </div>
+      `
+    ).join("");
+
+}
+
+
+/* =========================================================
+   ADMIN PROFILE RENDER
+========================================================= */
+
+function renderAdminProfile() {
+
+  const profile =
+    state.adminProfile || {};
+
+
+  const name =
+    clean(
+      profile.name
+    ) ||
+    "Administrator";
+
+
+  if ($("adminProfileDisplayName")) {
+
+    $("adminProfileDisplayName")
+      .textContent =
+      name;
+
+  }
+
+
+  if ($("dashboardAdminName")) {
+
+    $("dashboardAdminName")
+      .textContent =
+      name;
+
+  }
+
+
+  if ($("adminProfileName")) {
+
+    $("adminProfileName").value =
+      clean(profile.name);
+
+  }
+
+
+  if ($("adminProfileMobile")) {
+
+    $("adminProfileMobile").value =
+      clean(profile.mobile);
+
+  }
+
+
+  if ($("adminProfileEmail")) {
+
+    $("adminProfileEmail").value =
+      clean(profile.email);
+
+  }
+
+
+  if ($("adminProfileAddress")) {
+
+    $("adminProfileAddress").value =
+      clean(profile.address);
+
+  }
+
+}
+
+
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+
+const notificationModal =
+  $("adminNotificationModal");
+
+
+$("openNotificationsBtn")
   ?.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
+    "click",
+    () => {
 
-      await createContent({
-        path: "gallery",
-        form: event.target,
-        message:
-          $("adminGalleryMessage"),
-        data: {
-          title:
-            clean(
-              $("adminGalleryTitle")?.value
-            ),
-          description:
-            clean(
-              $("adminGalleryDescription")?.value
-            ),
-          imageURL: ""
+      openNotificationModal();
+
+    }
+  );
+
+
+$("closeNotificationModal")
+  ?.addEventListener(
+    "click",
+    closeNotificationModal
+  );
+
+
+$("closeNotificationFooterBtn")
+  ?.addEventListener(
+    "click",
+    closeNotificationModal
+  );
+
+
+notificationModal
+  ?.addEventListener(
+    "click",
+    (event) => {
+
+      if (
+        event.target ===
+        notificationModal
+      ) {
+
+        closeNotificationModal();
+
+      }
+
+    }
+  );
+
+
+function openNotificationModal() {
+
+  notificationModal
+    ?.classList.add(
+      "open"
+    );
+
+  notificationModal
+    ?.setAttribute(
+      "aria-hidden",
+      "false"
+    );
+
+}
+
+
+function closeNotificationModal() {
+
+  notificationModal
+    ?.classList.remove(
+      "open"
+    );
+
+  notificationModal
+    ?.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+}
+
+
+/* =========================================================
+   SHOW POPUP ON ADMIN LOGIN
+   Only when unread activity exists.
+========================================================= */
+
+let initialNotificationLoad =
+  true;
+
+
+function renderNotifications() {
+
+  const list =
+    $("adminNotificationList");
+
+  const badge =
+    $("adminNotificationCount");
+
+
+  const records =
+    Object.entries(
+      state.notifications
+    ).sort(
+      (a, b) =>
+        safeNumber(
+          b[1]?.createdAt
+        ) -
+        safeNumber(
+          a[1]?.createdAt
+        )
+    );
+
+
+  const unread =
+    records.filter(
+      ([, item]) =>
+        item?.read !== true
+    );
+
+
+  if (badge) {
+
+    badge.textContent =
+      unread.length > 99
+        ? "99+"
+        : String(
+            unread.length
+          );
+
+    badge.hidden =
+      unread.length === 0;
+
+  }
+
+
+  if (list) {
+
+    if (!records.length) {
+
+      list.innerHTML = `
+        <div class="notification-empty">
+          No notifications yet.
+        </div>
+      `;
+
+    } else {
+
+      list.innerHTML =
+        records.slice(
+          0,
+          100
+        ).map(
+          ([, item]) => `
+            <div class="notification-item ${
+              item?.read === true
+                ? ""
+                : "unread"
+            }">
+
+              <div class="notification-dot"></div>
+
+              <div>
+
+                <strong>
+                  ${escapeHTML(
+                    clean(item.title) ||
+                    "Activity"
+                  )}
+                </strong>
+
+                <p>
+                  ${escapeHTML(
+                    clean(item.message)
+                  )}
+                </p>
+
+                <small>
+                  ${escapeHTML(
+                    formatDateTime(
+                      item.createdAt
+                    )
+                  )}
+                </small>
+
+              </div>
+
+            </div>
+          `
+        ).join("");
+
+    }
+
+  }
+
+
+  /*
+    First Firebase notification load:
+    show popup automatically when
+    unread records exist.
+  */
+
+  if (
+    initialNotificationLoad
+  ) {
+
+    initialNotificationLoad =
+      false;
+
+    if (
+      unread.length > 0
+    ) {
+
+      setTimeout(
+        openNotificationModal,
+        250
+      );
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   MARK ALL NOTIFICATIONS READ
+========================================================= */
+
+$("markAllNotificationsRead")
+  ?.addEventListener(
+    "click",
+    async () => {
+
+      const unread =
+        Object.entries(
+          state.notifications
+        ).filter(
+          ([, item]) =>
+            item?.read !== true
+        );
+
+
+      if (!unread.length) {
+        return;
+      }
+
+
+      const updates = {};
+
+
+      unread.forEach(
+        ([key]) => {
+
+          updates[
+            `${key}/read`
+          ] = true;
+
+          updates[
+            `${key}/readAt`
+          ] = Date.now();
+
         }
-      });
+      );
+
+
+      try {
+
+        await update(
+          ref(
+            db,
+            "adminNotifications"
+          ),
+          updates
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Unable to mark notifications:",
+          error
+        );
+
+      }
+
     }
   );
 
 
 /* =========================================================
-   CREATE CONTENT
+   CREATE NOTIFICATION
 ========================================================= */
 
-async function createContent({
-  path,
-  form,
-  message,
-  data
-}) {
-  clearMessage(message);
-
-  if (!data.title) {
-    showMessage(
-      message,
-      "Title is required.",
-      "error"
-    );
-    return;
-  }
+async function createNotification(
+  type,
+  title,
+  message
+) {
 
   try {
-    const newRef =
-      push(ref(db, path));
 
-    await set(newRef, {
-      ...data,
-      status: "published",
-      createdBy: "admin",
-      createdAt: Date.now(),
-      updatedAt: Date.now()
-    });
+    const notificationRef =
+      push(
+        ref(
+          db,
+          "adminNotifications"
+        )
+      );
 
-    showMessage(
-      message,
-      "Published successfully.",
-      "success"
+
+    await set(
+      notificationRef,
+      {
+        type,
+        title,
+        message,
+        read: false,
+        createdAt:
+          Date.now()
+      }
     );
-
-    form.reset();
 
   } catch (error) {
-    console.error(error);
 
-    showMessage(
-      message,
-      "Unable to publish.",
-      "error"
+    console.warn(
+      "Notification not saved:",
+      error
     );
+
   }
+
 }
 
 
 /* =========================================================
-   CONTENT CARDS
+   RECENT ACTIVITY
 ========================================================= */
 
-function renderContentCards(
-  containerId,
-  items,
-  path
-) {
+function renderRecentActivity() {
+
   const container =
-    $(containerId);
+    $("adminRecentActivity");
 
-  if (!container) return;
-
-  if (!items.length) {
-    container.innerHTML = `
-      <div class="admin-empty">
-        No records available.
-      </div>
-    `;
+  if (!container) {
     return;
   }
 
-  container.innerHTML =
-    items
+
+  const notifications =
+    Object.values(
+      state.notifications
+    ).map(
+      (item) => ({
+        title:
+          clean(item.title) ||
+          "Activity",
+
+        message:
+          clean(item.message),
+
+        time:
+          safeNumber(
+            item.createdAt
+          )
+      })
+    );
+
+
+  const logins =
+    Object.values(
+      state.loginActivity
+    ).map(
+      (item) => ({
+        title:
+          `${clean(item.role) || "Portal"} Login`,
+
+        message:
+          `${clean(item.name) || "User"} ${
+            clean(item.userId)
+              ? `(${clean(item.userId)})`
+              : ""
+          } logged in.`,
+
+        time:
+          safeNumber(
+            item.timestamp
+          )
+      })
+    );
+
+
+  const items =
+    [
+      ...notifications,
+      ...logins
+    ]
       .sort(
         (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
+          b.time - a.time
       )
-      .map((item) => `
-        <article class="admin-quick">
-
-          <span class="admin-quick-icon">
-            ${
-              path === "festivals"
-                ? "🪔"
-                : path === "sports"
-                  ? "🏆"
-                  : path === "updates"
-                    ? "📢"
-                    : "▣"
-            }
-          </span>
-
-          <strong>
-            ${escapeHTML(item.title || "Untitled")}
-          </strong>
-
-          <span>
-            ${
-              item.date
-                ? escapeHTML(
-                    formatDate(item.date)
-                  )
-                : escapeHTML(
-                    statusLabel(
-                      item.status ||
-                      "published"
-                    )
-                  )
-            }
-          </span>
-
-          <button
-            type="button"
-            class="admin-mini-btn red"
-            data-content-delete="${path}|${item.key}"
-          >
-            Delete
-          </button>
-
-        </article>
-      `)
-      .join("");
-
-  $$("[data-content-delete]")
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        async () => {
-          const [
-            contentPath,
-            key
-          ] =
-            button.dataset
-              .contentDelete
-              .split("|");
-
-          if (
-            !confirmAction(
-              "Delete this record?"
-            )
-          ) {
-            return;
-          }
-
-          try {
-            await remove(
-              ref(
-                db,
-                `${contentPath}/${key}`
-              )
-            );
-          } catch (error) {
-            console.error(error);
-
-            alert(
-              "Unable to delete record."
-            );
-          }
-        }
+      .slice(
+        0,
+        8
       );
-    });
+
+
+  if (!items.length) {
+
+    container.innerHTML = `
+      <div class="notification-empty">
+        No recent activity.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    items.map(
+      (item) => `
+        <div class="dashboard-activity-item">
+
+          <div class="activity-mark"></div>
+
+          <div>
+
+            <strong>
+              ${escapeHTML(item.title)}
+            </strong>
+
+            <span>
+              ${escapeHTML(item.message)}
+              <br>
+              ${escapeHTML(
+                formatDateTime(
+                  item.time
+                )
+              )}
+            </span>
+
+          </div>
+
+        </div>
+      `
+    ).join("");
+
 }
 
 
 /* =========================================================
-   DASHBOARD STATS
-========================================================= */
-
-function updateDashboardStats() {
-  const activeMembers =
-    members.filter(
-      (item) =>
-        normalize(item.status) ===
-        "active"
-    ).length;
-
-  const approvedVolunteers =
-    volunteers.filter(
-      (item) =>
-        normalize(item.status) ===
-        "approved"
-    ).length;
-
-  const pendingVolunteers =
-    volunteers.filter(
-      (item) =>
-        normalize(item.status) ===
-        "pending"
-    ).length;
-
-  const pendingTasks = [
-    ...memberTasks,
-    ...volunteerTasks
-  ].filter(
-    (item) =>
-      normalize(item.status) ===
-      "pending_review"
-  ).length;
-
-  const openComplaints =
-    complaints.filter(
-      (item) =>
-        normalize(item.status) !==
-        "resolved"
-    ).length;
-
-  const pendingProposals =
-    proposals.filter(
-      (item) =>
-        normalize(item.status) ===
-        "pending"
-    ).length;
-
-  if ($("adminMemberCount")) {
-    $("adminMemberCount").textContent =
-      activeMembers;
-  }
-
-  if ($("adminVolunteerCount")) {
-    $("adminVolunteerCount").textContent =
-      approvedVolunteers;
-  }
-
-  if ($("adminPendingVolunteerCount")) {
-    $("adminPendingVolunteerCount").textContent =
-      pendingVolunteers;
-  }
-
-  if ($("adminPendingTaskCount")) {
-    $("adminPendingTaskCount").textContent =
-      pendingTasks;
-  }
-
-  if ($("adminComplaintCount")) {
-    $("adminComplaintCount").textContent =
-      openComplaints;
-  }
-
-  if ($("adminProposalCount")) {
-    $("adminProposalCount").textContent =
-      pendingProposals;
-  }
-}
-
-
-/* =========================================================
-   ESC CLOSE MODAL
+   GLOBAL TABLE ACTIONS
 ========================================================= */
 
 document.addEventListener(
-  "keydown",
-  (event) => {
-    if (event.key !== "Escape") {
+  "click",
+  async (event) => {
+
+    const target =
+      event.target.closest(
+        "button"
+      );
+
+    if (!target) {
       return;
     }
 
-    $$(
-      ".admin-modal.open"
-    ).forEach(
-      (modal) =>
-        closeModal(modal)
-    );
 
-    adminSidebar
-      ?.classList.remove("open");
+    /* MEMBER DELETE */
+
+    if (
+      target.dataset.deleteMember
+    ) {
+
+      const key =
+        target.dataset.deleteMember;
+
+      if (
+        !confirm(
+          "Delete this member?"
+        )
+      ) {
+        return;
+      }
+
+      await deleteRecord(
+        `members/${key}`,
+        target
+      );
+
+      return;
+
+    }
+
+
+    /* VOLUNTEER DELETE */
+
+    if (
+      target.dataset.deleteVolunteer
+    ) {
+
+      const key =
+        target.dataset.deleteVolunteer;
+
+      if (
+        !confirm(
+          "Delete this volunteer?"
+        )
+      ) {
+        return;
+      }
+
+      await deleteRecord(
+        `volunteers/${key}`,
+        target
+      );
+
+      return;
+
+    }
+
+
+    /* TASK DELETE */
+
+    if (
+      target.dataset.deleteTask
+    ) {
+
+      const key =
+        target.dataset.deleteTask;
+
+      if (
+        !confirm(
+          "Delete this task?"
+        )
+      ) {
+        return;
+      }
+
+      await deleteRecord(
+        `tasks/${key}`,
+        target
+      );
+
+      return;
+
+    }
+
+
+    /* TASK APPROVE */
+
+    if (
+      target.dataset.approveTask
+    ) {
+
+      await approveTask(
+        target.dataset.approveTask,
+        target
+      );
+
+      return;
+
+    }
+
+
+    /* COMPLAINT RESOLVE */
+
+    if (
+      target.dataset.resolveComplaint
+    ) {
+
+      const key =
+        target.dataset.resolveComplaint;
+
+
+      target.disabled = true;
+
+
+      try {
+
+        await update(
+          ref(
+            db,
+            `complaints/${key}`
+          ),
+          {
+            status:
+              "resolved",
+
+            resolvedAt:
+              Date.now(),
+
+            updatedAt:
+              Date.now()
+          }
+        );
+
+      } catch (error) {
+
+        alert(
+          "Unable to update complaint."
+        );
+
+      } finally {
+
+        target.disabled = false;
+
+      }
+
+      return;
+
+    }
+
+
+    /* SPORTS DELETE */
+
+    if (
+      target.dataset.deleteSports
+    ) {
+
+      if (
+        !confirm(
+          "Delete this sports event?"
+        )
+      ) {
+        return;
+      }
+
+      await deleteRecord(
+        `sports/${target.dataset.deleteSports}`,
+        target
+      );
+
+      return;
+
+    }
+
+
+    /* EVENT DELETE */
+
+    if (
+      target.dataset.deleteEvent
+    ) {
+
+      if (
+        !confirm(
+          "Delete this event?"
+        )
+      ) {
+        return;
+      }
+
+      await deleteRecord(
+        `festivals/${target.dataset.deleteEvent}`,
+        target
+      );
+
+      return;
+
+    }
+
+
+    /* GALLERY DELETE */
+
+    if (
+      target.dataset.deleteGallery
+    ) {
+
+      if (
+        !confirm(
+          "Delete this gallery item?"
+        )
+      ) {
+        return;
+      }
+
+      await deleteRecord(
+        `gallery/${target.dataset.deleteGallery}`,
+        target
+      );
+
+      return;
+
+    }
+
+
+    /* COMMITTEE DELETE */
+
+    if (
+      target.dataset.deleteCommittee
+    ) {
+
+      if (
+        !confirm(
+          "Delete this committee member?"
+        )
+      ) {
+        return;
+      }
+
+      await deleteRecord(
+        `yuwaMandal/${target.dataset.deleteCommittee}`,
+        target
+      );
+
+    }
+
   }
 );
 
 
 /* =========================================================
-   START
+   DELETE RECORD
+========================================================= */
+
+async function deleteRecord(
+  path,
+  button
+) {
+
+  const original =
+    button.textContent;
+
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    "WAIT...";
+
+
+  try {
+
+    await withTimeout(
+      remove(
+        ref(
+          db,
+          path
+        )
+      ),
+      15000,
+      "Delete timed out."
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      error.message ||
+      "Unable to delete record."
+    );
+
+  } finally {
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      original;
+
+  }
+
+}
+
+
+/* =========================================================
+   APPROVE TASK + POINTS
+========================================================= */
+
+async function approveTask(
+  taskKey,
+  button
+) {
+
+  const task =
+    state.tasks[
+      taskKey
+    ];
+
+
+  if (!task) {
+    return;
+  }
+
+
+  if (
+    clean(
+      task.status
+    ).toLowerCase() ===
+    "approved"
+  ) {
+    return;
+  }
+
+
+  const volunteerKey =
+    clean(
+      task.volunteerKey
+    );
+
+
+  if (
+    !volunteerKey ||
+    !state.volunteers[
+      volunteerKey
+    ]
+  ) {
+
+    alert(
+      "Volunteer record not found."
+    );
+
+    return;
+
+  }
+
+
+  const currentPoints =
+    safeNumber(
+      state.volunteers[
+        volunteerKey
+      ]?.points
+    );
+
+  const taskPoints =
+    Math.max(
+      0,
+      safeNumber(
+        task.points
+      )
+    );
+
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    "WAIT...";
+
+
+  try {
+
+    /*
+      One multi-location RTDB update
+      avoids separate point/task saves.
+    */
+
+    const updates = {};
+
+    updates[
+      `tasks/${taskKey}/status`
+    ] = "approved";
+
+    updates[
+      `tasks/${taskKey}/approvedAt`
+    ] = Date.now();
+
+    updates[
+      `tasks/${taskKey}/updatedAt`
+    ] = Date.now();
+
+    updates[
+      `volunteers/${volunteerKey}/points`
+    ] =
+      currentPoints +
+      taskPoints;
+
+    updates[
+      `volunteers/${volunteerKey}/updatedAt`
+    ] = Date.now();
+
+
+    await withTimeout(
+      update(
+        ref(
+          db
+        ),
+        updates
+      ),
+      15000,
+      "Task approval timed out."
+    );
+
+
+    createNotification(
+      "task_approved",
+      "Task Approved",
+      `${clean(task.title) || "Task"} approved. ${taskPoints} points added.`
+    );
+
+
+  } catch (error) {
+
+    alert(
+      error.message ||
+      "Unable to approve task."
+    );
+
+  } finally {
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "APPROVE";
+
+  }
+
+}
+
+
+/* =========================================================
+   INITIAL READY
 ========================================================= */
 
 console.log(
-  "AAKASH EARTH Admin Control Panel connected."
+  "AAKASH EARTH Admin Dashboard ready."
 );

@@ -8,1361 +8,1416 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Volunteer Registration | AAKASH EARTH</title>
+  <meta
+    name="theme-color"
+    content="#071c2a"
+  >
+
+  <title>Volunteer Portal | AAKASH EARTH</title>
 
   <link rel="stylesheet" href="style.css">
 
   <style>
+    :root {
+      --navy: #071c2a;
+      --navy2: #0b2638;
+      --blue: #103b5a;
+      --gold: #d6a536;
+      --gold2: #e4b84c;
+      --champagne: #f0d17e;
+      --cream: #f7f4ec;
+      --white: #ffffff;
+      --muted: #697780;
+      --border: #ded3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
       min-height: 100vh;
-      background:
-        radial-gradient(
-          circle at 10% 10%,
-          rgba(215,173,74,.13),
-          transparent 25%
-        ),
-        radial-gradient(
-          circle at 90% 80%,
-          rgba(20,125,100,.15),
-          transparent 30%
-        ),
-        #f6f0e3;
+      background: var(--cream);
+      color: var(--navy);
     }
 
-    .vol-page {
-      min-height: 100vh;
+    button,
+    input,
+    textarea {
+      font: inherit;
     }
 
-    /* HEADER */
-
-    .vol-header {
-      min-height: 76px;
-      padding: 0 5%;
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-
-      background:
-        linear-gradient(
-          135deg,
-          #061b29,
-          #0a3b42
-        );
-
-      border-bottom:
-        1px solid rgba(215,173,74,.22);
+    button {
+      cursor: pointer;
     }
 
-    .vol-back {
-      padding: 10px 14px;
-
-      border:
-        1px solid rgba(215,173,74,.25);
-
-      border-radius: 10px;
-
-      color: var(--gold-light);
-
-      font-size: 9px;
-      font-weight: 800;
-
+    a {
+      color: inherit;
       text-decoration: none;
     }
 
-    /* HERO */
-
-    .vol-hero {
-      padding: 65px 5% 115px;
-
-      position: relative;
-      overflow: hidden;
-
-      color: white;
-
-      background:
-        radial-gradient(
-          circle at 85% 20%,
-          rgba(215,173,74,.16),
-          transparent 30%
-        ),
-        linear-gradient(
-          135deg,
-          #061b29,
-          #0c5047
-        );
-    }
-
-    .vol-hero::before {
-      content: "";
-
-      width: 430px;
-      height: 430px;
-
-      position: absolute;
-      top: -180px;
-      right: -100px;
-
-      border:
-        1px solid rgba(215,173,74,.13);
-
-      border-radius: 50%;
-    }
-
-    .vol-hero-content {
-      max-width: 750px;
-
-      position: relative;
-      z-index: 2;
-    }
-
-    .vol-label {
-      display: inline-flex;
-
-      padding: 8px 13px;
-
-      border:
-        1px solid rgba(215,173,74,.28);
-
-      border-radius: 30px;
-
-      background:
-        rgba(215,173,74,.07);
-
-      color: var(--gold-light);
-
-      font-size: 8px;
-      font-weight: 800;
-
-      letter-spacing: 2px;
-    }
-
-    .vol-hero h1 {
-      margin-top: 20px;
-
-      font-family: "Cinzel", serif;
-
-      font-size:
-        clamp(35px, 5vw, 62px);
-
-      line-height: 1.1;
-    }
-
-    .vol-hero h1 span {
-      color: var(--gold-light);
-    }
-
-    .vol-hero p {
-      max-width: 650px;
-
-      margin-top: 17px;
-
-      color:
-        rgba(255,255,255,.62);
-
-      font-size: 12px;
-      line-height: 1.8;
-    }
-
-    .vol-benefits {
-      margin-top: 28px;
-
+    .support-bar {
+      min-height: 34px;
       display: flex;
-      flex-wrap: wrap;
-
-      gap: 9px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 7px max(4vw, 18px);
+      background: linear-gradient(
+        90deg,
+        #a97a1b,
+        #d6a536,
+        #f0d17e,
+        #d6a536,
+        #a97a1b
+      );
+      color: var(--navy);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 1.2px;
     }
 
-    .vol-benefit {
-      padding: 9px 12px;
+    .portal-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 0 max(4vw, 18px);
+      background: #142633;
+      border-bottom: 1px solid rgba(214,165,54,.25);
+      box-shadow: 0 8px 25px rgba(0,0,0,.1);
+    }
 
-      border:
-        1px solid rgba(255,255,255,.1);
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
 
-      border-radius: 30px;
-
-      background:
-        rgba(255,255,255,.05);
-
-      color:
-        rgba(255,255,255,.75);
-
-      font-size: 9px;
+    .logo {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      background: var(--navy2);
+      color: var(--champagne);
+      font-family: Georgia, "Times New Roman", serif;
       font-weight: 700;
     }
 
-    /* MAIN */
+    .logo::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(240,209,126,.5);
+      border-radius: 50%;
+    }
 
-    .vol-main {
-      width: min(1180px, 90%);
+    .brand strong {
+      display: block;
+      color: white;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 15px;
+      letter-spacing: 1.2px;
+    }
 
-      margin: -65px auto 70px;
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: var(--gold);
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1.1px;
+    }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-btn {
+      min-height: 39px;
+      padding: 0 13px;
+      border: 1px solid rgba(240,209,126,.25);
+      border-radius: 9px;
+      background: rgba(255,255,255,.04);
+      color: white;
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .logout-btn {
+      border: 0;
+      background: linear-gradient(135deg,var(--champagne),var(--gold));
+      color: var(--navy);
+    }
+
+    .volunteer-hero {
+      position: relative;
+      overflow: hidden;
+      padding: 52px max(5vw,20px);
+      background: linear-gradient(135deg,#071c2a,#0b2638 58%,#103b5a);
+      color: white;
+    }
+
+    .volunteer-hero::after {
+      content: "";
+      position: absolute;
+      width: 330px;
+      height: 330px;
+      right: -100px;
+      top: -140px;
+      border: 1px solid rgba(240,209,126,.2);
+      border-radius: 50%;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
+      margin: auto;
+    }
+
+    .hero-label {
+      display: inline-flex;
+      padding: 7px 12px;
+      border: 1px solid rgba(214,165,54,.45);
+      border-radius: 30px;
+      color: var(--champagne);
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+    }
+
+    .volunteer-hero h1 {
+      margin: 16px 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(35px,5vw,58px);
+      font-weight: 500;
+    }
+
+    .volunteer-hero p {
+      margin: 0;
+      color: #b9c4ca;
+      font-size: 10px;
+    }
+
+    .hero-id {
+      color: var(--champagne);
+      font-weight: 900;
+    }
+
+    .portal-main {
+      max-width: 1180px;
+      margin: auto;
+      padding: 25px 18px 70px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 12px;
+      margin-top: -48px;
       position: relative;
       z-index: 5;
-
-      display: grid;
-      grid-template-columns:
-        minmax(0, 1.25fr)
-        minmax(280px, .75fr);
-
-      gap: 22px;
     }
 
-    /* FORM CARD */
-
-    .vol-card {
-      padding: 32px;
-
-      border:
-        1px solid rgba(7,26,43,.09);
-
-      border-radius: 25px;
-
-      background:
-        rgba(255,255,255,.97);
-
-      box-shadow:
-        0 25px 65px
-        rgba(7,26,43,.13);
-    }
-
-    .vol-card-header {
-      margin-bottom: 27px;
-    }
-
-    .vol-card-header small {
-      color: var(--gold-dark);
-
-      font-size: 8px;
-      font-weight: 800;
-
-      letter-spacing: 1.8px;
-    }
-
-    .vol-card-header h2 {
-      margin-top: 6px;
-
-      color: var(--navy);
-
-      font-family: "Cinzel", serif;
-
-      font-size: 25px;
-    }
-
-    .vol-card-header p {
-      margin-top: 8px;
-
-      color: var(--muted);
-
-      font-size: 10px;
-      line-height: 1.6;
-    }
-
-    /* FORM */
-
-    .vol-form-grid {
-      display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
-
-      gap: 16px;
-    }
-
-    .vol-field.full {
-      grid-column: 1 / -1;
-    }
-
-    .vol-field label {
-      display: block;
-
-      margin-bottom: 7px;
-
-      color: var(--navy);
-
-      font-size: 9px;
-      font-weight: 800;
-    }
-
-    .vol-field label span {
-      color: #a62e3c;
-    }
-
-    .vol-input {
-      width: 100%;
-      min-height: 48px;
-
-      padding: 12px 14px;
-
-      outline: none;
-
-      border:
-        1px solid rgba(7,26,43,.13);
-
-      border-radius: 11px;
-
-      background: #fffdfa;
-
-      color: var(--navy);
-
-      font-size: 11px;
-
-      transition: .2s;
-    }
-
-    .vol-input:focus {
-      border-color: var(--gold);
-
+    .stat-card {
+      min-height: 118px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
       background: white;
-
-      box-shadow:
-        0 0 0 3px
-        rgba(215,173,74,.09);
+      box-shadow: 0 12px 28px rgba(7,28,42,.08);
     }
 
-    textarea.vol-input {
-      min-height: 105px;
-      resize: vertical;
+    .stat-card span {
+      color: #906a18;
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1px;
     }
 
-    /* PHOTO */
+    .stat-card strong {
+      display: block;
+      margin-top: 13px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 27px;
+      font-weight: 500;
+    }
 
-    .photo-upload {
-      padding: 20px;
-
+    .portal-grid {
       display: grid;
-      grid-template-columns:
-        110px 1fr;
-
-      gap: 20px;
-      align-items: center;
-
-      border:
-        1px dashed rgba(7,26,43,.18);
-
-      border-radius: 16px;
-
-      background: #faf7f0;
+      grid-template-columns: minmax(0,1.1fr) minmax(320px,.9fr);
+      gap: 18px;
+      margin-top: 20px;
     }
 
-    .photo-preview {
-      width: 110px;
-      height: 110px;
-
+    .portal-card {
       overflow: hidden;
+      margin-bottom: 18px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: white;
+      box-shadow: 0 10px 28px rgba(7,28,42,.06);
+    }
 
+    .card-heading {
+      padding: 18px 20px;
+      border-bottom: 1px solid #ebe3d1;
+    }
+
+    .card-heading span {
+      display: block;
+      margin-bottom: 4px;
+      color: #997017;
+      font-size: 6px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+    }
+
+    .card-heading h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 23px;
+      font-weight: 500;
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .profile-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .photo-box {
+      position: relative;
+      width: 86px;
+      height: 86px;
+      flex: 0 0 auto;
+      overflow: hidden;
       display: grid;
       place-items: center;
-
-      border:
-        2px solid var(--gold);
-
+      border: 2px solid var(--gold);
       border-radius: 50%;
-
-      background:
-        linear-gradient(
-          135deg,
-          #0d4e46,
-          #071a2b
-        );
-
-      color: var(--gold-light);
-
-      font-size: 38px;
+      background: linear-gradient(145deg,var(--navy),var(--blue));
+      color: var(--champagne);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 31px;
     }
 
-    .photo-preview img {
+    .photo-box img {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
-
       object-fit: cover;
     }
 
-    .photo-upload-copy strong {
-      display: block;
-
-      color: var(--navy);
-
-      font-size: 11px;
+    .profile-head h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 25px;
+      font-weight: 500;
     }
 
-    .photo-upload-copy p {
-      margin-top: 6px;
-
+    .profile-head p {
+      margin: 5px 0 0;
       color: var(--muted);
+      font-size: 8px;
+    }
 
+    .status-badge {
+      display: inline-flex;
+      margin-top: 8px;
+      padding: 5px 9px;
+      border: 1px solid #d9c58b;
+      border-radius: 20px;
+      background: #f4e9ca;
+      color: #77570f;
+      font-size: 6px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 9px;
+    }
+
+    .detail-box {
+      padding: 12px;
+      border: 1px solid #e7dfcd;
+      border-radius: 9px;
+      background: #fbfaf6;
+    }
+
+    .detail-box span {
+      display: block;
+      color: #8a969c;
+      font-size: 6px;
+      font-weight: 900;
+      letter-spacing: .8px;
+    }
+
+    .detail-box strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--navy);
       font-size: 9px;
+      word-break: break-word;
+    }
+
+    .profile-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: #4e5d65;
+      font-size: 8px;
+      font-weight: 850;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      min-height: 44px;
+      padding: 0 11px;
+      border: 1px solid #d9cfb8;
+      border-radius: 9px;
+      outline: none;
+      background: #fbfaf6;
+      color: var(--navy);
+      font-size: 9px;
+    }
+
+    .field textarea {
+      min-height: 90px;
+      padding: 11px;
+      resize: vertical;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--gold);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(214,165,54,.1);
+    }
+
+    .field small {
+      color: #7b878d;
+      font-size: 7px;
       line-height: 1.5;
     }
 
-    .photo-file {
-      width: 100%;
-
-      margin-top: 12px;
-
-      font-size: 9px;
-    }
-
-    /* TERMS */
-
-    .vol-terms {
-      margin-top: 20px;
-
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-
-      color: var(--muted);
-
-      font-size: 9px;
-      line-height: 1.6;
-    }
-
-    .vol-terms input {
-      margin-top: 3px;
-    }
-
-    /* MESSAGE */
-
-    .vol-message {
-      display: none;
-
-      margin-top: 17px;
-      padding: 12px 14px;
-
-      border-radius: 10px;
-
-      font-size: 9px;
-      font-weight: 700;
-
-      line-height: 1.55;
-    }
-
-    .vol-message.show {
-      display: block;
-    }
-
-    .vol-message.error {
-      color: #862536;
-
-      background:
-        rgba(134,37,54,.08);
-
-      border:
-        1px solid rgba(134,37,54,.13);
-    }
-
-    .vol-message.success {
-      color: #08624d;
-
-      background:
-        rgba(8,98,77,.08);
-
-      border:
-        1px solid rgba(8,98,77,.13);
-    }
-
-    /* SUBMIT */
-
-    .vol-submit {
-      width: 100%;
-      min-height: 52px;
-
-      margin-top: 18px;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      gap: 10px;
-
+    .primary-btn {
+      min-height: 43px;
+      padding: 0 15px;
       border: 0;
-      border-radius: 12px;
-
-      background:
-        linear-gradient(
-          135deg,
-          #f0d27a,
-          #c89430
-        );
-
+      border-radius: 9px;
+      background: linear-gradient(135deg,var(--champagne),var(--gold));
       color: var(--navy);
-
-      font-size: 10px;
-      font-weight: 800;
-
-      cursor: pointer;
-
-      box-shadow:
-        0 12px 28px
-        rgba(200,148,48,.2);
+      font-size: 8px;
+      font-weight: 950;
     }
 
-    .vol-submit:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-
-    /* RIGHT SIDE */
-
-    .vol-info-column {
-      display: grid;
-      gap: 18px;
-      align-content: start;
-    }
-
-    .info-card {
-      padding: 25px;
-
-      border:
-        1px solid rgba(7,26,43,.08);
-
-      border-radius: 20px;
-
+    .secondary-btn {
+      min-height: 40px;
+      padding: 0 13px;
+      border: 1px solid #d7c58e;
+      border-radius: 9px;
       background: white;
-
-      box-shadow:
-        0 12px 35px
-        rgba(7,26,43,.07);
+      color: #755812;
+      font-size: 7px;
+      font-weight: 900;
     }
 
-    .info-icon {
-      width: 45px;
-      height: 45px;
-
-      margin-bottom: 15px;
-
-      display: grid;
-      place-items: center;
-
-      border-radius: 12px;
-
-      background:
-        rgba(20,125,100,.09);
-
-      font-size: 20px;
+    .form-message {
+      min-height: 16px;
+      margin: 0;
+      color: #7d5c13;
+      text-align: center;
+      font-size: 8px;
+      font-weight: 800;
     }
 
-    .info-card h3 {
-      color: var(--navy);
-
-      font-family: "Cinzel", serif;
-
-      font-size: 15px;
-    }
-
-    .info-card p {
-      margin-top: 9px;
-
-      color: var(--muted);
-
-      font-size: 9px;
-      line-height: 1.65;
-    }
-
-    .process-list {
-      margin-top: 15px;
-
+    .task-list {
       display: grid;
       gap: 11px;
     }
 
-    .process-item {
-      display: grid;
-      grid-template-columns:
-        28px 1fr;
-
-      gap: 10px;
-      align-items: center;
-    }
-
-    .process-number {
-      width: 28px;
-      height: 28px;
-
-      display: grid;
-      place-items: center;
-
-      border-radius: 50%;
-
-      background: var(--navy);
-
-      color: var(--gold-light);
-
-      font-size: 8px;
-      font-weight: 800;
-    }
-
-    .process-item span {
-      color: #56636b;
-
-      font-size: 9px;
-      font-weight: 700;
-    }
-
-    .login-card-small {
-      color: white;
-
-      background:
-        linear-gradient(
-          135deg,
-          #071a2b,
-          #0c5047
-        );
-    }
-
-    .login-card-small h3 {
-      color: white;
-    }
-
-    .login-card-small p {
-      color:
-        rgba(255,255,255,.58);
-    }
-
-    .vol-login-link {
-      margin-top: 15px;
-      padding: 11px 14px;
-
-      display: inline-flex;
-
-      border:
-        1px solid rgba(215,173,74,.3);
-
-      border-radius: 10px;
-
-      color: var(--gold-light);
-
-      font-size: 9px;
-      font-weight: 800;
-
-      text-decoration: none;
-    }
-
-    /* SUCCESS */
-
-    .registration-success {
-      display: none;
-
-      text-align: center;
-
-      padding: 20px 5px;
-    }
-
-    .registration-success.show {
-      display: block;
-    }
-
-    .registration-form-content.hidden {
-      display: none;
-    }
-
-    .success-circle {
-      width: 80px;
-      height: 80px;
-
-      margin: 0 auto 20px;
-
-      display: grid;
-      place-items: center;
-
-      border-radius: 50%;
-
-      background:
-        rgba(20,125,100,.1);
-
-      color: #0b765e;
-
-      font-size: 35px;
-    }
-
-    .registration-success h2 {
-      color: var(--navy);
-
-      font-family: "Cinzel", serif;
-
-      font-size: 25px;
-    }
-
-    .registration-success p {
-      max-width: 500px;
-
-      margin: 12px auto 0;
-
-      color: var(--muted);
-
-      font-size: 10px;
-      line-height: 1.7;
-    }
-
-    .application-number {
-      margin: 20px auto;
-
+    .task-card {
       padding: 15px;
-
-      max-width: 360px;
-
-      border:
-        1px solid rgba(215,173,74,.25);
-
-      border-radius: 13px;
-
-      background: #faf4e7;
+      border: 1px solid #e2d9c4;
+      border-radius: 11px;
+      background: #fbfaf6;
     }
 
-    .application-number small {
-      display: block;
+    .task-card h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 18px;
+      font-weight: 500;
+    }
 
-      color: var(--muted);
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 9px 0;
+    }
 
+    .task-tag {
+      display: inline-flex;
+      padding: 5px 8px;
+      border: 1px solid #dbc98f;
+      border-radius: 20px;
+      background: #f5ecd2;
+      color: #765812;
+      font-size: 6px;
+      font-weight: 900;
+    }
+
+    .task-card p {
+      margin: 8px 0;
+      color: #65737b;
+      font-size: 8px;
+      line-height: 1.65;
+    }
+
+    .task-proof-area {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e5ddca;
+    }
+
+    .task-proof-area input {
+      width: 100%;
+      padding: 9px;
+      border: 1px solid #d9cfb8;
+      border-radius: 8px;
+      background: white;
       font-size: 8px;
     }
 
-    .application-number strong {
-      display: block;
-
-      margin-top: 6px;
-
-      color: var(--gold-dark);
-
-      font-size: 13px;
+    .task-message {
+      min-height: 14px;
+      color: #795c18;
+      font-size: 7px;
+      font-weight: 800;
     }
 
-    /* MOBILE */
+    .ranking-box {
+      padding: 22px;
+      border: 1px solid rgba(214,165,54,.35);
+      border-radius: 13px;
+      background: linear-gradient(145deg,#071c2a,#103b5a);
+      color: white;
+      text-align: center;
+    }
+
+    .ranking-box span {
+      color: var(--champagne);
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1.3px;
+    }
+
+    .ranking-number {
+      display: block;
+      margin: 12px 0 4px;
+      color: white;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 48px;
+      font-weight: 500;
+    }
+
+    .ranking-box p {
+      margin: 0;
+      color: #aebbc2;
+      font-size: 8px;
+    }
+
+    .id-card {
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      border: 1px solid var(--gold);
+      border-radius: 16px;
+      background: linear-gradient(135deg,#071c2a,#0b2638 60%,#103b5a);
+      color: white;
+    }
+
+    .id-card::after {
+      content: "";
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      right: -65px;
+      bottom: -80px;
+      border: 1px solid rgba(240,209,126,.2);
+      border-radius: 50%;
+    }
+
+    .id-top {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(240,209,126,.2);
+    }
+
+    .id-top strong {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 17px;
+      letter-spacing: 1px;
+    }
+
+    .id-top span {
+      color: var(--champagne);
+      font-size: 7px;
+      font-weight: 900;
+    }
+
+    .id-person {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 17px;
+    }
+
+    .id-photo {
+      width: 75px;
+      height: 75px;
+    }
+
+    .id-person h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 21px;
+      font-weight: 500;
+    }
+
+    .id-person p {
+      margin: 4px 0 0;
+      color: var(--champagne);
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .id-details {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 8px;
+      margin-top: 17px;
+    }
+
+    .id-detail {
+      padding: 9px;
+      border: 1px solid rgba(240,209,126,.18);
+      border-radius: 8px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .id-detail span {
+      display: block;
+      color: #91a2ac;
+      font-size: 6px;
+      font-weight: 900;
+    }
+
+    .id-detail strong {
+      display: block;
+      margin-top: 4px;
+      color: white;
+      font-size: 8px;
+    }
+
+    .id-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .activity-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 11px;
+      border: 1px solid #e6decb;
+      border-radius: 9px;
+      background: #fbfaf6;
+    }
+
+    .activity-dot {
+      width: 9px;
+      height: 9px;
+      flex: 0 0 auto;
+      margin-top: 4px;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+    }
+
+    .activity-item strong {
+      display: block;
+      font-size: 8px;
+    }
+
+    .activity-item span {
+      display: block;
+      margin-top: 3px;
+      color: #7b878d;
+      font-size: 7px;
+    }
+
+    .empty-state {
+      padding: 25px;
+      color: #7a878e;
+      text-align: center;
+      font-size: 8px;
+    }
+
+    .portal-footer {
+      padding: 20px;
+      background: #10232f;
+      color: #85949c;
+      text-align: center;
+      font-size: 7px;
+      letter-spacing: .8px;
+    }
+
+    .portal-footer strong {
+      color: var(--gold);
+    }
 
     @media (max-width: 900px) {
-      .vol-main {
+      .stats-grid {
+        grid-template-columns: repeat(2,1fr);
+      }
+
+      .portal-grid {
         grid-template-columns: 1fr;
-      }
-
-      .vol-info-column {
-        grid-template-columns:
-          repeat(2, 1fr);
-      }
-
-      .login-card-small {
-        grid-column: 1 / -1;
       }
     }
 
     @media (max-width: 600px) {
-      .vol-header {
-        padding: 0 4%;
-      }
-
-      .vol-header .brand-text span {
-        display: none;
-      }
-
-      .vol-hero {
-        padding:
-          50px 5%
-          100px;
-      }
-
-      .vol-main {
-        width: 92%;
-
-        margin-top: -55px;
-      }
-
-      .vol-card {
-        padding: 24px 18px;
-      }
-
-      .vol-form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .vol-field.full {
-        grid-column: auto;
-      }
-
-      .photo-upload {
-        grid-template-columns: 1fr;
+      .support-bar {
+        justify-content: center;
         text-align: center;
       }
 
-      .photo-preview {
-        margin: auto;
+      .support-bar span:last-child {
+        display: none;
       }
 
-      .vol-info-column {
+      .portal-header {
+        padding: 0 10px;
+      }
+
+      .brand strong {
+        font-size: 11px;
+      }
+
+      .brand small,
+      .home-btn {
+        display: none;
+      }
+
+      .logo {
+        width: 40px;
+        height: 40px;
+      }
+
+      .volunteer-hero {
+        padding: 40px 16px 75px;
+      }
+
+      .stats-grid {
+        margin-top: -48px;
+        gap: 8px;
+      }
+
+      .stat-card {
+        min-height: 100px;
+        padding: 13px;
+      }
+
+      .stat-card strong {
+        font-size: 23px;
+      }
+
+      .details-grid,
+      .id-details {
         grid-template-columns: 1fr;
       }
+    }
 
-      .login-card-small {
-        grid-column: auto;
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+
+      #digitalVolunteerIdCard,
+      #digitalVolunteerIdCard * {
+        visibility: visible !important;
+      }
+
+      #digitalVolunteerIdCard {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border-radius: 0;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
       }
     }
   </style>
 </head>
 
-
 <body>
 
-<div class="vol-page">
+  <div class="support-bar">
+    <span>
+      ✦ TECHNICAL SUPPORT BY BROTHER HOOD
+    </span>
+
+    <span>
+      AAKASH EARTH • VOLUNTEER PORTAL
+    </span>
+  </div>
 
 
-  <!-- HEADER -->
-  <header class="vol-header">
-
-    <a href="index.html" class="brand">
-
-      <div class="brand-emblem">
-        <span>AE</span>
-      </div>
-
-      <div class="brand-text">
-        <strong>AAKASH EARTH</strong>
-        <span>YUWA MANDAL</span>
-      </div>
-
-    </a>
+  <header class="portal-header">
 
     <a
-      href="login.html"
-      class="vol-back"
+      href="index.html"
+      class="brand"
     >
-      Portal Login →
+      <div class="logo">
+        AE
+      </div>
+
+      <div>
+        <strong>
+          AAKASH EARTH
+        </strong>
+
+        <small>
+          VOLUNTEER PORTAL
+        </small>
+      </div>
     </a>
+
+
+    <div class="header-actions">
+
+      <a
+        href="index.html"
+        class="header-btn home-btn"
+      >
+        HOME
+      </a>
+
+      <button
+        type="button"
+        class="header-btn logout-btn"
+        id="volunteerLogoutBtn"
+      >
+        LOGOUT
+      </button>
+
+    </div>
 
   </header>
 
 
-  <!-- HERO -->
-  <section class="vol-hero">
+  <section class="volunteer-hero">
 
-    <div class="vol-hero-content">
+    <div class="hero-content">
 
-      <span class="vol-label">
-        ✦ COMMUNITY SEVA
+      <span class="hero-label">
+        OFFICIAL VOLUNTEER ACCOUNT
       </span>
 
-      <h1>
-        Become an Aakash Earth
-        <span>Volunteer.</span>
+      <h1 id="heroVolunteerName">
+        Volunteer
       </h1>
 
       <p>
-        Join the Aakash Earth Yuwa Mandal volunteer team,
-        participate in community seva, complete assigned
-        tasks and contribute to festivals, events and
-        community activities.
+        Volunteer ID:
+        <span
+          class="hero-id"
+          id="heroVolunteerId"
+        >
+          —
+        </span>
       </p>
-
-      <div class="vol-benefits">
-
-        <span class="vol-benefit">
-          ✓ Official Volunteer ID
-        </span>
-
-        <span class="vol-benefit">
-          ✓ Tasks & Points
-        </span>
-
-        <span class="vol-benefit">
-          ✓ Rating & Rank
-        </span>
-
-        <span class="vol-benefit">
-          ✓ Community Activities
-        </span>
-
-      </div>
 
     </div>
 
   </section>
 
 
-  <!-- MAIN -->
-  <main class="vol-main">
+  <main class="portal-main">
 
 
-    <!-- REGISTRATION FORM -->
-    <section class="vol-card">
+    <!-- STATS -->
 
-      <div
-        id="registrationFormContent"
-        class="registration-form-content"
-      >
+    <section class="stats-grid">
 
-        <div class="vol-card-header">
-
-          <small>
-            VOLUNTEER APPLICATION
-          </small>
-
-          <h2>
-            Registration Form
-          </h2>
-
-          <p>
-            Fill in your correct details. Your application
-            will be reviewed by the Aakash Earth administrator.
-          </p>
-
-        </div>
+      <article class="stat-card">
+        <span>STATUS</span>
+        <strong id="volunteerStatusStat">
+          —
+        </strong>
+      </article>
 
 
-        <form
-          id="volunteerRegistrationForm"
-          autocomplete="off"
-        >
+      <article class="stat-card">
+        <span>TOTAL POINTS</span>
+        <strong id="volunteerPointsStat">
+          0
+        </strong>
+      </article>
 
-          <div class="vol-form-grid">
+
+      <article class="stat-card">
+        <span>CURRENT RANK</span>
+        <strong id="volunteerRankStat">
+          —
+        </strong>
+      </article>
 
 
-            <!-- NAME -->
-            <div class="vol-field">
+      <article class="stat-card">
+        <span>COMPLETED TASKS</span>
+        <strong id="volunteerCompletedTaskCount">
+          0
+        </strong>
+      </article>
 
-              <label for="volunteerName">
-                FULL NAME <span>*</span>
-              </label>
+    </section>
 
-              <input
-                type="text"
-                id="volunteerName"
-                class="vol-input"
-                maxlength="80"
-                placeholder="Enter full name"
-                required
+
+    <div class="portal-grid">
+
+
+      <!-- LEFT COLUMN -->
+
+      <div>
+
+
+        <!-- PROFILE -->
+
+        <section class="portal-card">
+
+          <div class="card-heading">
+            <span>
+              VOLUNTEER ACCOUNT
+            </span>
+
+            <h2>
+              My Profile
+            </h2>
+          </div>
+
+
+          <div class="card-body">
+
+            <div class="profile-head">
+
+              <div
+                class="photo-box"
+                id="volunteerPhotoBox"
               >
+                <span id="volunteerPhotoInitial">
+                  V
+                </span>
 
-            </div>
-
-
-            <!-- MOBILE -->
-            <div class="vol-field">
-
-              <label for="volunteerMobile">
-                MOBILE NUMBER <span>*</span>
-              </label>
-
-              <input
-                type="tel"
-                id="volunteerMobile"
-                class="vol-input"
-                maxlength="10"
-                inputmode="numeric"
-                placeholder="10-digit mobile number"
-                required
-              >
-
-            </div>
-
-
-            <!-- DOB -->
-            <div class="vol-field">
-
-              <label for="volunteerDob">
-                DATE OF BIRTH
-              </label>
-
-              <input
-                type="date"
-                id="volunteerDob"
-                class="vol-input"
-              >
-
-            </div>
-
-
-            <!-- GENDER -->
-            <div class="vol-field">
-
-              <label for="volunteerGender">
-                GENDER
-              </label>
-
-              <select
-                id="volunteerGender"
-                class="vol-input"
-              >
-                <option value="">
-                  Select
-                </option>
-
-                <option value="male">
-                  Male
-                </option>
-
-                <option value="female">
-                  Female
-                </option>
-
-                <option value="other">
-                  Other
-                </option>
-              </select>
-
-            </div>
-
-
-            <!-- YEAR -->
-            <div class="vol-field">
-
-              <label for="volunteerYear">
-                VOLUNTEER YEAR <span>*</span>
-              </label>
-
-              <select
-                id="volunteerYear"
-                class="vol-input"
-                required
-              >
-                <option value="">
-                  Select year
-                </option>
-
-                <option value="2026">
-                  2026
-                </option>
-
-                <option value="2027">
-                  2027
-                </option>
-
-                <option value="2028">
-                  2028
-                </option>
-
-                <option value="2029">
-                  2029
-                </option>
-
-                <option value="2030">
-                  2030
-                </option>
-              </select>
-
-            </div>
-
-
-            <!-- AREA -->
-            <div class="vol-field">
-
-              <label for="volunteerArea">
-                AREA / SOCIETY
-              </label>
-
-              <input
-                type="text"
-                id="volunteerArea"
-                class="vol-input"
-                maxlength="100"
-                placeholder="Area / society"
-              >
-
-            </div>
-
-
-            <!-- ADDRESS -->
-            <div class="vol-field full">
-
-              <label for="volunteerAddress">
-                ADDRESS <span>*</span>
-              </label>
-
-              <textarea
-                id="volunteerAddress"
-                class="vol-input"
-                maxlength="350"
-                placeholder="Enter complete address"
-                required
-              ></textarea>
-
-            </div>
-
-
-            <!-- REASON -->
-            <div class="vol-field full">
-
-              <label for="volunteerReason">
-                WHY DO YOU WANT TO VOLUNTEER?
-              </label>
-
-              <textarea
-                id="volunteerReason"
-                class="vol-input"
-                maxlength="500"
-                placeholder="Tell us briefly..."
-              ></textarea>
-
-            </div>
-
-
-            <!-- PHOTO -->
-            <div class="vol-field full">
-
-              <label>
-                PROFILE PHOTO
-              </label>
-
-              <div class="photo-upload">
-
-                <div
-                  class="photo-preview"
-                  id="volunteerPhotoPreview"
+                <img
+                  id="volunteerPhoto"
+                  alt="Volunteer"
+                  hidden
                 >
-                  👤
-                </div>
+              </div>
 
-                <div class="photo-upload-copy">
 
-                  <strong>
-                    Select Your Photo
-                  </strong>
+              <div>
 
-                  <p>
-                    JPG, PNG or another image format.
-                    Maximum 5 MB.
-                  </p>
+                <h3 id="profileVolunteerName">
+                  Volunteer
+                </h3>
 
-                  <input
-                    type="file"
-                    id="volunteerPhoto"
-                    class="photo-file"
-                    accept="image/*"
-                  >
+                <p id="profileVolunteerId">
+                  —
+                </p>
 
-                  <p>
-                    Photo preview will be shown before
-                    registration.
-                  </p>
+                <span
+                  class="status-badge"
+                  id="volunteerStatusBadge"
+                >
+                  ACTIVE
+                </span>
 
-                </div>
+              </div>
 
+            </div>
+
+
+            <div class="details-grid">
+
+              <div class="detail-box">
+                <span>VOLUNTEER ID</span>
+                <strong id="detailVolunteerId">
+                  —
+                </strong>
+              </div>
+
+
+              <div class="detail-box">
+                <span>FULL NAME</span>
+                <strong id="detailVolunteerName">
+                  —
+                </strong>
+              </div>
+
+
+              <div class="detail-box">
+                <span>STATUS</span>
+                <strong id="detailVolunteerStatus">
+                  —
+                </strong>
+              </div>
+
+
+              <div class="detail-box">
+                <span>POINTS</span>
+                <strong id="detailVolunteerPoints">
+                  0
+                </strong>
+              </div>
+
+
+              <div class="detail-box">
+                <span>MOBILE NUMBER</span>
+                <strong id="detailVolunteerMobile">
+                  —
+                </strong>
+              </div>
+
+
+              <div class="detail-box">
+                <span>EMAIL ADDRESS</span>
+                <strong id="detailVolunteerEmail">
+                  —
+                </strong>
               </div>
 
             </div>
 
           </div>
 
+        </section>
 
-          <!-- TERMS -->
-          <label class="vol-terms">
 
-            <input
-              type="checkbox"
-              id="volunteerTerms"
-              required
+        <!-- EDIT -->
+
+        <section class="portal-card">
+
+          <div class="card-heading">
+            <span>
+              ACCOUNT SETTINGS
+            </span>
+
+            <h2>
+              Edit Contact Details
+            </h2>
+          </div>
+
+
+          <div class="card-body">
+
+            <form
+              id="volunteerEditForm"
+              class="profile-form"
             >
 
+              <div class="field">
+
+                <label for="editVolunteerMobile">
+                  Mobile Number
+                </label>
+
+                <input
+                  id="editVolunteerMobile"
+                  type="tel"
+                  autocomplete="tel"
+                >
+
+              </div>
+
+
+              <div class="field">
+
+                <label for="editVolunteerEmail">
+                  Email Address
+                </label>
+
+                <input
+                  id="editVolunteerEmail"
+                  type="email"
+                  autocomplete="email"
+                >
+
+              </div>
+
+
+              <div class="field">
+
+                <label for="editVolunteerPassword">
+                  New Password
+                </label>
+
+                <input
+                  id="editVolunteerPassword"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Leave blank to keep current password"
+                >
+
+                <small>
+                  Only enter a password when
+                  you want to change it.
+                </small>
+
+              </div>
+
+
+              <button
+                type="submit"
+                class="primary-btn"
+                id="volunteerSaveBtn"
+              >
+                SAVE CHANGES
+              </button>
+
+
+              <p
+                class="form-message"
+                id="volunteerFormMessage"
+              ></p>
+
+            </form>
+
+          </div>
+
+        </section>
+
+
+        <!-- TASKS -->
+
+        <section class="portal-card">
+
+          <div class="card-heading">
             <span>
-              I confirm that the information provided is correct
-              and understand that registration does not mean
-              automatic approval. The administrator will review
-              my application before activating my Volunteer ID.
+              ASSIGNED WORK
             </span>
 
-          </label>
+            <h2>
+              My Tasks
+            </h2>
+          </div>
 
 
-          <!-- MESSAGE -->
           <div
-            id="volunteerMessage"
-            class="vol-message"
-            role="alert"
-          ></div>
-
-
-          <!-- SUBMIT -->
-          <button
-            type="submit"
-            id="volunteerSubmit"
-            class="vol-submit"
+            class="card-body task-list"
+            id="volunteerTaskList"
           >
-            <span id="volunteerSubmitText">
-              Submit Volunteer Application
-            </span>
 
-            <span>→</span>
-          </button>
-
-        </form>
-
-      </div>
-
-
-      <!-- SUCCESS SCREEN -->
-      <div
-        id="registrationSuccess"
-        class="registration-success"
-      >
-
-        <div class="success-circle">
-          ✓
-        </div>
-
-        <h2>
-          Application Submitted
-        </h2>
-
-        <p>
-          Your volunteer application has been successfully
-          submitted. The administrator will review your
-          application before your Volunteer ID becomes active.
-        </p>
-
-        <div class="application-number">
-
-          <small>
-            APPLICATION NUMBER
-          </small>
-
-          <strong id="successApplicationId">
-            —
-          </strong>
-
-        </div>
-
-        <p>
-          After approval, use your
-          <strong>Volunteer ID + registered mobile number</strong>
-          to log in to the Volunteer Portal.
-        </p>
-
-        <a
-          href="login.html"
-          class="vol-login-link"
-          style="
-            background:#071a2b;
-            margin-top:20px;
-          "
-        >
-          Go to Portal Login →
-        </a>
-
-      </div>
-
-    </section>
-
-
-    <!-- RIGHT INFO -->
-    <aside class="vol-info-column">
-
-
-      <div class="info-card">
-
-        <div class="info-icon">
-          🤝
-        </div>
-
-        <h3>
-          Volunteer Seva
-        </h3>
-
-        <p>
-          Volunteers can receive tasks from administrators,
-          submit completed work and earn points and ratings.
-        </p>
-
-      </div>
-
-
-      <div class="info-card">
-
-        <div class="info-icon">
-          ✓
-        </div>
-
-        <h3>
-          Approval Process
-        </h3>
-
-        <div class="process-list">
-
-          <div class="process-item">
-
-            <span class="process-number">
-              1
-            </span>
-
-            <span>
-              Submit registration
-            </span>
+            <div class="empty-state">
+              Loading tasks...
+            </div>
 
           </div>
 
-          <div class="process-item">
-
-            <span class="process-number">
-              2
-            </span>
-
-            <span>
-              Admin reviews application
-            </span>
-
-          </div>
-
-          <div class="process-item">
-
-            <span class="process-number">
-              3
-            </span>
-
-            <span>
-              Volunteer ID activated
-            </span>
-
-          </div>
-
-          <div class="process-item">
-
-            <span class="process-number">
-              4
-            </span>
-
-            <span>
-              Login & receive tasks
-            </span>
-
-          </div>
-
-        </div>
+        </section>
 
       </div>
 
 
-      <div class="info-card login-card-small">
+      <!-- RIGHT COLUMN -->
 
-        <div class="info-icon">
-          🔐
-        </div>
+      <div>
 
-        <h3>
-          Already Approved?
-        </h3>
 
-        <p>
-          Login using your Volunteer ID and the mobile
-          number registered with your application.
-        </p>
+        <!-- RANKING -->
 
-        <a
-          href="login.html"
-          class="vol-login-link"
-        >
-          Volunteer Login →
-        </a>
+        <section class="portal-card">
+
+          <div class="card-heading">
+            <span>
+              PERFORMANCE
+            </span>
+
+            <h2>
+              My Ranking
+            </h2>
+          </div>
+
+
+          <div class="card-body">
+
+            <div class="ranking-box">
+
+              <span>
+                CURRENT VOLUNTEER RANK
+              </span>
+
+              <strong
+                class="ranking-number"
+                id="volunteerRankingNumber"
+              >
+                —
+              </strong>
+
+              <p>
+                Ranking is based on
+                volunteer points.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- DIGITAL ID CARD -->
+
+        <section class="portal-card">
+
+          <div class="card-heading">
+            <span>
+              DIGITAL IDENTIFICATION
+            </span>
+
+            <h2>
+              My ID Card
+            </h2>
+          </div>
+
+
+          <div class="card-body">
+
+            <div
+              class="id-card"
+              id="digitalVolunteerIdCard"
+            >
+
+              <div class="id-top">
+
+                <div>
+                  <strong>
+                    AAKASH EARTH
+                  </strong>
+                </div>
+
+                <span>
+                  VOLUNTEER ID
+                </span>
+
+              </div>
+
+
+              <div class="id-person">
+
+                <div
+                  class="photo-box id-photo"
+                  id="idVolunteerPhotoBox"
+                >
+
+                  <span id="idVolunteerInitial">
+                    V
+                  </span>
+
+                  <img
+                    id="idVolunteerPhoto"
+                    alt="Volunteer"
+                    hidden
+                  >
+
+                </div>
+
+
+                <div>
+
+                  <h3 id="idVolunteerName">
+                    Volunteer
+                  </h3>
+
+                  <p id="idVolunteerId">
+                    —
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <div class="id-details">
+
+                <div class="id-detail">
+                  <span>STATUS</span>
+                  <strong id="idVolunteerStatus">
+                    —
+                  </strong>
+                </div>
+
+
+                <div class="id-detail">
+                  <span>POINTS</span>
+                  <strong id="idVolunteerPoints">
+                    0
+                  </strong>
+                </div>
+
+
+                <div class="id-detail">
+                  <span>RANK</span>
+                  <strong id="idVolunteerRank">
+                    —
+                  </strong>
+                </div>
+
+
+                <div class="id-detail">
+                  <span>MOBILE</span>
+                  <strong id="idVolunteerMobile">
+                    —
+                  </strong>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="id-actions">
+
+              <button
+                type="button"
+                class="primary-btn"
+                id="printVolunteerIdBtn"
+              >
+                PRINT ID CARD
+              </button>
+
+
+              <a
+                href="verify.html"
+                class="secondary-btn"
+                id="volunteerVerifyLink"
+              >
+                VERIFY ID
+              </a>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ACTIVITY -->
+
+        <section class="portal-card">
+
+          <div class="card-heading">
+            <span>
+              PORTAL HISTORY
+            </span>
+
+            <h2>
+              Recent Activity
+            </h2>
+          </div>
+
+
+          <div
+            class="card-body activity-list"
+            id="volunteerActivityList"
+          >
+
+            <div class="empty-state">
+              Loading activity...
+            </div>
+
+          </div>
+
+        </section>
 
       </div>
 
-    </aside>
+    </div>
 
   </main>
 
-</div>
+
+  <footer class="portal-footer">
+
+    ©
+    <span id="volunteerCurrentYear"></span>
+    AAKASH EARTH
+
+    &nbsp; • &nbsp;
+
+    TECHNICAL SUPPORT BY
+    <strong>
+      BROTHER HOOD
+    </strong>
+
+  </footer>
 
 
-<script
-  type="module"
-  src="volunteer.js"
-></script>
+  <script
+    type="module"
+    src="volunteer.js"
+  ></script>
 
 </body>
 </html>

@@ -9,141 +9,97 @@
   >
 
   <meta
-    name="description"
-    content="AAKASH EARTH  - Official Community Website"
+    name="theme-color"
+    content="#27155c"
   >
 
-    <title>AAKASH EARTH </title>
+  <meta
+    name="description"
+    content="AAKASH EARTH community portal"
+  >
 
-  <link rel="stylesheet" href="style.css">
+  <title>AAKASH EARTH | Community Portal</title>
+
+  <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
 
-  <!-- =====================================================
-       LOADING SCREEN
-  ====================================================== -->
-  <div id="pageLoader" class="page-loader">
-    <div class="loader-logo">AE</div>
+  <!-- ================================
+       TOP SUPPORT BAR
+  ================================= -->
 
-    <div class="loader-text">
-      <strong>AAKASH EARTH</strong>
-      
-    </div>
+  <div class="support-bar">
+    <span class="support-dot"></span>
 
-    <div class="loader-line">
-      <span></span>
-    </div>
+    <span>
+      TECHNICAL SUPPORT BY
+      <strong>BROTHER HOOD</strong>
+    </span>
   </div>
 
 
-  <!-- =====================================================
-       ANNOUNCEMENT BAR
-  ====================================================== -->
-  <div class="announcement-bar">
-    <div class="announcement-inner">
-
-      <span class="announcement-badge">
-        ✦ OFFICIAL
-      </span>
-
-      <div class="announcement-marquee">
-        <div class="announcement-track" id="announcementTrack">
-          Welcome to AAKASH EARTH  • Unity • Seva • Sanskar • Celebration
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-
-  <!-- =====================================================
+  <!-- ================================
        HEADER
-  ====================================================== -->
+  ================================= -->
+
   <header class="main-header" id="mainHeader">
 
-    <div class="header-container">
+    <div class="nav-container">
 
-      <!-- BRAND -->
       <a href="#home" class="brand">
 
-        <div class="brand-emblem">
-          <span>AE</span>
+        <div class="brand-logo">
+          AE
         </div>
 
         <div class="brand-text">
           <strong>AAKASH EARTH</strong>
-          
+          <small>COMMUNITY PORTAL</small>
         </div>
 
       </a>
 
 
-      <!-- DESKTOP NAV -->
       <nav class="desktop-nav">
 
-        <a href="#home" class="nav-link active">
-          Home
-        </a>
+        <a href="#home">Home</a>
 
-        <a href="#members" class="nav-link">
-          Members
-        </a>
+        <a href="#members">Members</a>
 
-        <a href="#festivals" class="nav-link">
-          Festivals
-        </a>
+        <a href="#festivals">Festivals</a>
 
-        <a href="#volunteers" class="nav-link">
-          Volunteers
-        </a>
+        <a href="#volunteers">Volunteers</a>
 
-        <a href="#committee" class="nav-link">
-          Committee
-        </a>
+        <a href="#yuwa-mandal">Committee</a>
 
-        <a href="#sports" class="nav-link">
-          Sports
-        </a>
+        <a href="#sports">Sports</a>
 
-        <a href="#updates" class="nav-link">
-          Updates
-        </a>
+        <a href="#gallery">Gallery</a>
 
-        <a href="#gallery" class="nav-link">
-          Gallery
+        <a href="./complaint.html">
+          Complaint
         </a>
 
       </nav>
 
 
-      <!-- HEADER ACTIONS -->
       <div class="header-actions">
 
         <a
-          href="complaint.html"
-          class="header-complaint-btn"
+          href="./login.html"
+          class="login-btn"
         >
-          Complaint
-        </a>
-
-        <a
-          href="login.html"
-          class="header-login-btn"
-        >
-          <span>Portal Login</span>
-          <span class="btn-arrow">→</span>
+          LOGIN
         </a>
 
         <button
-          type="button"
           class="mobile-menu-btn"
           id="mobileMenuBtn"
+          type="button"
           aria-label="Open menu"
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          ☰
         </button>
 
       </div>
@@ -151,348 +107,248 @@
     </div>
 
 
-    <!-- MOBILE NAV -->
-    <div class="mobile-nav" id="mobileNav">
+    <nav
+      class="mobile-nav"
+      id="mobileNav"
+    >
 
-      <a href="#home" class="mobile-nav-link">
-        Home
+      <a href="#home">Home</a>
+
+      <a href="#members">Members</a>
+
+      <a href="#festivals">Festivals</a>
+
+      <a href="#volunteers">Volunteers</a>
+
+      <a href="#yuwa-mandal">Committee</a>
+
+      <a href="#sports">Sports</a>
+
+      <a href="#gallery">Gallery</a>
+
+      <a href="./complaint.html">
+        Complaint
       </a>
 
-      <a href="#members" class="mobile-nav-link">
-        Members
+      <a href="./login.html">
+        Login
       </a>
 
-      <a href="#festivals" class="mobile-nav-link">
-        Festivals
-      </a>
-
-      <a href="#volunteers" class="mobile-nav-link">
-        Volunteers
-      </a>
-
-      <a href="#committee" class="mobile-nav-link">
-        Committee
-      </a>
-
-      <a href="#sports" class="mobile-nav-link">
-        Sports
-      </a>
-
-      <a href="#updates" class="mobile-nav-link">
-        Updates
-      </a>
-
-      <a href="#gallery" class="mobile-nav-link">
-        Gallery
-      </a>
-
-      <a
-        href="complaint.html"
-        class="mobile-nav-special complaint"
-      >
-        Submit Complaint
-      </a>
-
-      <a
-        href="login.html"
-        class="mobile-nav-special login"
-      >
-        Portal Login
-      </a>
-
-    </div>
+    </nav>
 
   </header>
 
 
-  <!-- =====================================================
-       HERO SECTION
-  ====================================================== -->
+  <!-- ================================
+       HERO
+  ================================= -->
+
   <main>
 
-    <section class="hero-section" id="home">
+    <section
+      class="hero-section"
+      id="home"
+    >
 
-      <div class="hero-decoration hero-decoration-one"></div>
-      <div class="hero-decoration hero-decoration-two"></div>
+      <div class="hero-shape hero-shape-one"></div>
+      <div class="hero-shape hero-shape-two"></div>
+      <div class="hero-shape hero-shape-three"></div>
 
-      <div class="hero-slider" id="heroSlider">
 
-        <!-- SLIDE 1 -->
-        <article class="hero-slide active">
+      <div class="hero-container">
 
-          <div class="hero-content">
+        <div class="hero-content reveal">
 
-            <div class="hero-eyebrow">
-              ✦ OFFICIAL COMMUNITY PORTAL
+          <div class="hero-badge">
+            <span></span>
+            COMMUNITY NETWORK
+          </div>
+
+          <p class="hero-kicker">
+            CONNECT • CELEBRATE • CONTRIBUTE
+          </p>
+
+          <h1>
+            ONE COMMUNITY.
+            <span>ONE DIGITAL HOME.</span>
+          </h1>
+
+          <p class="hero-description">
+            Members, volunteers, festivals,
+            sports, community activities and
+            digital services — all connected
+            through one modern platform.
+          </p>
+
+
+          <div class="hero-buttons">
+
+            <a
+              href="./login.html"
+              class="primary-btn"
+            >
+              ENTER PORTAL
+            </a>
+
+            <a
+              href="#members"
+              class="secondary-btn"
+            >
+              EXPLORE COMMUNITY
+            </a>
+
+          </div>
+
+
+          <div class="hero-mini-features">
+
+            <div>
+              <strong>LIVE</strong>
+              <span>Community Data</span>
             </div>
 
-            <h1>
-              Together We Build
-              <span>A Stronger Community</span>
-            </h1>
+            <div>
+              <strong>24×7</strong>
+              <span>Portal Access</span>
+            </div>
 
-            <p>
-              Welcome to AAKASH EARTH  — a digital
-              platform for our members, volunteers, celebrations,
-              sports, seva and community activities.
-            </p>
-
-            <div class="hero-actions">
-
-              <a href="#members" class="luxury-btn primary">
-                Explore Our Community
-                <span>→</span>
-              </a>
-
-              <a href="complaint.html" class="luxury-btn secondary">
-                Submit Complaint
-              </a>
-
+            <div>
+              <strong>ONE</strong>
+              <span>Connected Platform</span>
             </div>
 
           </div>
 
-          <div class="hero-visual">
+        </div>
 
-            <div class="royal-emblem-card">
 
-              <div class="royal-ring ring-one"></div>
-              <div class="royal-ring ring-two"></div>
+        <!-- HERO VISUAL -->
 
-              <div class="royal-center">
-                <span class="royal-small">EST.</span>
-                <strong>AE</strong>
-                <span></span>
+        <div class="hero-visual reveal">
+
+          <div class="community-core">
+
+            <div class="core-top">
+              <span>AE NETWORK</span>
+              <small>ACTIVE</small>
+            </div>
+
+            <div class="core-logo">
+              AE
+            </div>
+
+            <h2>
+              AAKASH EARTH
+            </h2>
+
+            <p>
+              DIGITAL COMMUNITY SYSTEM
+            </p>
+
+
+            <div class="core-grid">
+
+              <div class="core-stat cyan-card">
+                <span>MEMBERS</span>
+                <strong id="memberCountDisplay">
+                  0
+                </strong>
+              </div>
+
+              <div class="core-stat green-card">
+                <span>VOLUNTEERS</span>
+                <strong id="volunteerCountDisplay">
+                  0
+                </strong>
+              </div>
+
+              <div class="core-stat orange-card">
+                <span>FESTIVALS</span>
+                <strong id="festivalCountDisplay">
+                  0
+                </strong>
+              </div>
+
+              <div class="core-stat pink-card">
+                <span>SPORTS</span>
+                <strong id="sportsCountDisplay">
+                  0
+                </strong>
               </div>
 
             </div>
 
           </div>
 
-        </article>
+        </div>
+
+      </div>
+
+    </section>
 
 
-        <!-- SLIDE 2 -->
-        <article class="hero-slide">
+    <!-- Hidden live counter sources -->
 
-          <div class="hero-content">
+    <div class="live-counter-source" aria-hidden="true">
+      <span id="memberCount">0</span>
+      <span id="volunteerCount">0</span>
+      <span id="festivalCount">0</span>
+      <span id="sportsCount">0</span>
+    </div>
 
-            <div class="hero-eyebrow">
-              ✦ UNITY • SEVA • SANSKAR
-            </div>
 
-            <h1>
-              Celebrating Every
-              <span>Moment Together</span>
-            </h1>
+    <!-- ================================
+         COMMUNITY PULSE
+    ================================= -->
 
+    <section class="pulse-section">
+
+      <div class="section-container">
+
+        <div class="pulse-grid">
+
+          <article class="pulse-card pulse-blue reveal">
+            <div class="pulse-icon">01</div>
+            <span>COMMUNITY</span>
+            <h3>Members</h3>
             <p>
-              Festivals, social activities, youth participation
-              and memorable community moments — all connected
-              through one platform.
+              Connect with registered
+              community members.
             </p>
-
-            <div class="hero-actions">
-
-              <a href="#festivals" class="luxury-btn primary">
-                View Festivals
-                <span>→</span>
-              </a>
-
-              <a href="#gallery" class="luxury-btn secondary">
-                View Gallery
-              </a>
-
-            </div>
-
-          </div>
-
-          <div class="hero-visual">
-
-            <div class="hero-feature-card">
-
-              <span class="feature-icon">ॐ</span>
-
-              <strong>
-                Celebrations With Unity
-              </strong>
-
-              <p>
-                Culture • Community • Togetherness
-              </p>
-
-            </div>
-
-          </div>
-
-        </article>
+          </article>
 
 
-        <!-- SLIDE 3 -->
-        <article class="hero-slide">
-
-          <div class="hero-content">
-
-            <div class="hero-eyebrow">
-              ✦ YOUTH & COMMUNITY
-            </div>
-
-            <h1>
-              Serve • Participate
-              <span>Grow Together</span>
-            </h1>
-
+          <article class="pulse-card pulse-green reveal">
+            <div class="pulse-icon">02</div>
+            <span>SERVICE</span>
+            <h3>Volunteers</h3>
             <p>
-              Our members and volunteers work together to
-              organize activities and contribute towards
-              a better community.
+              Tasks, points and community
+              contribution.
             </p>
-
-            <div class="hero-actions">
-
-              <a href="#volunteers" class="luxury-btn primary">
-                Meet Volunteers
-                <span>→</span>
-              </a>
-
-              <a href="volunteer.html" class="luxury-btn secondary">
-                Join As Volunteer
-              </a>
-
-            </div>
-
-          </div>
-
-          <div class="hero-visual">
-
-            <div class="hero-feature-card emerald-card">
-
-              <span class="feature-icon">🤝</span>
-
-              <strong>
-                Together For Community
-              </strong>
-
-              <p>
-                Volunteer • Organize • Serve
-              </p>
-
-            </div>
-
-          </div>
-
-        </article>
-
-      </div>
+          </article>
 
 
-      <!-- HERO CONTROLS -->
-      <div class="hero-controls">
-
-        <button
-          type="button"
-          class="hero-arrow"
-          id="heroPrev"
-          aria-label="Previous slide"
-        >
-          ‹
-        </button>
-
-        <div class="hero-dots" id="heroDots">
-
-          <button
-            type="button"
-            class="hero-dot active"
-            data-hero-slide="0"
-          ></button>
-
-          <button
-            type="button"
-            class="hero-dot"
-            data-hero-slide="1"
-          ></button>
-
-          <button
-            type="button"
-            class="hero-dot"
-            data-hero-slide="2"
-          ></button>
-
-        </div>
-
-        <button
-          type="button"
-          class="hero-arrow"
-          id="heroNext"
-          aria-label="Next slide"
-        >
-          ›
-        </button>
-
-      </div>
-
-    </section>
+          <article class="pulse-card pulse-orange reveal">
+            <div class="pulse-icon">03</div>
+            <span>CELEBRATION</span>
+            <h3>Festivals</h3>
+            <p>
+              Stay connected with upcoming
+              celebrations.
+            </p>
+          </article>
 
 
-    <!-- =====================================================
-         LIVE STATISTICS
-    ====================================================== -->
-    <section class="stats-section">
-
-      <div class="stats-container">
-
-        <div class="stat-card blue-stat">
-
-          <div class="stat-icon">
-            👥
-          </div>
-
-          <div>
-            <strong id="memberCount">0</strong>
-            <span>Members</span>
-          </div>
-
-        </div>
-
-
-        <div class="stat-card green-stat">
-
-          <div class="stat-icon">
-            🤝
-          </div>
-
-          <div>
-            <strong id="volunteerCount">0</strong>
-            <span>Volunteers</span>
-          </div>
-
-        </div>
-
-
-        <div class="stat-card gold-stat">
-
-          <div class="stat-icon">
-            🪔
-          </div>
-
-          <div>
-            <strong id="festivalCount">0</strong>
-            <span>Festivals</span>
-          </div>
-
-        </div>
-
-
-        <div class="stat-card maroon-stat">
-
-          <div class="stat-icon">
-            🏆
-          </div>
-
-          <div>
-            <strong id="sportsCount">0</strong>
-            <span>Sports</span>
-          </div>
+          <article class="pulse-card pulse-pink reveal">
+            <div class="pulse-icon">04</div>
+            <span>ACTIVITY</span>
+            <h3>Sports</h3>
+            <p>
+              Events, registration and
+              participation.
+            </p>
+          </article>
 
         </div>
 
@@ -501,291 +357,84 @@
     </section>
 
 
-    <!-- =====================================================
-         MEMBERS - FLOATING / AUTO SLIDER
-    ====================================================== -->
-    <section class="section-block members-section" id="members">
+    <!-- ================================
+         MEMBERS
+    ================================= -->
 
-      <div class="section-heading">
-
-        <div>
-          <span class="section-label">
-            OUR FAMILY
-          </span>
-
-          <h2>
-            Aakash Earth
-            <span>Members</span>
-          </h2>
-
-          <p>
-            Meet the people who make our community stronger.
-          </p>
-        </div>
-
-
-        <div class="section-heading-actions">
-
-          <select
-            id="memberYearSelect"
-            class="year-select"
-            aria-label="Select member year"
-          >
-            <option value="all">All Years</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-          </select>
-
-          <span class="result-count">
-            <strong id="publicMemberCount">0</strong>
-            Members
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <div class="floating-slider-wrapper">
-
-        <button
-          type="button"
-          class="slider-arrow left"
-          id="memberPrev"
-          aria-label="Previous members"
-        >
-          ‹
-        </button>
-
-        <div
-          class="floating-slider"
-          id="memberSlider"
-        >
-
-          <div
-            class="floating-track"
-            id="memberGrid"
-          >
-
-            <div class="slider-empty">
-              Loading members...
-            </div>
-
-          </div>
-
-        </div>
-
-        <button
-          type="button"
-          class="slider-arrow right"
-          id="memberNext"
-          aria-label="Next members"
-        >
-          ›
-        </button>
-
-      </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         FESTIVALS
-    ====================================================== -->
-    <section class="section-block tinted-section" id="festivals">
-
-      <div class="section-heading">
-
-        <div>
-          <span class="section-label">
-            CELEBRATIONS
-          </span>
-
-          <h2>
-            Festivals &
-            <span>Events</span>
-          </h2>
-
-          <p>
-            Celebrating traditions, culture and happiness together.
-          </p>
-        </div>
-
-        <div class="slider-controls">
-
-          <button
-            type="button"
-            class="small-slider-arrow"
-            data-slider-prev="festivalSlider"
-          >
-            ‹
-          </button>
-
-          <button
-            type="button"
-            class="small-slider-arrow"
-            data-slider-next="festivalSlider"
-          >
-            ›
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <div class="content-slider" id="festivalSlider">
-
-        <div class="content-slider-track" id="festivalGrid">
-
-          <div class="slider-empty">
-            Festival information will appear here.
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         VOLUNTEERS
-    ====================================================== -->
-    <section class="section-block" id="volunteers">
-
-      <div class="section-heading">
-
-        <div>
-          <span class="section-label emerald-label">
-            SEVA
-          </span>
-
-          <h2>
-            Our
-            <span>Volunteers</span>
-          </h2>
-
-          <p>
-            Recognizing the people who contribute their time
-            and effort to our community.
-          </p>
-        </div>
-
-
-        <div class="section-heading-actions">
-
-          <select
-            id="volunteerYearSelect"
-            class="year-select"
-            aria-label="Select volunteer year"
-          >
-            <option value="all">All Years</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-          </select>
-
-          <span class="result-count">
-            <strong id="publicVolunteerCount">0</strong>
-            Volunteers
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <div class="content-slider" id="volunteerSlider">
-
-        <button
-          type="button"
-          class="slider-arrow left"
-          id="volunteerPrev"
-        >
-          ‹
-        </button>
-
-        <div
-          class="content-slider-track"
-          id="volunteerGrid"
-        >
-
-          <div class="slider-empty">
-            Loading volunteers...
-          </div>
-
-        </div>
-
-        <button
-          type="button"
-          class="slider-arrow right"
-          id="volunteerNext"
-        >
-          ›
-        </button>
-
-      </div>
-
-
-      <div class="center-action">
-
-        <a
-          href="volunteer.html"
-          class="luxury-btn emerald-btn"
-        >
-          Become A Volunteer
-          <span>→</span>
-        </a>
-
-      </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         COMMITTEE
-    ====================================================== -->
     <section
-      class="section-block royal-section"
-      id="committee"
+      class="content-section members-section"
+      id="members"
     >
 
-      <div class="section-heading light-heading">
+      <div class="section-container">
 
-        <div>
+        <div class="section-heading reveal">
 
-          <span class="section-label">
-            LEADERSHIP
-          </span>
+          <div>
+            <span class="section-label">
+              COMMUNITY DIRECTORY
+            </span>
 
-          <h2>
-            Yuwa Mandal
-            <span>Committee</span>
-          </h2>
+            <h2>
+              Our
+              <em>Members</em>
+            </h2>
+          </div>
 
-          <p>
-            Meet our community organizers and committee members.
-          </p>
+
+          <div class="section-controls">
+
+            <select
+              id="memberYearSelect"
+              aria-label="Member year"
+            >
+              <option value="all">
+                All Years
+              </option>
+            </select>
+
+            <div class="section-count">
+              <strong id="publicMemberCount">
+                0
+              </strong>
+              <span>MEMBERS</span>
+            </div>
+
+          </div>
 
         </div>
 
 
-        <div class="slider-controls">
+        <div class="slider-shell">
 
           <button
+            class="slider-arrow"
+            id="memberPrev"
             type="button"
-            class="small-slider-arrow light"
-            data-slider-prev="committeeSlider"
+            aria-label="Previous members"
           >
             ‹
           </button>
 
+          <div
+            class="card-slider"
+            id="memberSlider"
+          >
+            <div
+              class="dynamic-grid"
+              id="memberGrid"
+            >
+              <div class="loading-card">
+                Loading members...
+              </div>
+            </div>
+          </div>
+
           <button
+            class="slider-arrow"
+            id="memberNext"
             type="button"
-            class="small-slider-arrow light"
-            data-slider-next="committeeSlider"
+            aria-label="Next members"
           >
             ›
           </button>
@@ -794,20 +443,74 @@
 
       </div>
 
+    </section>
 
-      <div
-        class="content-slider"
-        id="committeeSlider"
-      >
 
-        <div
-          class="content-slider-track"
-          id="committeeGrid"
-        >
+    <!-- ================================
+         FESTIVALS
+    ================================= -->
 
-          <div class="slider-empty light-empty">
-            Committee information will appear here.
+    <section
+      class="content-section festivals-section"
+      id="festivals"
+    >
+
+      <div class="section-container">
+
+        <div class="section-heading reveal">
+
+          <div>
+            <span class="section-label">
+              CELEBRATE TOGETHER
+            </span>
+
+            <h2>
+              Festivals &
+              <em>Events</em>
+            </h2>
           </div>
+
+          <p>
+            Important celebrations,
+            programs and upcoming events.
+          </p>
+
+        </div>
+
+
+        <div class="slider-shell">
+
+          <button
+            class="slider-arrow"
+            id="festivalPrev"
+            type="button"
+            aria-label="Previous festivals"
+          >
+            ‹
+          </button>
+
+          <div
+            class="card-slider"
+            id="festivalSlider"
+          >
+            <div
+              class="dynamic-grid"
+              id="festivalGrid"
+            >
+              <div class="loading-card">
+                Loading festivals...
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="slider-arrow"
+            id="festivalNext"
+            type="button"
+            aria-label="Next festivals"
+          >
+            ›
+          </button>
 
         </div>
 
@@ -816,49 +519,231 @@
     </section>
 
 
-    <!-- =====================================================
-         SPORTS
-    ====================================================== -->
+    <!-- ================================
+         VOLUNTEERS
+    ================================= -->
+
     <section
-      class="section-block"
+      class="content-section volunteers-section"
+      id="volunteers"
+    >
+
+      <div class="section-container">
+
+        <div class="section-heading reveal">
+
+          <div>
+            <span class="section-label">
+              COMMUNITY HEROES
+            </span>
+
+            <h2>
+              Our
+              <em>Volunteers</em>
+            </h2>
+          </div>
+
+
+          <div class="section-controls">
+
+            <select
+              id="volunteerYearSelect"
+              aria-label="Volunteer year"
+            >
+              <option value="all">
+                All Years
+              </option>
+            </select>
+
+            <div class="section-count">
+              <strong id="publicVolunteerCount">
+                0
+              </strong>
+              <span>VOLUNTEERS</span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="slider-shell">
+
+          <button
+            class="slider-arrow"
+            id="volunteerPrev"
+            type="button"
+            aria-label="Previous volunteers"
+          >
+            ‹
+          </button>
+
+          <div
+            class="card-slider"
+            id="volunteerSlider"
+          >
+            <div
+              class="dynamic-grid"
+              id="volunteerGrid"
+            >
+              <div class="loading-card">
+                Loading volunteers...
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="slider-arrow"
+            id="volunteerNext"
+            type="button"
+            aria-label="Next volunteers"
+          >
+            ›
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================
+         DEDICATED COMMITTEE SECTION
+    ================================= -->
+
+    <section
+      class="content-section committee-section"
+      id="yuwa-mandal"
+    >
+
+      <div class="section-container">
+
+        <div class="section-heading reveal">
+
+          <div>
+            <span class="section-label">
+              LEADERSHIP & RESPONSIBILITY
+            </span>
+
+            <h2>
+              AAKASH EARTH GANPATI
+              <em>YUWA MANDAL</em>
+            </h2>
+          </div>
+
+          <p>
+            Yuwa Mandal leadership,
+            committee members and
+            responsibilities.
+          </p>
+
+        </div>
+
+
+        <div class="slider-shell">
+
+          <button
+            class="slider-arrow"
+            id="committeePrev"
+            type="button"
+            aria-label="Previous committee member"
+          >
+            ‹
+          </button>
+
+          <div
+            class="card-slider"
+            id="committeeSlider"
+          >
+            <div
+              class="dynamic-grid"
+              id="committeeGrid"
+            >
+              <div class="loading-card">
+                Loading committee...
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="slider-arrow"
+            id="committeeNext"
+            type="button"
+            aria-label="Next committee member"
+          >
+            ›
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================
+         SPORTS
+    ================================= -->
+
+    <section
+      class="content-section sports-section"
       id="sports"
     >
 
-      <div class="section-heading">
+      <div class="section-container">
 
-        <div>
+        <div class="section-heading reveal">
 
-          <span class="section-label maroon-label">
-            ENERGY & TEAMWORK
-          </span>
+          <div>
+            <span class="section-label">
+              PLAY • COMPETE • CONNECT
+            </span>
 
-          <h2>
-            Community
-            <span>Sports</span>
-          </h2>
+            <h2>
+              Sports &
+              <em>Activities</em>
+            </h2>
+          </div>
 
           <p>
-            Matches, tournaments and sporting activities
-            organized by our community.
+            Discover sports events and
+            register directly from the portal.
           </p>
 
         </div>
 
 
-        <div class="slider-controls">
+        <div class="slider-shell">
 
           <button
+            class="slider-arrow"
+            id="sportsPrev"
             type="button"
-            class="small-slider-arrow"
-            data-slider-prev="sportsSlider"
+            aria-label="Previous sports event"
           >
             ‹
           </button>
 
+          <div
+            class="card-slider"
+            id="sportsSlider"
+          >
+            <div
+              class="dynamic-grid"
+              id="sportsGrid"
+            >
+              <div class="loading-card">
+                Loading sports...
+              </div>
+            </div>
+          </div>
+
           <button
+            class="slider-arrow"
+            id="sportsNext"
             type="button"
-            class="small-slider-arrow"
-            data-slider-next="sportsSlider"
+            aria-label="Next sports event"
           >
             ›
           </button>
@@ -867,93 +752,48 @@
 
       </div>
 
-
-      <div
-        class="content-slider"
-        id="sportsSlider"
-      >
-
-        <div
-          class="content-slider-track"
-          id="sportsGrid"
-        >
-
-          <div class="slider-empty">
-            Sports activities will appear here.
-          </div>
-
-        </div>
-
-      </div>
-
     </section>
 
 
-    <!-- =====================================================
+    <!-- ================================
          UPDATES
-    ====================================================== -->
+    ================================= -->
+
     <section
-      class="section-block tinted-section"
+      class="content-section updates-section"
       id="updates"
     >
 
-      <div class="section-heading">
+      <div class="section-container">
 
-        <div>
+        <div class="section-heading reveal">
 
-          <span class="section-label">
-            COMMUNITY NEWS
-          </span>
+          <div>
+            <span class="section-label">
+              WHAT'S HAPPENING
+            </span>
 
-          <h2>
-            Latest
-            <span>Updates</span>
-          </h2>
-
-          <p>
-            Important announcements and updates from Aakash Earth.
-          </p>
-
-        </div>
-
-
-        <div class="slider-controls">
-
-          <button
-            type="button"
-            class="small-slider-arrow"
-            data-slider-prev="updatesSlider"
-          >
-            ‹
-          </button>
-
-          <button
-            type="button"
-            class="small-slider-arrow"
-            data-slider-next="updatesSlider"
-          >
-            ›
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <div
-        class="content-slider"
-        id="updatesSlider"
-      >
-
-        <div
-          class="content-slider-track"
-          id="updatesGrid"
-        >
-
-          <div class="slider-empty">
-            Community updates will appear here.
+            <h2>
+              Latest
+              <em>Updates</em>
+            </h2>
           </div>
 
+        </div>
+
+
+        <div
+          class="updates-slider"
+          id="updatesSlider"
+        >
+          <div
+            class="updates-grid"
+            id="updatesGrid"
+          >
+            <div class="loading-card">
+              Loading updates...
+            </div>
+          </div>
         </div>
 
       </div>
@@ -961,48 +801,68 @@
     </section>
 
 
-    <!-- =====================================================
+    <!-- ================================
          GALLERY
-    ====================================================== -->
+    ================================= -->
+
     <section
-      class="section-block gallery-section"
+      class="content-section gallery-section"
       id="gallery"
     >
 
-      <div class="section-heading">
+      <div class="section-container">
 
-        <div>
+        <div class="section-heading reveal">
 
-          <span class="section-label emerald-label">
-            MEMORIES
-          </span>
+          <div>
+            <span class="section-label">
+              COMMUNITY MOMENTS
+            </span>
 
-          <h2>
-            Community
-            <span>Gallery</span>
-          </h2>
+            <h2>
+              Photo
+              <em>Gallery</em>
+            </h2>
+          </div>
 
           <p>
-            Moments and memories from our celebrations and activities.
+            Memories from celebrations,
+            activities and community events.
           </p>
 
         </div>
 
 
-        <div class="slider-controls">
+        <div class="slider-shell">
 
           <button
+            class="slider-arrow"
+            id="galleryPrev"
             type="button"
-            class="small-slider-arrow"
-            data-slider-prev="gallerySlider"
+            aria-label="Previous gallery image"
           >
             ‹
           </button>
 
+          <div
+            class="card-slider"
+            id="gallerySlider"
+          >
+            <div
+              class="gallery-grid"
+              id="galleryGrid"
+            >
+              <div class="loading-card">
+                Loading gallery...
+              </div>
+            </div>
+          </div>
+
           <button
+            class="slider-arrow"
+            id="galleryNext"
             type="button"
-            class="small-slider-arrow"
-            data-slider-next="gallerySlider"
+            aria-label="Next gallery image"
           >
             ›
           </button>
@@ -1011,20 +871,160 @@
 
       </div>
 
+    </section>
 
-      <div
-        class="gallery-slider"
-        id="gallerySlider"
-      >
 
-        <div
-          class="gallery-track"
-          id="galleryGrid"
-        >
+    <!-- ================================
+         DIGITAL SERVICES
+    ================================= -->
 
-          <div class="slider-empty">
-            Gallery photos will appear here.
-          </div>
+    <section class="services-section">
+
+      <div class="section-container">
+
+        <div class="center-heading reveal">
+
+          <span>DIGITAL SERVICES</span>
+
+          <h2>
+            Everything in
+            <em>One Portal</em>
+          </h2>
+
+          <p>
+            Quick access to important
+            community services.
+          </p>
+
+        </div>
+
+
+        <div class="services-grid">
+
+          <a
+            href="./login.html"
+            class="service-card service-blue reveal"
+          >
+            <span class="service-number">
+              01
+            </span>
+
+            <h3>Member Portal</h3>
+
+            <p>
+              Profile, ID card and
+              community information.
+            </p>
+
+            <strong>
+              OPEN PORTAL →
+            </strong>
+          </a>
+
+
+          <a
+            href="./login.html"
+            class="service-card service-green reveal"
+          >
+            <span class="service-number">
+              02
+            </span>
+
+            <h3>Volunteer Portal</h3>
+
+            <p>
+              Tasks, points, ranking and
+              ID card.
+            </p>
+
+            <strong>
+              OPEN PORTAL →
+            </strong>
+          </a>
+
+
+          <a
+            href="./complaint.html"
+            class="service-card service-orange reveal"
+          >
+            <span class="service-number">
+              03
+            </span>
+
+            <h3>Complaint</h3>
+
+            <p>
+              Submit and track a
+              community complaint.
+            </p>
+
+            <strong>
+              SUBMIT →
+            </strong>
+          </a>
+
+
+          <a
+            href="./verify.html"
+            class="service-card service-pink reveal"
+          >
+            <span class="service-number">
+              04
+            </span>
+
+            <h3>ID Verification</h3>
+
+            <p>
+              Verify digital Member or
+              Volunteer ID.
+            </p>
+
+            <strong>
+              VERIFY →
+            </strong>
+          </a>
+
+
+          <a
+            href="./ranking.html"
+            class="service-card service-purple reveal"
+          >
+            <span class="service-number">
+              05
+            </span>
+
+            <h3>Volunteer Ranking</h3>
+
+            <p>
+              View points and
+              leaderboard positions.
+            </p>
+
+            <strong>
+              VIEW RANKING →
+            </strong>
+          </a>
+
+
+          <a
+            href="#sports"
+            class="service-card service-yellow reveal"
+          >
+            <span class="service-number">
+              06
+            </span>
+
+            <h3>Sports Registration</h3>
+
+            <p>
+              Join available sports and
+              community activities.
+            </p>
+
+            <strong>
+              VIEW SPORTS →
+            </strong>
+          </a>
 
         </div>
 
@@ -1033,141 +1033,41 @@
     </section>
 
 
-    <!-- =====================================================
-         PUBLIC COMPLAINT SECTION
-    ====================================================== -->
-    <section class="complaint-section">
+    <!-- ================================
+         CTA
+    ================================= -->
 
-      <div class="complaint-decoration"></div>
+    <section class="portal-cta">
 
-      <div class="complaint-container">
+      <div class="section-container">
 
-        <div class="complaint-icon">
-          !
-        </div>
+        <div class="portal-cta-box reveal">
 
-        <div class="complaint-content">
-
-          <span class="section-label light-label">
-            COMMUNITY SUPPORT
-          </span>
-
-          <h2>
-            Have a concern or complaint?
-          </h2>
-
-          <p>
-            Any person can submit a complaint regarding a
-            Member, Volunteer, Admin or Other matter.
-            Your complaint will receive a unique tracking ID.
-          </p>
-
-        </div>
-
-
-        <div class="complaint-actions">
-
-          <a
-            href="complaint.html"
-            class="luxury-btn complaint-btn"
-          >
-            Submit Complaint
-            <span>→</span>
-          </a>
-
-          <a
-            href="complaint.html#track"
-            class="complaint-track-link"
-          >
-            Track Complaint
-          </a>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         PORTAL SECTION
-    ====================================================== -->
-    <section class="portal-section">
-
-      <div class="portal-container">
-
-        <div class="portal-copy">
-
-          <span class="section-label">
-            MEMBER PORTAL
-          </span>
-
-          <h2>
-            One Community.
-            <span>One Digital Platform.</span>
-          </h2>
-
-          <p>
-            Members, volunteers and administrators can access
-            their respective dashboards using the official portal.
-          </p>
-
-          <a
-            href="login.html"
-            class="luxury-btn primary"
-          >
-            Open Portal
-            <span>→</span>
-          </a>
-
-        </div>
-
-
-        <div class="portal-cards">
-
-          <div class="mini-portal-card admin-card">
-
-            <div class="mini-portal-icon">
-              👑
-            </div>
-
-            <strong>Admin</strong>
+          <div>
 
             <span>
-              Manage the community
+              AAKASH EARTH DIGITAL NETWORK
             </span>
+
+            <h2>
+              Your community.
+              <em>Your portal.</em>
+            </h2>
+
+            <p>
+              Login to access your
+              personalized dashboard.
+            </p>
 
           </div>
 
 
-          <div class="mini-portal-card member-card">
-
-            <div class="mini-portal-icon">
-              👤
-            </div>
-
-            <strong>Member</strong>
-
-            <span>
-              Tasks & activities
-            </span>
-
-          </div>
-
-
-          <div class="mini-portal-card volunteer-card">
-
-            <div class="mini-portal-icon">
-              🤝
-            </div>
-
-            <strong>Volunteer</strong>
-
-            <span>
-              Serve & contribute
-            </span>
-
-          </div>
+          <a
+            href="./login.html"
+            class="cta-login-btn"
+          >
+            LOGIN TO PORTAL →
+          </a>
 
         </div>
 
@@ -1178,78 +1078,86 @@
   </main>
 
 
-  <!-- =====================================================
+  <!-- ================================
        FOOTER
-  ====================================================== -->
+  ================================= -->
+
   <footer class="main-footer">
 
-    <div class="footer-top">
+    <div class="footer-color-strip"></div>
+
+    <div class="section-container footer-grid">
 
       <div class="footer-brand">
 
-        <div class="brand">
-
-          <div class="brand-emblem">
-            <span>AE</span>
-          </div>
-
-          <div class="brand-text">
-            <strong>AAKASH EARTH</strong>
-            <span></span>
-          </div>
-
+        <div class="brand-logo">
+          AE
         </div>
 
+        <h3>
+          AAKASH EARTH
+        </h3>
+
         <p>
-          Unity • Seva • Sanskar • Celebration
+          Connecting community,
+          celebrations, service and
+          activities through one
+          digital platform.
         </p>
 
       </div>
 
 
-      <div class="footer-column">
+      <div class="footer-links">
 
-        <strong>Community</strong>
+        <h4>QUICK ACCESS</h4>
 
         <a href="#members">Members</a>
         <a href="#volunteers">Volunteers</a>
-        <a href="#committee">Committee</a>
-        <a href="#sports">Sports</a>
-
-      </div>
-
-
-      <div class="footer-column">
-
-        <strong>Explore</strong>
-
         <a href="#festivals">Festivals</a>
-        <a href="#updates">Updates</a>
-        <a href="#gallery">Gallery</a>
-        <a href="volunteer.html">Join Volunteer</a>
+        <a href="#sports">Sports</a>
+        <a href="./complaint.html">Complaint</a>
 
       </div>
 
 
-      <div class="footer-column">
+      <div class="footer-links">
 
-        <strong>Support</strong>
+        <h4>PORTALS</h4>
 
-        <a href="complaint.html">
-          Submit Complaint
+        <a href="./login.html">
+          Member Login
         </a>
 
-        <a href="complaint.html#track">
-          Track Complaint
+        <a href="./login.html">
+          Volunteer Login
         </a>
 
-        <a href="login.html">
-          Portal Login
+        <a href="./ranking.html">
+          Ranking
         </a>
 
-        <a href="verify.html">
-          Verify ID
+        <a href="./verify.html">
+          ID Verification
         </a>
+
+      </div>
+
+
+      <div class="footer-support">
+
+        <span>
+          TECHNICAL SUPPORT
+        </span>
+
+        <strong>
+          BROTHER HOOD
+        </strong>
+
+        <small>
+          DIGITAL DEVELOPMENT &
+          TECHNICAL SYSTEM
+        </small>
 
       </div>
 
@@ -1259,12 +1167,12 @@
     <div class="footer-bottom">
 
       <span>
-         <span id="currentYear"></span>
-        AAKASH EARTH 
+        © <span id="currentYear"></span>
+        AAKASH EARTH
       </span>
 
       <span>
-        Official Community Portal
+        COMMUNITY DIGITAL PORTAL
       </span>
 
     </div>
@@ -1272,45 +1180,371 @@
   </footer>
 
 
-  <!-- =====================================================
-       FLOATING ACTION BUTTONS
-  ====================================================== -->
-  <div class="floating-actions">
+  <!-- ================================
+       SPORTS REGISTRATION MODAL
+  ================================= -->
 
-    <a
-      href="complaint.html"
-      class="floating-action complaint-fab"
-      title="Submit Complaint"
-      aria-label="Submit Complaint"
-    >
-      !
-    </a>
+  <div
+    class="modal-overlay"
+    id="sportsRegistrationModal"
+    aria-hidden="true"
+  >
 
-    <a
-      href="login.html"
-      class="floating-action login-fab"
-      title="Portal Login"
-      aria-label="Portal Login"
-    >
-      👤
-    </a>
+    <div class="sports-modal">
+
+      <button
+        type="button"
+        class="modal-close"
+        id="closeSportsRegistrationModal"
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+
+      <div class="modal-heading">
+
+        <span>
+          SPORTS REGISTRATION
+        </span>
+
+        <h2 id="sportsRegistrationTitle">
+          Register
+        </h2>
+
+      </div>
+
+
+      <div id="sportsRegistrationFormArea">
+
+        <div class="sports-info-grid">
+
+          <div>
+            <small>SPORT</small>
+            <strong id="registrationSportsName">—</strong>
+          </div>
+
+          <div>
+            <small>DATE</small>
+            <strong id="registrationSportsDate">—</strong>
+          </div>
+
+          <div>
+            <small>VENUE</small>
+            <strong id="registrationSportsVenue">—</strong>
+          </div>
+
+          <div>
+            <small>LAST DATE</small>
+            <strong id="registrationSportsLastDate">—</strong>
+          </div>
+
+          <div>
+            <small>FEE</small>
+            <strong id="registrationSportsFee">—</strong>
+          </div>
+
+          <div>
+            <small>AGE</small>
+            <strong id="registrationSportsAge">—</strong>
+          </div>
+
+        </div>
+
+
+        <div
+          class="sports-rules-box"
+          id="sportsRulesBox"
+        >
+          <strong>RULES</strong>
+
+          <p id="sportsRulesText">
+            —
+          </p>
+        </div>
+
+
+        <form
+          id="publicSportsRegistrationForm"
+          class="sports-registration-form"
+        >
+
+          <input
+            type="hidden"
+            id="registrationSportsKey"
+          >
+
+
+          <div
+            class="form-field"
+            id="sportsParticipationTypeField"
+          >
+
+            <label for="sportsParticipantType">
+              Participation Type
+            </label>
+
+            <select id="sportsParticipantType">
+              <option value="individual">
+                Individual
+              </option>
+
+              <option value="team">
+                Team
+              </option>
+            </select>
+
+          </div>
+
+
+          <div class="form-field">
+
+            <label for="sportsParticipantName">
+              Participant Name
+            </label>
+
+            <input
+              type="text"
+              id="sportsParticipantName"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-field">
+
+            <label for="sportsParticipantMobile">
+              Mobile Number
+            </label>
+
+            <input
+              type="tel"
+              id="sportsParticipantMobile"
+              inputmode="numeric"
+              maxlength="10"
+              required
+            >
+
+          </div>
+
+
+          <div class="form-field">
+
+            <label for="sportsParticipantPhoto">
+              Participant / Team Photo
+              <span>(Optional)</span>
+            </label>
+
+            <input
+              type="file"
+              id="sportsParticipantPhoto"
+              accept="image/*"
+            >
+
+          </div>
+
+
+          <div
+            class="photo-preview-box"
+            id="sportsParticipantPhotoPreviewBox"
+            hidden
+          >
+
+            <img
+              id="sportsParticipantPhotoPreview"
+              alt="Selected photo preview"
+            >
+
+            <span
+              id="sportsParticipantPhotoName"
+            ></span>
+
+          </div>
+
+
+          <div
+            class="form-field"
+            id="sportsAgeField"
+          >
+
+            <label for="sportsParticipantAge">
+              Age
+            </label>
+
+            <input
+              type="number"
+              id="sportsParticipantAge"
+              min="1"
+              max="100"
+            >
+
+          </div>
+
+
+          <div
+            class="form-field"
+            id="sportsGenderField"
+          >
+
+            <label for="sportsParticipantGender">
+              Gender
+            </label>
+
+            <select id="sportsParticipantGender">
+
+              <option value="">
+                Select
+              </option>
+
+              <option value="male">
+                Male
+              </option>
+
+              <option value="female">
+                Female
+              </option>
+
+              <option value="other">
+                Other
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <div
+            class="form-field"
+            id="sportsAreaField"
+          >
+
+            <label for="sportsParticipantArea">
+              Area
+            </label>
+
+            <input
+              type="text"
+              id="sportsParticipantArea"
+            >
+
+          </div>
+
+
+          <div
+            class="form-field"
+            id="sportsTeamNameField"
+          >
+
+            <label for="sportsParticipantTeamName">
+              Team Name
+            </label>
+
+            <input
+              type="text"
+              id="sportsParticipantTeamName"
+            >
+
+          </div>
+
+
+          <div class="form-field full-field">
+
+            <label for="sportsParticipantNote">
+              Note
+            </label>
+
+            <textarea
+              id="sportsParticipantNote"
+              rows="3"
+              placeholder="Optional note"
+            ></textarea>
+
+          </div>
+
+
+          <button
+            type="submit"
+            class="sports-submit-btn"
+            id="sportsRegistrationSubmit"
+          >
+            SUBMIT REGISTRATION
+          </button>
+
+
+          <p
+            class="form-message"
+            id="sportsRegistrationMessage"
+          ></p>
+
+        </form>
+
+      </div>
+
+
+      <div
+        class="registration-success"
+        id="sportsRegistrationSuccess"
+        hidden
+      >
+
+        <div class="success-symbol">
+          ✓
+        </div>
+
+        <span>
+          REGISTRATION COMPLETE
+        </span>
+
+        <h3>
+          You're Registered!
+        </h3>
+
+        <p>
+          Registration ID
+        </p>
+
+        <strong
+          id="sportsRegistrationSuccessId"
+        >
+          —
+        </strong>
+
+        <button
+          type="button"
+          id="closeSportsRegistrationSuccess"
+        >
+          DONE
+        </button>
+
+      </div>
+
+    </div>
 
   </div>
 
 
-  <!-- BACK TO TOP -->
+  <!-- ================================
+       BACK TO TOP
+  ================================= -->
+
   <button
-    type="button"
-    class="back-to-top"
     id="backToTop"
+    class="back-to-top"
+    type="button"
     aria-label="Back to top"
   >
     ↑
   </button>
 
 
-  <!-- MAIN JAVASCRIPT -->
-  <script type="module" src="main.js"></script>
+  <!-- ================================
+       JAVASCRIPT
+  ================================= -->
+
+  <script type="module" src="./main.js"></script>
+
+  <script src="./effects.js" defer></script>
 
 </body>
 </html>

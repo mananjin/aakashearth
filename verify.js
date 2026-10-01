@@ -1,6 +1,7 @@
 /* =========================================================
    AAKASH EARTH
-   PUBLIC MEMBER / VOLUNTEER VERIFICATION
+   PUBLIC ID VERIFICATION
+   Complete replacement: verify.js
 ========================================================= */
 
 import {
@@ -17,286 +18,490 @@ import {
 const $ = (id) =>
   document.getElementById(id);
 
-const $$ = (selector) =>
-  [...document.querySelectorAll(selector)];
 
-function clean(value = "") {
-  return String(value).trim();
+const clean = (value) =>
+  String(value ?? "").trim();
+
+
+const normalizeId = (value) =>
+  clean(value).toLowerCase();
+
+
+const escapeHTML = (value) =>
+  String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+
+function withTimeout(
+  promise,
+  milliseconds = 15000
+) {
+
+  let timer;
+
+  const timeout =
+    new Promise(
+      (_, reject) => {
+
+        timer =
+          setTimeout(
+            () => {
+
+              reject(
+                new Error(
+                  "Verification timed out."
+                )
+              );
+
+            },
+            milliseconds
+          );
+
+      }
+    );
+
+
+  return Promise.race([
+    promise,
+    timeout
+  ]).finally(() => {
+
+    clearTimeout(timer);
+
+  });
+
 }
 
-function normalize(value = "") {
-  return clean(value).toLowerCase();
+
+/* =========================================================
+   YEAR
+========================================================= */
+
+if ($("verifyCurrentYear")) {
+
+  $("verifyCurrentYear")
+    .textContent =
+    new Date().getFullYear();
+
 }
 
-function safeImage(value = "") {
-  const url = clean(value);
 
-  if (!url) return "";
+/* =========================================================
+   FIELD HELPERS
+========================================================= */
 
-  if (
-    url.startsWith("https://") ||
-    url.startsWith("http://") ||
-    url.startsWith("data:image/")
-  ) {
-    return url;
+function getName(
+  record,
+  type
+) {
+
+  if (type === "member") {
+
+    return clean(
+      record.name ??
+      record.fullName ??
+      record.memberName
+    ) || "Member";
+
   }
 
-  return "";
+
+  return clean(
+    record.name ??
+    record.fullName ??
+    record.volunteerName
+  ) || "Volunteer";
+
 }
 
-function objectToArray(data) {
-  if (!data) return [];
 
-  return Object.entries(data)
-    .map(([key, value]) => ({
-      key,
-      ...(value || {})
-    }));
-}
+function getPublicId(
+  record,
+  type
+) {
 
-function formatStatus(value = "") {
-  const status = normalize(value);
+  if (type === "member") {
 
-  const labels = {
-    active: "Active",
-    approved: "Approved",
-    inactive: "Inactive",
-    pending: "Pending",
-    rejected: "Rejected"
-  };
+    return clean(
+      record.memberId ??
+      record.memberID ??
+      record.userId ??
+      record.id
+    );
 
-  return (
-    labels[status] ||
-    clean(value)
-      .replaceAll("_", " ")
+  }
+
+
+  return clean(
+    record.volunteerId ??
+    record.volunteerID ??
+    record.userId ??
+    record.id
   );
+
 }
+
+
+function getPhoto(
+  record
+) {
+
+  return clean(
+    record.photoURL ??
+    record.imageURL ??
+    record.photo ??
+    record.image
+  );
+
+}
+
+
+function getStatus(
+  record
+) {
+
+  return clean(
+    record.status
+  ) || "active";
+
+}
+
+
+/* =========================================================
+   VALID ACCOUNT
+========================================================= */
+
+function isValidAccount(
+  record
+) {
+
+  if (
+    !record ||
+    typeof record !== "object"
+  ) {
+
+    return false;
+
+  }
+
+
+  if (
+    record.active === false
+  ) {
+
+    return false;
+
+  }
+
+
+  const status =
+    getStatus(record)
+      .toLowerCase();
+
+
+  if (
+    [
+      "inactive",
+      "disabled",
+      "blocked",
+      "suspended",
+      "rejected"
+    ].includes(status)
+  ) {
+
+    return false;
+
+  }
+
+
+  return true;
+
+}
+
+
+/* =========================================================
+   MESSAGE
+========================================================= */
 
 function showMessage(
-  message,
-  type = "error"
+  message = "",
+  error = false
 ) {
-  const box =
+
+  const element =
     $("verifyMessage");
 
-  if (!box) return;
 
-  box.textContent = message;
-
-  box.className =
-    `verify-message show ${type}`;
-}
-
-function clearMessage() {
-  const box =
-    $("verifyMessage");
-
-  if (!box) return;
-
-  box.textContent = "";
-
-  box.className =
-    "verify-message";
-}
-
-function hideResult() {
-  $("verifyResult")
-    ?.classList.remove("show");
-}
-
-
-/* =========================================================
-   STATE
-========================================================= */
-
-let verifyType = "member";
-
-
-/* =========================================================
-   TYPE SELECTOR
-========================================================= */
-
-function setVerifyType(type) {
-  if (
-    !["member", "volunteer"]
-      .includes(type)
-  ) {
+  if (!element) {
     return;
   }
 
-  verifyType = type;
 
-  $$("[data-verify-type]")
-    .forEach((button) => {
-      button.classList.toggle(
-        "active",
-        button.dataset.verifyType ===
-          type
-      );
-    });
-
-  const input =
-    $("verifyId");
-
-  const label =
-    $("verifyIdLabel");
-
-  if (type === "member") {
-    if (label) {
-      label.textContent =
-        "MEMBER ID";
-    }
-
-    if (input) {
-      input.placeholder =
-        "AE-MEM-2026-XXXXXX";
-    }
-  } else {
-    if (label) {
-      label.textContent =
-        "VOLUNTEER ID";
-    }
-
-    if (input) {
-      input.placeholder =
-        "AE-VOL-2026-XXXXXX";
-    }
-  }
-
-  clearMessage();
-  hideResult();
-
-  if (input) {
-    input.value = "";
-    input.focus();
-  }
-}
+  element.textContent =
+    message;
 
 
-$$("[data-verify-type]")
-  .forEach((button) => {
-    button.addEventListener(
-      "click",
-      () => {
-        setVerifyType(
-          button.dataset.verifyType
-        );
-      }
-    );
-  });
+  element.style.color =
+    error
+      ? "#9a3e38"
+      : "#795b18";
 
-
-/* =========================================================
-   ID INPUT
-========================================================= */
-
-$("verifyId")
-  ?.addEventListener(
-    "input",
-    (event) => {
-      /*
-        Keep official IDs clean:
-        AE-MEM-2026-XXXXXX
-        AE-VOL-2026-XXXXXX
-      */
-
-      event.target.value =
-        String(event.target.value)
-          .toUpperCase()
-          .replace(
-            /[^A-Z0-9-]/g,
-            ""
-          )
-          .slice(0, 40);
-
-      clearMessage();
-      hideResult();
-    }
-  );
-
-
-/* =========================================================
-   FIND MEMBER
-========================================================= */
-
-async function findMember(id) {
-  const snapshot =
-    await get(
-      ref(db, "members")
-    );
-
-  if (!snapshot.exists()) {
-    return null;
-  }
-
-  const members =
-    objectToArray(
-      snapshot.val()
-    );
-
-  return (
-    members.find(
-      (member) =>
-        normalize(member.memberId) ===
-        normalize(id)
-    ) || null
-  );
 }
 
 
 /* =========================================================
-   FIND VOLUNTEER
+   LOADING
 ========================================================= */
 
-async function findVolunteer(id) {
-  const snapshot =
-    await get(
-      ref(db, "volunteers")
-    );
-
-  if (!snapshot.exists()) {
-    return null;
-  }
-
-  const volunteers =
-    objectToArray(
-      snapshot.val()
-    );
-
-  return (
-    volunteers.find(
-      (volunteer) =>
-        normalize(
-          volunteer.volunteerId
-        ) ===
-        normalize(id)
-    ) || null
-  );
-}
-
-
-/* =========================================================
-   VERIFY STATUS
-========================================================= */
-
-function isValidPublicRecord(
-  person,
-  type
+function setLoading(
+  loading
 ) {
-  if (!person) return false;
 
-  const status =
-    normalize(person.status);
+  const button =
+    $("verifySubmitBtn");
 
-  if (type === "member") {
-    return status === "active";
+
+  if (!button) {
+    return;
   }
 
-  if (type === "volunteer") {
-    return status === "approved";
+
+  button.disabled =
+    loading;
+
+
+  button.textContent =
+    loading
+      ? "VERIFYING..."
+      : "VERIFY ID";
+
+}
+
+
+/* =========================================================
+   FIND ACCOUNT
+
+   First:
+   direct Firebase key lookup
+
+   Then:
+   search account collection by ID
+========================================================= */
+
+async function findAccount(
+  type,
+  requestedId,
+  recordKey = ""
+) {
+
+  const collection =
+    type === "member"
+      ? "members"
+      : "volunteers";
+
+
+  /*
+    If verification link contains
+    the exact Firebase record key,
+    check that record first.
+  */
+
+  if (recordKey) {
+
+    try {
+
+      const snapshot =
+        await withTimeout(
+          get(
+            ref(
+              db,
+              `${collection}/${recordKey}`
+            )
+          )
+        );
+
+
+      if (snapshot.exists()) {
+
+        const record =
+          snapshot.val();
+
+
+        const recordId =
+          getPublicId(
+            record,
+            type
+          );
+
+
+        /*
+          If URL also contains ID,
+          make sure it matches the record.
+        */
+
+        if (
+          !requestedId ||
+          normalizeId(recordId) ===
+          normalizeId(requestedId)
+        ) {
+
+          return {
+            key: recordKey,
+            record
+          };
+
+        }
+
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "Direct record verification failed:",
+        error
+      );
+
+    }
+
   }
 
-  return false;
+
+  /*
+    Try requested ID as Firebase key.
+  */
+
+  if (requestedId) {
+
+    try {
+
+      const directSnapshot =
+        await withTimeout(
+          get(
+            ref(
+              db,
+              `${collection}/${requestedId}`
+            )
+          )
+        );
+
+
+      if (
+        directSnapshot.exists()
+      ) {
+
+        const record =
+          directSnapshot.val();
+
+
+        const actualId =
+          getPublicId(
+            record,
+            type
+          );
+
+
+        if (
+          normalizeId(actualId) ===
+          normalizeId(requestedId) ||
+          !actualId
+        ) {
+
+          return {
+            key: requestedId,
+            record
+          };
+
+        }
+
+      }
+
+    } catch (error) {
+
+      console.warn(
+        "Direct ID lookup failed:",
+        error
+      );
+
+    }
+
+  }
+
+
+  /*
+    Search full collection.
+  */
+
+  const snapshot =
+    await withTimeout(
+      get(
+        ref(
+          db,
+          collection
+        )
+      )
+    );
+
+
+  if (!snapshot.exists()) {
+
+    return null;
+
+  }
+
+
+  const data =
+    snapshot.val() || {};
+
+
+  const wantedId =
+    normalizeId(
+      requestedId
+    );
+
+
+  for (
+    const [key, record]
+    of Object.entries(data)
+  ) {
+
+    if (
+      !record ||
+      typeof record !== "object"
+    ) {
+      continue;
+    }
+
+
+    const recordId =
+      normalizeId(
+        getPublicId(
+          record,
+          type
+        )
+      );
+
+
+    if (
+      recordId &&
+      recordId === wantedId
+    ) {
+
+      return {
+        key,
+        record
+      };
+
+    }
+
+  }
+
+
+  return null;
+
 }
 
 
@@ -304,461 +509,607 @@ function isValidPublicRecord(
    PHOTO
 ========================================================= */
 
-function renderPhoto(person) {
-  const container =
-    $("verifiedPhoto");
+function createPhotoHTML(
+  record,
+  type
+) {
 
-  if (!container) return;
+  const name =
+    getName(
+      record,
+      type
+    );
+
+
+  const initial =
+    name.charAt(0)
+      .toUpperCase() ||
+    "A";
+
 
   const photo =
-    safeImage(
-      person.photoURL ||
-      person.photoUrl ||
-      person.photo ||
-      ""
+    getPhoto(
+      record
     );
 
-  if (photo) {
-    container.innerHTML = "";
 
-    const image =
-      document.createElement("img");
+  if (!photo) {
 
-    image.src = photo;
-    image.alt = "";
+    return `
+      <div class="profile-photo">
+        <span>
+          ${escapeHTML(initial)}
+        </span>
+      </div>
+    `;
 
-    image.addEventListener(
-      "error",
-      () => {
-        renderInitialPhoto(
-          person
-        );
-      },
-      {
-        once: true
-      }
-    );
+  }
 
-    container.appendChild(
-      image
-    );
 
+  return `
+    <div class="profile-photo">
+
+      <span>
+        ${escapeHTML(initial)}
+      </span>
+
+      <img
+        src="${escapeHTML(photo)}"
+        alt="${escapeHTML(name)}"
+        loading="lazy"
+        decoding="async"
+        onerror="this.style.display='none';"
+      >
+
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   VERIFIED RESULT
+========================================================= */
+
+function showVerified(
+  type,
+  record
+) {
+
+  const result =
+    $("verifyResult");
+
+
+  if (!result) {
     return;
   }
 
-  renderInitialPhoto(person);
-}
 
-function renderInitialPhoto(person) {
-  const container =
-    $("verifiedPhoto");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  const initial =
-    clean(person.name || "AE")
-      .charAt(0)
-      .toUpperCase() || "A";
-
-  container.textContent =
-    initial;
-}
+  const name =
+    getName(
+      record,
+      type
+    );
 
 
-/* =========================================================
-   RENDER VERIFIED MEMBER
-========================================================= */
+  const id =
+    getPublicId(
+      record,
+      type
+    ) || "—";
 
-function renderMember(member) {
-  $("verifiedPersonType").textContent =
-    "MEMBER";
 
-  $("verifiedName").textContent =
-    member.name || "Member";
+  const status =
+    getStatus(
+      record
+    );
 
-  $("verifiedId").textContent =
-    member.memberId || "—";
 
-  $("verifiedStatus").textContent =
-    formatStatus(
-      member.status
-    ) || "Active";
+  const accountType =
+    type === "member"
+      ? "MEMBER"
+      : "VOLUNTEER";
 
-  $("verifiedRoleLabel").textContent =
-    "POSITION";
 
-  $("verifiedRole").textContent =
-    member.position ||
-    "Member";
+  /*
+    Public verification deliberately
+    does NOT display:
 
-  $("verifiedYear").textContent =
-    member.year || "—";
+    - Password
+    - Mobile number
+    - Email
+    - Volunteer points
+    - Volunteer ranking calculation data
+  */
 
-  $("verifiedExtraLabel").textContent =
-    "MEMBERSHIP";
 
-  $("verifiedExtra").textContent =
-    "Verified Member";
+  let extraDetail = "";
 
-  renderPhoto(member);
 
-  const cardLink =
-    $("verifiedIdCardLink");
+  if (type === "member") {
 
-  if (cardLink) {
-    cardLink.href =
-      `id-card.html?type=member&id=${encodeURIComponent(
-        member.memberId || ""
-      )}`;
+    const year =
+      clean(
+        record.year ??
+        record.memberYear
+      );
+
+
+    if (year) {
+
+      extraDetail = `
+        <div class="detail-box">
+
+          <span>
+            YEAR
+          </span>
+
+          <strong>
+            ${escapeHTML(year)}
+          </strong>
+
+        </div>
+      `;
+
+    }
+
   }
+
+
+  result.innerHTML = `
+    <article class="verified-card">
+
+      <div class="verified-top">
+
+        <span class="verified-badge">
+          ✓ OFFICIALLY VERIFIED
+        </span>
+
+      </div>
+
+
+      <div class="verified-body">
+
+        ${createPhotoHTML(
+          record,
+          type
+        )}
+
+
+        <h3>
+          ${escapeHTML(name)}
+        </h3>
+
+
+        <span class="verified-type">
+          ${accountType}
+        </span>
+
+
+        <div class="verified-details">
+
+          <div class="detail-box">
+
+            <span>
+              ${accountType} ID
+            </span>
+
+            <strong>
+              ${escapeHTML(id)}
+            </strong>
+
+          </div>
+
+
+          <div class="detail-box">
+
+            <span>
+              ACCOUNT TYPE
+            </span>
+
+            <strong>
+              ${accountType}
+            </strong>
+
+          </div>
+
+
+          <div class="detail-box">
+
+            <span>
+              STATUS
+            </span>
+
+            <strong>
+              ${escapeHTML(
+                status.toUpperCase()
+              )}
+            </strong>
+
+          </div>
+
+
+          ${extraDetail}
+
+        </div>
+
+
+        <div class="verification-note">
+          This ID was found in the official
+          AAKASH EARTH database and is currently
+          recognised by the verification system.
+        </div>
+
+      </div>
+
+    </article>
+  `;
+
 }
 
 
 /* =========================================================
-   RENDER VERIFIED VOLUNTEER
+   NOT FOUND
 ========================================================= */
 
-function renderVolunteer(
-  volunteer
+function showNotFound() {
+
+  const result =
+    $("verifyResult");
+
+
+  if (!result) {
+    return;
+  }
+
+
+  result.innerHTML = `
+    <div class="not-found">
+
+      <div class="not-found-icon">
+        !
+      </div>
+
+      <h3>
+        ID Not Verified
+      </h3>
+
+      <p>
+        The ID could not be verified.
+        Please check the account type and
+        ID, then try again.
+      </p>
+
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+function showVerificationError() {
+
+  const result =
+    $("verifyResult");
+
+
+  if (!result) {
+    return;
+  }
+
+
+  result.innerHTML = `
+    <div class="not-found">
+
+      <div class="not-found-icon">
+        !
+      </div>
+
+      <h3>
+        Verification Unavailable
+      </h3>
+
+      <p>
+        We could not connect to the verification
+        database. Please try again.
+      </p>
+
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   VERIFY
+========================================================= */
+
+async function verifyAccount(
+  type,
+  requestedId,
+  recordKey = ""
 ) {
-  $("verifiedPersonType").textContent =
-    "VOLUNTEER";
 
-  $("verifiedName").textContent =
-    volunteer.name ||
-    "Volunteer";
+  const id =
+    clean(
+      requestedId
+    );
 
-  $("verifiedId").textContent =
-    volunteer.volunteerId ||
-    "—";
 
-  $("verifiedStatus").textContent =
-    formatStatus(
-      volunteer.status
-    ) || "Approved";
+  if (
+    type !== "member" &&
+    type !== "volunteer"
+  ) {
 
-  $("verifiedRoleLabel").textContent =
-    "AREA";
+    showMessage(
+      "Please select a valid account type.",
+      true
+    );
 
-  $("verifiedRole").textContent =
-    volunteer.area ||
-    "Volunteer";
+    return;
 
-  $("verifiedYear").textContent =
-    volunteer.year || "—";
-
-  $("verifiedExtraLabel").textContent =
-    "VOLUNTEER STATUS";
-
-  $("verifiedExtra").textContent =
-    "Official Volunteer";
-
-  renderPhoto(volunteer);
-
-  const cardLink =
-    $("verifiedIdCardLink");
-
-  if (cardLink) {
-    cardLink.href =
-      `id-card.html?type=volunteer&id=${encodeURIComponent(
-        volunteer.volunteerId ||
-        ""
-      )}`;
   }
+
+
+  if (!id && !recordKey) {
+
+    showMessage(
+      "Please enter an ID.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    setLoading(true);
+
+
+    showMessage(
+      "Checking official record..."
+    );
+
+
+    const found =
+      await findAccount(
+        type,
+        id,
+        recordKey
+      );
+
+
+    if (!found) {
+
+      showMessage(
+        "ID not found.",
+        true
+      );
+
+      showNotFound();
+
+      return;
+
+    }
+
+
+    if (
+      !isValidAccount(
+        found.record
+      )
+    ) {
+
+      showMessage(
+        "This account is not currently active.",
+        true
+      );
+
+      showNotFound();
+
+      return;
+
+    }
+
+
+    showMessage(
+      "ID successfully verified."
+    );
+
+
+    showVerified(
+      type,
+      found.record
+    );
+
+
+    /*
+      Update browser URL without
+      reloading the page.
+
+      Do not expose Firebase key
+      when user manually searches.
+    */
+
+    const publicId =
+      getPublicId(
+        found.record,
+        type
+      );
+
+
+    if (publicId) {
+
+      const params =
+        new URLSearchParams();
+
+
+      params.set(
+        "type",
+        type
+      );
+
+
+      params.set(
+        "id",
+        publicId
+      );
+
+
+      const newUrl =
+        `${window.location.pathname}?${params.toString()}`;
+
+
+      window.history.replaceState(
+        {},
+        "",
+        newUrl
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Verification error:",
+      error
+    );
+
+
+    showMessage(
+      "Unable to verify ID. Please try again.",
+      true
+    );
+
+
+    showVerificationError();
+
+
+  } finally {
+
+    setLoading(false);
+
+  }
+
 }
 
 
 /* =========================================================
-   VERIFY FORM
+   MANUAL FORM
 ========================================================= */
 
 $("verifyForm")
   ?.addEventListener(
     "submit",
     async (event) => {
+
       event.preventDefault();
 
-      clearMessage();
-      hideResult();
 
-      const input =
-        $("verifyId");
-
-      const button =
-        $("verifyButton");
-
-      const enteredId =
+      const type =
         clean(
-          input?.value
-        ).toUpperCase();
+          $("verifyType")?.value
+        ).toLowerCase();
 
-      if (!enteredId) {
-        showMessage(
-          `Please enter ${
-            verifyType === "member"
-              ? "Member"
-              : "Volunteer"
-          } ID.`,
-          "error"
+
+      const id =
+        clean(
+          $("verifyId")?.value
         );
 
-        return;
-      }
 
-      /*
-        Basic format check.
+      await verifyAccount(
+        type,
+        id
+      );
 
-        IDs generated by our system:
-        AE-MEM-YEAR-CODE
-        AE-VOL-YEAR-CODE
-      */
-
-      if (
-        verifyType === "member" &&
-        !enteredId.startsWith(
-          "AE-MEM-"
-        )
-      ) {
-        showMessage(
-          "Please enter a valid Member ID beginning with AE-MEM-.",
-          "error"
-        );
-
-        return;
-      }
-
-      if (
-        verifyType === "volunteer" &&
-        !enteredId.startsWith(
-          "AE-VOL-"
-        )
-      ) {
-        showMessage(
-          "Please enter a valid Volunteer ID beginning with AE-VOL-.",
-          "error"
-        );
-
-        return;
-      }
-
-      try {
-        if (button) {
-          button.disabled = true;
-
-          button.textContent =
-            "Checking Official Record...";
-        }
-
-        let person = null;
-
-        if (
-          verifyType === "member"
-        ) {
-          person =
-            await findMember(
-              enteredId
-            );
-        } else {
-          person =
-            await findVolunteer(
-              enteredId
-            );
-        }
-
-        if (!person) {
-          showMessage(
-            "No official record found for this ID. Please check the ID and try again.",
-            "error"
-          );
-
-          return;
-        }
-
-        /*
-          Record exists but is not
-          publicly valid.
-        */
-
-        if (
-          !isValidPublicRecord(
-            person,
-            verifyType
-          )
-        ) {
-          const status =
-            formatStatus(
-              person.status
-            );
-
-          showMessage(
-            `This ID exists, but its current status is "${status || "Not Active"}". It cannot be shown as a verified active record.`,
-            "error"
-          );
-
-          return;
-        }
-
-        if (
-          verifyType === "member"
-        ) {
-          renderMember(person);
-        } else {
-          renderVolunteer(person);
-        }
-
-        $("verifyResult")
-          ?.classList.add(
-            "show"
-          );
-
-        /*
-          Keep URL shareable.
-
-          Example:
-          verify.html?type=member&id=AE-MEM-...
-        */
-
-        const url =
-          new URL(
-            window.location.href
-          );
-
-        url.searchParams.set(
-          "type",
-          verifyType
-        );
-
-        url.searchParams.set(
-          "id",
-          enteredId
-        );
-
-        window.history.replaceState(
-          {},
-          "",
-          url
-        );
-
-        setTimeout(() => {
-          $("verifyResult")
-            ?.scrollIntoView({
-              behavior: "smooth",
-              block: "nearest"
-            });
-        }, 100);
-
-      } catch (error) {
-        console.error(
-          "Verification error:",
-          error
-        );
-
-        showMessage(
-          "Unable to verify the record right now. Please check Firebase Database connection and try again.",
-          "error"
-        );
-
-      } finally {
-        if (button) {
-          button.disabled = false;
-
-          button.textContent =
-            "Verify Official Record →";
-        }
-      }
     }
   );
 
 
 /* =========================================================
-   AUTO VERIFY FROM URL
+   DIRECT ID CARD VERIFICATION LINK
 
-   Supports QR / direct links:
+   Supported:
 
-   verify.html?type=member&id=AE-MEM-2026-XXXXXX
+   verify.html?type=member&id=AE-M-0001
 
-   verify.html?type=volunteer&id=AE-VOL-2026-XXXXXX
+   verify.html?type=volunteer&id=AE-V-0001
+
+   Existing dashboard links containing
+   &key=... are also supported.
 ========================================================= */
 
-async function autoVerifyFromURL() {
+async function handleDirectLink() {
+
   const params =
     new URLSearchParams(
       window.location.search
     );
 
+
   const type =
-    normalize(
+    clean(
       params.get("type")
-    );
+    ).toLowerCase();
+
 
   const id =
     clean(
       params.get("id")
-    ).toUpperCase();
+    );
+
+
+  const key =
+    clean(
+      params.get("key")
+    );
+
 
   if (
-    !["member", "volunteer"]
-      .includes(type)
+    type !== "member" &&
+    type !== "volunteer"
   ) {
+
     return;
+
   }
 
-  verifyType = type;
 
-  $$("[data-verify-type]")
-    .forEach((button) => {
-      button.classList.toggle(
-        "active",
-        button.dataset.verifyType ===
-          type
-      );
-    });
+  if (!id && !key) {
 
-  if (type === "member") {
-    if ($("verifyIdLabel")) {
-      $("verifyIdLabel")
-        .textContent =
-          "MEMBER ID";
-    }
-
-    if ($("verifyId")) {
-      $("verifyId")
-        .placeholder =
-          "AE-MEM-2026-XXXXXX";
-    }
-  } else {
-    if ($("verifyIdLabel")) {
-      $("verifyIdLabel")
-        .textContent =
-          "VOLUNTEER ID";
-    }
-
-    if ($("verifyId")) {
-      $("verifyId")
-        .placeholder =
-          "AE-VOL-2026-XXXXXX";
-    }
-  }
-
-  if (!id) {
     return;
+
   }
+
+
+  if ($("verifyType")) {
+
+    $("verifyType").value =
+      type;
+
+  }
+
 
   if ($("verifyId")) {
+
     $("verifyId").value =
       id;
+
   }
 
-  /*
-    Submit automatically.
-    Useful when QR code opens
-    the verification URL.
-  */
 
-  $("verifyForm")
-    ?.requestSubmit();
+  await verifyAccount(
+    type,
+    id,
+    key
+  );
+
 }
 
 
@@ -766,8 +1117,9 @@ async function autoVerifyFromURL() {
    START
 ========================================================= */
 
-autoVerifyFromURL();
+handleDirectLink();
+
 
 console.log(
-  "AAKASH EARTH Public Verification connected."
+  "AAKASH EARTH ID Verification ready."
 );

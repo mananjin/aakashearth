@@ -1,19 +1,20 @@
 /* =========================================================
-   AAKASH EARTH - TASK MANAGEMENT
-   Member + Volunteer Tasks
-   Firebase Realtime Database
-   Storage temporarily NOT used
+   AAKASH EARTH
+   TASK MANAGEMENT
+   Complete replacement: task.js
 ========================================================= */
 
 import {
   db,
+  storage,
   ref,
-  push,
-  set,
-  get,
   onValue,
   update,
-  remove
+  push,
+  set,
+  storageRef,
+  uploadBytes,
+  getDownloadURL
 } from "./firebase.js";
 
 
@@ -24,719 +25,535 @@ import {
 const $ = (id) =>
   document.getElementById(id);
 
-const $$ = (selector) =>
-  [...document.querySelectorAll(selector)];
+const clean = (value) =>
+  String(value ?? "").trim();
 
-function clean(value = "") {
-  return String(value).trim();
-}
+const safeNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+};
 
-function normalize(value = "") {
-  return clean(value).toLowerCase();
-}
-
-function escapeHTML(value = "") {
-  return String(value)
+const escapeHTML = (value) =>
+  String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+
+
+function withTimeout(
+  promise,
+  milliseconds = 15000,
+  message = "Request timed out."
+) {
+
+  let timer;
+
+  const timeout = new Promise(
+    (_, reject) => {
+
+      timer = setTimeout(
+        () => reject(
+          new Error(message)
+        ),
+        milliseconds
+      );
+
+    }
+  );
+
+  return Promise.race([
+    promise,
+    timeout
+  ]).finally(() => {
+    clearTimeout(timer);
+  });
+
 }
+
 
 function formatDate(value) {
-  if (!value) return "—";
 
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return escapeHTML(value);
-  }
-
-  return new Intl.DateTimeFormat(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }
-  ).format(date);
-}
-
-function formatDateTime(value) {
-  if (!value) return "—";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
+  if (!value) {
     return "—";
   }
 
-  return new Intl.DateTimeFormat(
-    "en-IN",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  ).format(date);
-}
-
-function statusLabel(value = "") {
-  const status = normalize(value);
-
-  const labels = {
-    assigned: "Assigned",
-    pending: "Assigned",
-    pending_review: "Pending Review",
-    completed: "Completed",
-    rejected: "Rejected"
-  };
-
-  return (
-    labels[status] ||
-    clean(value).replaceAll("_", " ") ||
-    "—"
-  );
-}
-
-function normalizeTaskStatus(value = "") {
-  const status = normalize(value);
+  const date = new Date(value);
 
   if (
-    !status ||
-    status === "pending"
+    Number.isNaN(
+      date.getTime()
+    )
   ) {
-    return "assigned";
+    return clean(value) || "—";
   }
 
-  return status;
+  return date.toLocaleDateString(
+    "en-IN",
+    {
+      dateStyle: "medium"
+    }
+  );
+
 }
 
-function showMessage(
-  element,
-  message,
-  type = "success"
-) {
-  if (!element) return;
 
-  element.textContent = message;
+function formatDateTime(value) {
 
-  element.className =
-    `task-message show ${type}`;
-}
+  if (!value) {
+    return "—";
+  }
 
-function clearMessage(element) {
-  if (!element) return;
+  const date = new Date(value);
 
-  element.textContent = "";
-  element.className = "task-message";
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "—";
+  }
+
+  return date.toLocaleString(
+    "en-IN",
+    {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }
+  );
+
 }
 
 
 /* =========================================================
-   ADMIN SESSION
+   SESSION CHECK
 ========================================================= */
 
-function checkAdminSession() {
-  const role =
-    sessionStorage.getItem(
-      "aakashLoginRole"
+function getSession() {
+
+  try {
+
+    return JSON.parse(
+      sessionStorage.getItem(
+        "aePortalSession"
+      ) || "null"
     );
 
-  const adminLogin =
-    sessionStorage.getItem(
-      "aakashAdminLogin"
-    );
+  } catch {
 
-  if (
-    role !== "admin" &&
-    adminLogin !== "true"
-  ) {
-    window.location.replace(
-      "login.html"
-    );
+    return null;
+
   }
+
 }
 
-checkAdminSession();
+
+const session = getSession();
+
+
+if (
+  !session ||
+  session.loggedIn !== true ||
+  session.role !== "volunteer" ||
+  !clean(session.recordKey)
+) {
+
+  window.location.replace(
+    "login.html"
+  );
+
+  throw new Error(
+    "Volunteer login required."
+  );
+
+}
+
+
+const volunteerKey =
+  clean(session.recordKey);
 
 
 /* =========================================================
    STATE
 ========================================================= */
 
-let members = [];
-let volunteers = [];
+let currentVolunteer = null;
 
-let memberTasks = [];
-let volunteerTasks = [];
+let allTasks = {};
 
-let selectedTask = null;
+let currentFilter = "all";
 
 
 /* =========================================================
-   TABS
+   YEAR
 ========================================================= */
 
-function openTaskPanel(name) {
-  $$("[data-task-panel]")
-    .forEach((button) => {
-      button.classList.toggle(
-        "active",
-        button.dataset.taskPanel ===
-          name
-      );
-    });
+if ($("taskCurrentYear")) {
 
-  $$("[data-task-panel-content]")
-    .forEach((panel) => {
-      panel.classList.toggle(
-        "active",
-        panel.dataset
-          .taskPanelContent === name
-      );
-    });
+  $("taskCurrentYear")
+    .textContent =
+    new Date().getFullYear();
+
 }
 
-$$("[data-task-panel]")
-  .forEach((button) => {
-    button.addEventListener(
-      "click",
-      () => {
-        openTaskPanel(
-          button.dataset.taskPanel
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+$("taskLogoutBtn")
+  ?.addEventListener(
+    "click",
+    () => {
+
+      [
+        "aePortalSession",
+        "aeLoggedIn",
+        "aeRole",
+        "aeUserId",
+        "aeRecordKey"
+      ].forEach(
+        (key) => {
+
+          sessionStorage.removeItem(
+            key
+          );
+
+        }
+      );
+
+      window.location.replace(
+        "login.html"
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   VOLUNTEER WATCHER
+========================================================= */
+
+onValue(
+  ref(
+    db,
+    `volunteers/${volunteerKey}`
+  ),
+
+  (snapshot) => {
+
+    if (!snapshot.exists()) {
+
+      alert(
+        "Volunteer account was not found."
+      );
+
+      logoutVolunteer();
+
+      return;
+
+    }
+
+
+    currentVolunteer =
+      snapshot.val();
+
+
+    if (
+      isAccountDisabled(
+        currentVolunteer
+      )
+    ) {
+
+      alert(
+        "Your volunteer account is inactive."
+      );
+
+      logoutVolunteer();
+
+      return;
+
+    }
+
+
+    renderVolunteerHeader();
+
+    renderTasks();
+
+  },
+
+  (error) => {
+
+    console.error(
+      "Volunteer loading error:",
+      error
+    );
+
+    const container =
+      $("taskPageList");
+
+    if (container) {
+
+      container.innerHTML = `
+        <div class="empty-state">
+          Unable to load volunteer account.
+        </div>
+      `;
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   TASK WATCHER
+========================================================= */
+
+onValue(
+  ref(
+    db,
+    "tasks"
+  ),
+
+  (snapshot) => {
+
+    allTasks =
+      snapshot.exists()
+        ? snapshot.val()
+        : {};
+
+    renderTasks();
+
+  },
+
+  (error) => {
+
+    console.error(
+      "Task loading error:",
+      error
+    );
+
+    const container =
+      $("taskPageList");
+
+    if (container) {
+
+      container.innerHTML = `
+        <div class="empty-state">
+          Unable to load tasks.
+        </div>
+      `;
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   ACCOUNT STATUS
+========================================================= */
+
+function isAccountDisabled(
+  volunteer
+) {
+
+  if (
+    volunteer?.active === false
+  ) {
+    return true;
+  }
+
+
+  const status =
+    clean(
+      volunteer?.status
+    ).toLowerCase();
+
+
+  return [
+    "inactive",
+    "disabled",
+    "blocked",
+    "suspended",
+    "rejected"
+  ].includes(status);
+
+}
+
+
+/* =========================================================
+   VOLUNTEER INFO
+========================================================= */
+
+function getVolunteerId() {
+
+  return clean(
+    currentVolunteer?.volunteerId ??
+    currentVolunteer?.volunteerID ??
+    currentVolunteer?.userId ??
+    currentVolunteer?.id ??
+    session.userId
+  );
+
+}
+
+
+function getVolunteerName() {
+
+  return clean(
+    currentVolunteer?.name ??
+    currentVolunteer?.fullName ??
+    currentVolunteer?.volunteerName
+  ) || "Volunteer";
+
+}
+
+
+function renderVolunteerHeader() {
+
+  if (!currentVolunteer) {
+    return;
+  }
+
+  if ($("taskVolunteerName")) {
+
+    $("taskVolunteerName")
+      .textContent =
+      getVolunteerName();
+
+  }
+
+  if ($("taskVolunteerId")) {
+
+    $("taskVolunteerId")
+      .textContent =
+      getVolunteerId() || "—";
+
+  }
+
+}
+
+
+/* =========================================================
+   MY TASKS
+========================================================= */
+
+function getMyTasks() {
+
+  if (!currentVolunteer) {
+    return [];
+  }
+
+
+  const volunteerId =
+    getVolunteerId()
+      .toUpperCase();
+
+
+  return Object.entries(
+    allTasks || {}
+  )
+    .filter(
+      ([, task]) => {
+
+        if (
+          !task ||
+          typeof task !== "object"
+        ) {
+          return false;
+        }
+
+
+        const sameKey =
+          clean(
+            task.volunteerKey
+          ) === volunteerKey;
+
+
+        const sameId =
+          clean(
+            task.volunteerId
+          ).toUpperCase() ===
+          volunteerId;
+
+
+        return (
+          sameKey ||
+          sameId
         );
+
       }
+    )
+    .sort(
+      (a, b) =>
+        safeNumber(
+          b[1]?.createdAt
+        ) -
+        safeNumber(
+          a[1]?.createdAt
+        )
     );
-  });
+
+}
 
 
 /* =========================================================
-   MEMBER / VOLUNTEER DATA
+   FILTER
 ========================================================= */
 
-onValue(
-  ref(db, "members"),
-
-  (snapshot) => {
-    members = [];
-
-    const data =
-      snapshot.val() || {};
-
-    Object.entries(data)
-      .forEach(([key, value]) => {
-        members.push({
-          key,
-          ...(value || {})
-        });
-      });
-
-    populatePeople();
-    renderEverything();
-  },
-
-  (error) => {
-    console.error(
-      "Members load error:",
-      error
-    );
-  }
-);
-
-
-onValue(
-  ref(db, "volunteers"),
-
-  (snapshot) => {
-    volunteers = [];
-
-    const data =
-      snapshot.val() || {};
-
-    Object.entries(data)
-      .forEach(([key, value]) => {
-        volunteers.push({
-          key,
-          ...(value || {})
-        });
-      });
-
-    populatePeople();
-    renderEverything();
-  },
-
-  (error) => {
-    console.error(
-      "Volunteers load error:",
-      error
-    );
-  }
-);
-
-
-/* =========================================================
-   PERSON SELECT
-========================================================= */
-
-$("taskPersonType")
+$("taskStatusFilter")
   ?.addEventListener(
     "change",
-    populatePeople
-  );
+    (event) => {
 
-function populatePeople() {
-  const type =
-    normalize(
-      $("taskPersonType")?.value
-    );
-
-  const select =
-    $("taskPerson");
-
-  if (!select) return;
-
-  if (type === "member") {
-    const available =
-      members
-        .filter(
-          (member) =>
-            normalize(member.status) ===
-            "active"
-        )
-        .sort((a, b) =>
-          String(a.name || "")
-            .localeCompare(
-              String(b.name || "")
-            )
-        );
-
-    select.innerHTML =
-      `
-        <option value="">
-          Select Member
-        </option>
-      ` +
-      available
-        .map((member) => `
-          <option value="${escapeHTML(member.key)}">
-            ${escapeHTML(member.name || "Member")}
-            ${
-              member.memberId
-                ? `(${escapeHTML(member.memberId)})`
-                : ""
-            }
-          </option>
-        `)
-        .join("");
-
-    return;
-  }
-
-  if (type === "volunteer") {
-    const available =
-      volunteers
-        .filter(
-          (volunteer) =>
-            normalize(volunteer.status) ===
-            "approved"
-        )
-        .sort((a, b) =>
-          String(a.name || "")
-            .localeCompare(
-              String(b.name || "")
-            )
-        );
-
-    select.innerHTML =
-      `
-        <option value="">
-          Select Volunteer
-        </option>
-      ` +
-      available
-        .map((volunteer) => `
-          <option value="${escapeHTML(volunteer.key)}">
-            ${escapeHTML(volunteer.name || "Volunteer")}
-            ${
-              volunteer.volunteerId
-                ? `(${escapeHTML(volunteer.volunteerId)})`
-                : ""
-            }
-          </option>
-        `)
-        .join("");
-
-    return;
-  }
-
-  select.innerHTML = `
-    <option value="">
-      Select type first
-    </option>
-  `;
-}
-
-
-/* =========================================================
-   ASSIGN TASK
-========================================================= */
-
-$("taskAssignForm")
-  ?.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
-
-      const message =
-        $("taskAssignMessage");
-
-      clearMessage(message);
-
-      const type =
-        normalize(
-          $("taskPersonType")?.value
-        );
-
-      const personKey =
+      currentFilter =
         clean(
-          $("taskPerson")?.value
-        );
+          event.target.value
+        ).toLowerCase() ||
+        "all";
 
-      const title =
-        clean(
-          $("taskTitle")?.value
-        );
+      renderTasks();
 
-      const description =
-        clean(
-          $("taskDescription")?.value
-        );
-
-      const deadline =
-        clean(
-          $("taskDeadline")?.value
-        );
-
-      const points =
-        Math.max(
-          0,
-          Number(
-            $("taskPoints")?.value ||
-            0
-          )
-        );
-
-      if (
-        !["member", "volunteer"]
-          .includes(type)
-      ) {
-        showMessage(
-          message,
-          "Please select Member or Volunteer.",
-          "error"
-        );
-
-        return;
-      }
-
-      if (!personKey) {
-        showMessage(
-          message,
-          "Please select a person.",
-          "error"
-        );
-
-        return;
-      }
-
-      if (!title) {
-        showMessage(
-          message,
-          "Please enter task title.",
-          "error"
-        );
-
-        return;
-      }
-
-      if (!description) {
-        showMessage(
-          message,
-          "Please enter task description.",
-          "error"
-        );
-
-        return;
-      }
-
-      const person =
-        type === "member"
-          ? members.find(
-              (item) =>
-                item.key === personKey
-            )
-          : volunteers.find(
-              (item) =>
-                item.key === personKey
-            );
-
-      if (!person) {
-        showMessage(
-          message,
-          "Selected person was not found.",
-          "error"
-        );
-
-        return;
-      }
-
-      const path =
-        type === "member"
-          ? `memberTasks/${personKey}`
-          : `volunteerTasks/${personKey}`;
-
-      const button =
-        $("taskAssignButton");
-
-      try {
-        if (button) {
-          button.disabled = true;
-          button.textContent =
-            "Assigning Task...";
-        }
-
-        const newTaskRef =
-          push(ref(db, path));
-
-        await set(
-          newTaskRef,
-          {
-            title,
-            description,
-            deadline,
-            points,
-
-            status: "assigned",
-
-            personType: type,
-            personKey,
-
-            personId:
-              type === "member"
-                ? person.memberId || ""
-                : person.volunteerId || "",
-
-            personName:
-              person.name || "",
-
-            proofURL: "",
-            proofPhotoName: "",
-            proofStoragePending: false,
-
-            rating: 0,
-            adminRemark: "",
-
-            createdBy: "admin",
-
-            assignedAt:
-              Date.now(),
-
-            createdAt:
-              Date.now(),
-
-            updatedAt:
-              Date.now()
-          }
-        );
-
-        showMessage(
-          message,
-          `Task assigned successfully to ${person.name || "user"}.`,
-          "success"
-        );
-
-        event.target.reset();
-
-        populatePeople();
-
-      } catch (error) {
-        console.error(
-          "Task assign error:",
-          error
-        );
-
-        showMessage(
-          message,
-          "Unable to assign task. Check Firebase Database rules.",
-          "error"
-        );
-
-      } finally {
-        if (button) {
-          button.disabled = false;
-          button.textContent =
-            "Assign Task →";
-        }
-      }
     }
   );
 
 
-/* =========================================================
-   FLATTEN TASKS
-========================================================= */
-
-function flattenTasks(
-  data,
-  type
+function matchesFilter(
+  task
 ) {
-  const result = [];
 
-  if (!data) return result;
-
-  Object.entries(data)
-    .forEach(
-      ([personKey, tasks]) => {
-        if (!tasks) return;
-
-        Object.entries(tasks)
-          .forEach(
-            ([taskKey, task]) => {
-              result.push({
-                personKey,
-                taskKey,
-                type,
-                ...(task || {})
-              });
-            }
-          );
-      }
-    );
-
-  return result;
-}
-
-
-/* =========================================================
-   TASK LIVE LISTENERS
-========================================================= */
-
-onValue(
-  ref(db, "memberTasks"),
-
-  (snapshot) => {
-    memberTasks =
-      flattenTasks(
-        snapshot.val(),
-        "member"
-      );
-
-    renderEverything();
-  },
-
-  (error) => {
-    console.error(
-      "Member tasks load error:",
-      error
-    );
-
-    if ($("allTaskList")) {
-      $("allTaskList").innerHTML = `
-        <tr>
-          <td colspan="7">
-            Unable to load Member tasks.
-          </td>
-        </tr>
-      `;
-    }
-  }
-);
-
-
-onValue(
-  ref(db, "volunteerTasks"),
-
-  (snapshot) => {
-    volunteerTasks =
-      flattenTasks(
-        snapshot.val(),
-        "volunteer"
-      );
-
-    renderEverything();
-  },
-
-  (error) => {
-    console.error(
-      "Volunteer tasks load error:",
-      error
-    );
-  }
-);
-
-
-/* =========================================================
-   ALL TASKS
-========================================================= */
-
-function getAllTasks() {
-  return [
-    ...memberTasks,
-    ...volunteerTasks
-  ];
-}
-
-function getPerson(task) {
-  if (task.type === "member") {
-    return members.find(
-      (member) =>
-        member.key ===
-        task.personKey
-    );
+  if (
+    currentFilter === "all"
+  ) {
+    return true;
   }
 
-  return volunteers.find(
-    (volunteer) =>
-      volunteer.key ===
-      task.personKey
-  );
-}
 
-function taskPersonName(task) {
-  const person =
-    getPerson(task);
+  const status =
+    clean(
+      task?.status
+    ).toLowerCase() ||
+    "assigned";
 
-  return (
-    task.personName ||
-    person?.name ||
-    "Unknown"
-  );
-}
 
-function taskPersonId(task) {
-  const person =
-    getPerson(task);
+  if (
+    currentFilter === "assigned"
+  ) {
 
-  if (task.personId) {
-    return task.personId;
+    return [
+      "assigned",
+      "pending"
+    ].includes(status);
+
   }
 
-  if (task.type === "member") {
-    return (
-      person?.memberId ||
-      "—"
-    );
-  }
 
-  return (
-    person?.volunteerId ||
-    person?.applicationId ||
-    "—"
-  );
+  return status ===
+    currentFilter;
+
 }
 
 
@@ -744,1244 +561,1203 @@ function taskPersonId(task) {
    STATS
 ========================================================= */
 
-function renderStats() {
-  const tasks =
-    getAllTasks();
+function updateStats(
+  tasks
+) {
+
+  const total =
+    tasks.length;
+
 
   const assigned =
     tasks.filter(
-      (task) =>
-        normalizeTaskStatus(
-          task.status
-        ) === "assigned"
+      ([, task]) => {
+
+        const status =
+          clean(
+            task?.status
+          ).toLowerCase();
+
+        return [
+          "",
+          "assigned",
+          "pending"
+        ].includes(status);
+
+      }
     ).length;
 
-  const pending =
+
+  const submitted =
     tasks.filter(
-      (task) =>
-        normalizeTaskStatus(
-          task.status
-        ) ===
-        "pending_review"
+      ([, task]) =>
+        clean(
+          task?.status
+        ).toLowerCase() ===
+        "submitted"
     ).length;
 
-  const completed =
+
+  const approved =
     tasks.filter(
-      (task) =>
-        normalizeTaskStatus(
-          task.status
-        ) === "completed"
+      ([, task]) => {
+
+        const status =
+          clean(
+            task?.status
+          ).toLowerCase();
+
+        return [
+          "approved",
+          "completed"
+        ].includes(status);
+
+      }
     ).length;
 
-  const rejected =
-    tasks.filter(
-      (task) =>
-        normalizeTaskStatus(
-          task.status
-        ) === "rejected"
-    ).length;
 
   if ($("taskTotalCount")) {
     $("taskTotalCount").textContent =
-      tasks.length;
+      String(total);
   }
 
   if ($("taskAssignedCount")) {
     $("taskAssignedCount").textContent =
-      assigned;
+      String(assigned);
   }
 
-  if ($("taskPendingReviewCount")) {
-    $("taskPendingReviewCount")
-      .textContent = pending;
+  if ($("taskSubmittedCount")) {
+    $("taskSubmittedCount").textContent =
+      String(submitted);
   }
 
-  if ($("taskCompletedCount")) {
-    $("taskCompletedCount")
-      .textContent = completed;
+  if ($("taskApprovedCount")) {
+    $("taskApprovedCount").textContent =
+      String(approved);
   }
 
-  if ($("taskRejectedCount")) {
-    $("taskRejectedCount")
-      .textContent = rejected;
-  }
 }
 
 
 /* =========================================================
-   STATUS BADGE
+   RENDER TASKS
 ========================================================= */
 
-function statusBadge(status) {
-  const normalized =
-    normalizeTaskStatus(status);
+function renderTasks() {
+
+  const container =
+    $("taskPageList");
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!currentVolunteer) {
+
+    container.innerHTML = `
+      <div class="empty-state">
+        Loading your tasks...
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  const allMyTasks =
+    getMyTasks();
+
+
+  updateStats(
+    allMyTasks
+  );
+
+
+  const tasks =
+    allMyTasks.filter(
+      ([, task]) =>
+        matchesFilter(task)
+    );
+
+
+  if (!tasks.length) {
+
+    container.innerHTML = `
+      <div class="empty-state">
+        No tasks found in this category.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    tasks.map(
+      ([key, task], index) =>
+        createTaskCard(
+          key,
+          task,
+          index
+        )
+    ).join("");
+
+}
+
+
+/* =========================================================
+   TASK CARD
+========================================================= */
+
+function createTaskCard(
+  key,
+  task,
+  index
+) {
+
+  const status =
+    clean(
+      task.status
+    ).toLowerCase() ||
+    "assigned";
+
+
+  const points =
+    Math.max(
+      0,
+      safeNumber(
+        task.points
+      )
+    );
+
+
+  const description =
+    clean(
+      task.description
+    ) ||
+    "No task description added.";
+
+
+  const proof =
+    clean(
+      task.proofPhotoURL ??
+      task.proofURL
+    );
+
+
+  const canSubmit =
+    [
+      "assigned",
+      "pending",
+      "rejected"
+    ].includes(status);
+
+
+  const submitted =
+    status === "submitted";
+
+
+  const approved =
+    [
+      "approved",
+      "completed"
+    ].includes(status);
+
 
   return `
-    <span class="task-status ${escapeHTML(normalized)}">
-      ${escapeHTML(statusLabel(normalized))}
-    </span>
-  `;
-}
+    <article class="task-card">
 
+      <div class="task-card-top">
 
-/* =========================================================
-   PENDING REVIEW
-========================================================= */
+        <span class="task-number">
+          TASK ${String(index + 1).padStart(2,"0")}
+        </span>
 
-function renderPendingTasks() {
-  const body =
-    $("pendingTaskList");
+        <h3>
+          ${escapeHTML(
+            clean(task.title) ||
+            "Assigned Task"
+          )}
+        </h3>
 
-  if (!body) return;
+        <div class="task-meta">
 
-  const typeFilter =
-    normalize(
-      $("pendingTypeFilter")?.value ||
-      "all"
-    );
-
-  let tasks =
-    getAllTasks()
-      .filter(
-        (task) =>
-          normalizeTaskStatus(
-            task.status
-          ) ===
-          "pending_review"
-      );
-
-  if (typeFilter !== "all") {
-    tasks =
-      tasks.filter(
-        (task) =>
-          task.type ===
-          typeFilter
-      );
-  }
-
-  tasks.sort(
-    (a, b) =>
-      Number(
-        b.submittedAt ||
-        b.updatedAt ||
-        0
-      ) -
-      Number(
-        a.submittedAt ||
-        a.updatedAt ||
-        0
-      )
-  );
-
-  if (!tasks.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No tasks are waiting for review.
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  body.innerHTML =
-    tasks
-      .map((task) => `
-        <tr>
-
-          <td>
-            <strong>
-              ${escapeHTML(taskPersonName(task))}
-            </strong>
-            <br>
-            ${escapeHTML(taskPersonId(task))}
-          </td>
-
-          <td>
+          <span class="tag">
             ${escapeHTML(
-              task.type === "member"
-                ? "Member"
-                : "Volunteer"
+              status.toUpperCase()
             )}
-          </td>
+          </span>
 
-          <td>
+          <span class="tag">
+            ${points} POINTS
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="task-body">
+
+        <p class="task-description">
+          ${escapeHTML(description)}
+        </p>
+
+
+        <div class="task-info">
+
+          <div class="info-box">
+
+            <span>
+              ASSIGNED ON
+            </span>
+
             <strong>
-              ${escapeHTML(task.title || "Task")}
+              ${escapeHTML(
+                formatDate(
+                  task.createdAt
+                )
+              )}
             </strong>
-          </td>
 
-          <td>
-            ${escapeHTML(formatDate(task.deadline))}
-          </td>
-
-          <td>
-            ${
-              task.proofURL
-                ? `
-                  <a
-                    href="${escapeHTML(task.proofURL)}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View Proof
-                  </a>
-                `
-                : escapeHTML(
-                    task.proofPhotoName ||
-                    "No uploaded photo"
-                  )
-            }
-          </td>
-
-          <td>
-            ${Number(task.points || 0)}
-          </td>
-
-          <td>
-            <button
-              type="button"
-              class="task-mini-btn gold"
-              data-task-open="${task.type}|${task.personKey}|${task.taskKey}"
-            >
-              Review
-            </button>
-          </td>
-
-        </tr>
-      `)
-      .join("");
-}
+          </div>
 
 
-/* =========================================================
-   ALL TASK LIST
-========================================================= */
+          <div class="info-box">
 
-function renderAllTasks() {
-  const body =
-    $("allTaskList");
+            <span>
+              DUE DATE
+            </span>
 
-  if (!body) return;
-
-  const search =
-    normalize(
-      $("allTaskSearch")?.value
-    );
-
-  const typeFilter =
-    normalize(
-      $("allTaskTypeFilter")?.value ||
-      "all"
-    );
-
-  const statusFilter =
-    normalize(
-      $("allTaskStatusFilter")?.value ||
-      "all"
-    );
-
-  let tasks =
-    getAllTasks();
-
-  tasks =
-    tasks.filter((task) => {
-      const status =
-        normalizeTaskStatus(
-          task.status
-        );
-
-      const haystack =
-        normalize(
-          `${task.title || ""}
-           ${task.description || ""}
-           ${taskPersonName(task)}
-           ${taskPersonId(task)}
-           ${task.type}`
-        );
-
-      const searchMatch =
-        !search ||
-        haystack.includes(search);
-
-      const typeMatch =
-        typeFilter === "all" ||
-        task.type === typeFilter;
-
-      const statusMatch =
-        statusFilter === "all" ||
-        status === statusFilter;
-
-      return (
-        searchMatch &&
-        typeMatch &&
-        statusMatch
-      );
-    });
-
-  tasks.sort(
-    (a, b) =>
-      Number(
-        b.createdAt ||
-        b.assignedAt ||
-        0
-      ) -
-      Number(
-        a.createdAt ||
-        a.assignedAt ||
-        0
-      )
-  );
-
-  if (!tasks.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No tasks found.
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  body.innerHTML =
-    tasks
-      .map((task) => `
-        <tr>
-
-          <td>
             <strong>
-              ${escapeHTML(taskPersonName(task))}
+              ${escapeHTML(
+                formatDate(
+                  task.dueDate
+                )
+              )}
             </strong>
-            <br>
-            ${escapeHTML(taskPersonId(task))}
-          </td>
 
-          <td>
-            ${escapeHTML(
-              task.type === "member"
-                ? "Member"
-                : "Volunteer"
-            )}
-          </td>
+          </div>
 
-          <td>
-            ${escapeHTML(task.title || "Task")}
-          </td>
-
-          <td>
-            ${escapeHTML(formatDate(task.deadline))}
-          </td>
-
-          <td>
-            ${Number(task.points || 0)}
-          </td>
-
-          <td>
-            ${statusBadge(task.status)}
-          </td>
-
-          <td>
-            <button
-              type="button"
-              class="task-mini-btn gold"
-              data-task-open="${task.type}|${task.personKey}|${task.taskKey}"
-            >
-              View
-            </button>
-          </td>
-
-        </tr>
-      `)
-      .join("");
-}
+        </div>
 
 
-/* =========================================================
-   COMPLETED
-========================================================= */
-
-function renderCompletedTasks() {
-  const body =
-    $("completedTaskList");
-
-  if (!body) return;
-
-  const tasks =
-    getAllTasks()
-      .filter(
-        (task) =>
-          normalizeTaskStatus(
-            task.status
-          ) === "completed"
-      )
-      .sort(
-        (a, b) =>
-          Number(
-            b.completedAt ||
-            b.reviewedAt ||
-            b.updatedAt ||
-            0
-          ) -
-          Number(
-            a.completedAt ||
-            a.reviewedAt ||
-            a.updatedAt ||
-            0
-          )
-      );
-
-  if (!tasks.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No completed tasks yet.
-        </td>
-      </tr>
-    `;
-
-    return;
-  }
-
-  body.innerHTML =
-    tasks
-      .map((task) => `
-        <tr>
-
-          <td>
-            <strong>
-              ${escapeHTML(taskPersonName(task))}
-            </strong>
-            <br>
-            ${escapeHTML(taskPersonId(task))}
-          </td>
-
-          <td>
-            ${escapeHTML(
-              task.type === "member"
-                ? "Member"
-                : "Volunteer"
-            )}
-          </td>
-
-          <td>
-            ${escapeHTML(task.title || "Task")}
-          </td>
-
-          <td>
-            ${Number(task.points || 0)}
-          </td>
-
-          <td>
-            ${
-              Number(task.rating || 0) > 0
-                ? `${Number(task.rating).toFixed(1)} ★`
-                : "—"
-            }
-          </td>
-
-          <td>
-            ${escapeHTML(
-              formatDateTime(
-                task.completedAt ||
-                task.reviewedAt ||
-                task.updatedAt
+        ${
+          canSubmit
+            ? createSubmissionArea(
+                key
               )
-            )}
-          </td>
+            : ""
+        }
 
-          <td>
-            <button
-              type="button"
-              class="task-mini-btn gold"
-              data-task-open="${task.type}|${task.personKey}|${task.taskKey}"
-            >
-              View
-            </button>
-          </td>
 
-        </tr>
-      `)
-      .join("");
+        ${
+          submitted
+            ? `
+              <div class="submitted-box">
+
+                <strong>
+                  Waiting for Admin Approval
+                </strong>
+
+                <p>
+                  Submitted:
+                  ${escapeHTML(
+                    formatDateTime(
+                      task.submittedAt
+                    )
+                  )}
+                </p>
+
+                ${
+                  proof
+                    ? `
+                      <a
+                        href="${escapeHTML(proof)}"
+                        target="_blank"
+                        rel="noopener"
+                        class="proof-link"
+                      >
+                        VIEW PROOF PHOTO
+                      </a>
+                    `
+                    : `
+                      <p>
+                        Submitted without a proof photo.
+                      </p>
+                    `
+                }
+
+              </div>
+            `
+            : ""
+        }
+
+
+        ${
+          approved
+            ? `
+              <div class="submitted-box">
+
+                <strong>
+                  Task Approved
+                </strong>
+
+                <p>
+                  This task has been approved.
+                  ${points} points are associated
+                  with this task.
+                </p>
+
+                ${
+                  proof
+                    ? `
+                      <a
+                        href="${escapeHTML(proof)}"
+                        target="_blank"
+                        rel="noopener"
+                        class="proof-link"
+                      >
+                        VIEW PROOF PHOTO
+                      </a>
+                    `
+                    : ""
+                }
+
+              </div>
+            `
+            : ""
+        }
+
+      </div>
+
+    </article>
+  `;
+
 }
 
 
 /* =========================================================
-   REJECTED
+   SUBMISSION AREA
+
+   PHOTO IS OPTIONAL
 ========================================================= */
 
-function renderRejectedTasks() {
-  const body =
-    $("rejectedTaskList");
+function createSubmissionArea(
+  key
+) {
 
-  if (!body) return;
+  return `
+    <div class="proof-section">
 
-  const tasks =
-    getAllTasks()
-      .filter(
-        (task) =>
-          normalizeTaskStatus(
-            task.status
-          ) === "rejected"
-      )
-      .sort(
-        (a, b) =>
-          Number(
-            b.reviewedAt ||
-            b.updatedAt ||
-            0
-          ) -
-          Number(
-            a.reviewedAt ||
-            a.updatedAt ||
-            0
-          )
+      <label
+        for="proof-${escapeHTML(key)}"
+      >
+        Proof Photo (Optional)
+      </label>
+
+      <input
+        id="proof-${escapeHTML(key)}"
+        type="file"
+        accept="image/*"
+        data-proof-input="${escapeHTML(key)}"
+      >
+
+      <span class="proof-help">
+        Photo is optional. You can submit
+        this task without selecting a photo.
+      </span>
+
+
+      <div
+        class="proof-preview"
+        id="proofPreview-${escapeHTML(key)}"
+      >
+
+        <img
+          id="proofPreviewImage-${escapeHTML(key)}"
+          alt="Proof preview"
+        >
+
+        <span
+          id="proofPreviewName-${escapeHTML(key)}"
+        ></span>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="submit-btn"
+        data-submit-task="${escapeHTML(key)}"
+      >
+        SUBMIT TASK
+      </button>
+
+
+      <p
+        class="task-message"
+        id="taskSubmitMessage-${escapeHTML(key)}"
+      ></p>
+
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   PHOTO PREVIEW
+========================================================= */
+
+document.addEventListener(
+  "change",
+  (event) => {
+
+    const input =
+      event.target.closest(
+        "[data-proof-input]"
       );
 
-  if (!tasks.length) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No rejected tasks.
-        </td>
-      </tr>
-    `;
 
-    return;
+    if (!input) {
+      return;
+    }
+
+
+    const taskKey =
+      clean(
+        input.dataset.proofInput
+      );
+
+
+    const file =
+      input.files?.[0] ||
+      null;
+
+
+    const preview =
+      $(
+        `proofPreview-${taskKey}`
+      );
+
+    const image =
+      $(
+        `proofPreviewImage-${taskKey}`
+      );
+
+    const name =
+      $(
+        `proofPreviewName-${taskKey}`
+      );
+
+
+    if (
+      !file ||
+      !preview ||
+      !image
+    ) {
+
+      preview?.classList.remove(
+        "show"
+      );
+
+      return;
+
+    }
+
+
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+
+      input.value = "";
+
+      preview.classList.remove(
+        "show"
+      );
+
+      alert(
+        "Please select a valid image."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      file.size >
+      15 * 1024 * 1024
+    ) {
+
+      input.value = "";
+
+      preview.classList.remove(
+        "show"
+      );
+
+      alert(
+        "Photo must be smaller than 15 MB."
+      );
+
+      return;
+
+    }
+
+
+    const objectURL =
+      URL.createObjectURL(
+        file
+      );
+
+
+    image.onload =
+      () => {
+
+        URL.revokeObjectURL(
+          objectURL
+        );
+
+      };
+
+
+    image.src =
+      objectURL;
+
+
+    if (name) {
+
+      name.textContent =
+        file.name;
+
+    }
+
+
+    preview.classList.add(
+      "show"
+    );
+
+  }
+);
+
+
+/* =========================================================
+   IMAGE COMPRESSION
+========================================================= */
+
+const MAX_ORIGINAL_SIZE =
+  15 * 1024 * 1024;
+
+const MAX_DIMENSION =
+  1280;
+
+const TARGET_SIZE =
+  700 * 1024;
+
+
+function canvasToBlob(
+  canvas,
+  quality
+) {
+
+  return new Promise(
+    (resolve) => {
+
+      canvas.toBlob(
+        resolve,
+        "image/jpeg",
+        quality
+      );
+
+    }
+  );
+
+}
+
+
+async function compressImage(
+  file
+) {
+
+  if (!file) {
+    return null;
   }
 
-  body.innerHTML =
-    tasks
-      .map((task) => `
-        <tr>
 
-          <td>
-            <strong>
-              ${escapeHTML(taskPersonName(task))}
-            </strong>
-            <br>
-            ${escapeHTML(taskPersonId(task))}
-          </td>
+  if (
+    !file.type.startsWith(
+      "image/"
+    )
+  ) {
 
-          <td>
-            ${escapeHTML(
-              task.type === "member"
-                ? "Member"
-                : "Volunteer"
-            )}
-          </td>
+    throw new Error(
+      "Please select a valid image."
+    );
 
-          <td>
-            ${escapeHTML(task.title || "Task")}
-          </td>
+  }
 
-          <td>
-            ${escapeHTML(
-              task.adminRemark ||
-              task.reviewNote ||
-              task.rejectionReason ||
-              "Please submit again."
-            )}
-          </td>
 
-          <td>
-            ${escapeHTML(formatDate(task.deadline))}
-          </td>
+  if (
+    file.size >
+    MAX_ORIGINAL_SIZE
+  ) {
 
-          <td>
-            ${Number(task.points || 0)}
-          </td>
+    throw new Error(
+      "Photo must be smaller than 15 MB."
+    );
 
-          <td>
-            <button
-              type="button"
-              class="task-mini-btn gold"
-              data-task-open="${task.type}|${task.personKey}|${task.taskKey}"
-            >
-              View
-            </button>
-          </td>
+  }
 
-        </tr>
-      `)
-      .join("");
+
+  const bitmap =
+    await createImageBitmap(
+      file
+    );
+
+
+  let width =
+    bitmap.width;
+
+  let height =
+    bitmap.height;
+
+
+  if (
+    width > MAX_DIMENSION ||
+    height > MAX_DIMENSION
+  ) {
+
+    const ratio =
+      Math.min(
+        MAX_DIMENSION / width,
+        MAX_DIMENSION / height
+      );
+
+
+    width =
+      Math.round(
+        width * ratio
+      );
+
+    height =
+      Math.round(
+        height * ratio
+      );
+
+  }
+
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+
+  canvas.width =
+    width;
+
+  canvas.height =
+    height;
+
+
+  const context =
+    canvas.getContext(
+      "2d",
+      {
+        alpha: false
+      }
+    );
+
+
+  context.drawImage(
+    bitmap,
+    0,
+    0,
+    width,
+    height
+  );
+
+
+  bitmap.close?.();
+
+
+  let quality =
+    0.78;
+
+
+  let blob =
+    await canvasToBlob(
+      canvas,
+      quality
+    );
+
+
+  while (
+    blob &&
+    blob.size > TARGET_SIZE &&
+    quality > 0.52
+  ) {
+
+    quality -= 0.06;
+
+
+    blob =
+      await canvasToBlob(
+        canvas,
+        quality
+      );
+
+  }
+
+
+  if (!blob) {
+
+    throw new Error(
+      "Unable to process proof photo."
+    );
+
+  }
+
+
+  return blob;
+
 }
 
 
 /* =========================================================
-   FILTER EVENTS
+   OPTIONAL PHOTO UPLOAD
 ========================================================= */
 
-$("pendingTypeFilter")
-  ?.addEventListener(
-    "change",
-    renderPendingTasks
+async function uploadOptionalProof(
+  file,
+  taskKey
+) {
+
+  if (!file) {
+
+    return {
+      url: "",
+      path: ""
+    };
+
+  }
+
+
+  const blob =
+    await compressImage(
+      file
+    );
+
+
+  const filename =
+    `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2,8)}.jpg`;
+
+
+  const path =
+    `taskProofs/${volunteerKey}/${taskKey}/${filename}`;
+
+
+  const fileRef =
+    storageRef(
+      storage,
+      path
+    );
+
+
+  await withTimeout(
+    uploadBytes(
+      fileRef,
+      blob,
+      {
+        contentType:
+          "image/jpeg"
+      }
+    ),
+    45000,
+    "Proof photo upload timed out."
   );
 
-$("allTaskSearch")
-  ?.addEventListener(
-    "input",
-    renderAllTasks
-  );
 
-$("allTaskTypeFilter")
-  ?.addEventListener(
-    "change",
-    renderAllTasks
-  );
+  const url =
+    await withTimeout(
+      getDownloadURL(
+        fileRef
+      ),
+      15000,
+      "Unable to get proof photo URL."
+    );
 
-$("allTaskStatusFilter")
-  ?.addEventListener(
-    "change",
-    renderAllTasks
-  );
+
+  return {
+    url,
+    path
+  };
+
+}
 
 
 /* =========================================================
-   TASK OPEN EVENT DELEGATION
+   SUBMIT TASK
 ========================================================= */
 
 document.addEventListener(
   "click",
-  (event) => {
+  async (event) => {
+
     const button =
       event.target.closest(
-        "[data-task-open]"
+        "[data-submit-task]"
       );
 
-    if (!button) return;
 
-    const value =
-      button.dataset.taskOpen || "";
+    if (!button) {
+      return;
+    }
 
-    const [
-      type,
-      personKey,
-      taskKey
-    ] = value.split("|");
 
-    openTaskModal(
-      type,
-      personKey,
-      taskKey
-    );
+    const taskKey =
+      clean(
+        button.dataset.submitTask
+      );
+
+
+    const task =
+      allTasks[
+        taskKey
+      ];
+
+
+    if (!task) {
+
+      alert(
+        "Task was not found."
+      );
+
+      return;
+
+    }
+
+
+    /*
+      Extra check:
+      Volunteer can submit only
+      his/her own assigned task.
+    */
+
+    const myTask =
+      getMyTasks().some(
+        ([key]) =>
+          key === taskKey
+      );
+
+
+    if (!myTask) {
+
+      alert(
+        "This task is not assigned to your account."
+      );
+
+      return;
+
+    }
+
+
+    const currentStatus =
+      clean(
+        task.status
+      ).toLowerCase();
+
+
+    if (
+      ![
+        "",
+        "assigned",
+        "pending",
+        "rejected"
+      ].includes(currentStatus)
+    ) {
+
+      alert(
+        "This task cannot be submitted again."
+      );
+
+      return;
+
+    }
+
+
+    const input =
+      document.querySelector(
+        `[data-proof-input="${CSS.escape(
+          taskKey
+        )}"]`
+      );
+
+
+    const file =
+      input?.files?.[0] ||
+      null;
+
+
+    const message =
+      $(
+        `taskSubmitMessage-${taskKey}`
+      );
+
+
+    try {
+
+      button.disabled =
+        true;
+
+
+      button.textContent =
+        file
+          ? "UPLOADING..."
+          : "SUBMITTING...";
+
+
+      if (message) {
+
+        message.style.color =
+          "#795c18";
+
+        message.textContent =
+          file
+            ? "Compressing and uploading proof..."
+            : "Submitting task...";
+
+      }
+
+
+      /*
+        If no photo selected,
+        this returns empty URL/path.
+      */
+
+      const proof =
+        await uploadOptionalProof(
+          file,
+          taskKey
+        );
+
+
+      const changes = {
+
+        status:
+          "submitted",
+
+        submittedAt:
+          Date.now(),
+
+        updatedAt:
+          Date.now(),
+
+        submittedByKey:
+          volunteerKey,
+
+        submittedById:
+          getVolunteerId()
+
+      };
+
+
+      if (proof.url) {
+
+        changes.proofPhotoURL =
+          proof.url;
+
+        changes.proofPhotoPath =
+          proof.path;
+
+      }
+
+
+      await withTimeout(
+        update(
+          ref(
+            db,
+            `tasks/${taskKey}`
+          ),
+          changes
+        ),
+        15000,
+        "Task submission timed out."
+      );
+
+
+      /*
+        Notification failure will not
+        cancel a successful submission.
+      */
+
+      await createAdminNotification(
+        taskKey,
+        task
+      );
+
+
+      if (message) {
+
+        message.textContent =
+          "Task submitted successfully.";
+
+      }
+
+
+    } catch (error) {
+
+      console.error(
+        "Task submit error:",
+        error
+      );
+
+
+      if (message) {
+
+        message.style.color =
+          "#9a3e38";
+
+        message.textContent =
+          error.message ||
+          "Unable to submit task.";
+
+      }
+
+
+    } finally {
+
+      button.disabled =
+        false;
+
+      button.textContent =
+        "SUBMIT TASK";
+
+    }
+
   }
 );
 
 
 /* =========================================================
-   TASK MODAL
+   ADMIN NOTIFICATION
 ========================================================= */
 
-const taskModal =
-  $("taskManagerModal");
-
-function findTask(
-  type,
-  personKey,
-  taskKey
-) {
-  const source =
-    type === "member"
-      ? memberTasks
-      : volunteerTasks;
-
-  return source.find(
-    (task) =>
-      task.personKey === personKey &&
-      task.taskKey === taskKey
-  );
-}
-
-function openTaskModal(
-  type,
-  personKey,
-  taskKey
-) {
-  const task =
-    findTask(
-      type,
-      personKey,
-      taskKey
-    );
-
-  if (!task) {
-    alert(
-      "Task record not found."
-    );
-
-    return;
-  }
-
-  selectedTask = task;
-
-  const status =
-    normalizeTaskStatus(
-      task.status
-    );
-
-  $("taskManagerModalTitle")
-    .textContent =
-      task.title || "Task";
-
-  $("taskManagerDetails")
-    .innerHTML = `
-
-      <p>
-        <strong>Person:</strong>
-        ${escapeHTML(taskPersonName(task))}
-      </p>
-
-      <p>
-        <strong>ID:</strong>
-        ${escapeHTML(taskPersonId(task))}
-      </p>
-
-      <p>
-        <strong>Type:</strong>
-        ${
-          task.type === "member"
-            ? "Member"
-            : "Volunteer"
-        }
-      </p>
-
-      <p>
-        <strong>Description:</strong>
-        ${escapeHTML(task.description || "—")}
-      </p>
-
-      <p>
-        <strong>Deadline:</strong>
-        ${escapeHTML(formatDate(task.deadline))}
-      </p>
-
-      <p>
-        <strong>Assigned Points:</strong>
-        ${Number(task.points || 0)}
-      </p>
-
-      <p>
-        <strong>Status:</strong>
-        ${escapeHTML(statusLabel(status))}
-      </p>
-
-      <p>
-        <strong>Proof Photo:</strong>
-        ${
-          task.proofURL
-            ? `
-              <a
-                href="${escapeHTML(task.proofURL)}"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Open Proof Photo
-              </a>
-            `
-            : escapeHTML(
-                task.proofPhotoName ||
-                "No uploaded proof photo"
-              )
-        }
-      </p>
-
-      <p>
-        <strong>Submitted:</strong>
-        ${escapeHTML(
-          formatDateTime(
-            task.submittedAt
-          )
-        )}
-      </p>
-
-      <p>
-        <strong>Admin Remark:</strong>
-        ${escapeHTML(
-          task.adminRemark ||
-          task.reviewNote ||
-          "—"
-        )}
-      </p>
-
-      <p>
-        <strong>Rating:</strong>
-        ${
-          Number(task.rating || 0) > 0
-            ? `${Number(task.rating).toFixed(1)} ★`
-            : "—"
-        }
-      </p>
-  `;
-
-  $("taskManagerPoints").value =
-    Number(task.points || 0);
-
-  $("taskManagerRating").value =
-    Number(task.rating || 0) > 0
-      ? String(task.rating)
-      : "";
-
-  $("taskManagerRemark").value =
-    task.adminRemark ||
-    task.reviewNote ||
-    "";
-
-  clearMessage(
-    $("taskManagerMessage")
-  );
-
-  const reviewControls =
-    $("taskManagerReviewControls");
-
-  /*
-    Assigned tasks have not been
-    submitted yet, so review controls
-    stay hidden.
-
-    Pending / completed / rejected
-    can be inspected/reviewed.
-  */
-
-  if (reviewControls) {
-    reviewControls.style.display =
-      status === "assigned"
-        ? "none"
-        : "block";
-  }
-
-  taskModal?.classList.add(
-    "open"
-  );
-}
-
-function closeTaskModal() {
-  taskModal?.classList.remove(
-    "open"
-  );
-
-  selectedTask = null;
-
-  clearMessage(
-    $("taskManagerMessage")
-  );
-}
-
-$("closeTaskManagerModal")
-  ?.addEventListener(
-    "click",
-    closeTaskModal
-  );
-
-taskModal
-  ?.addEventListener(
-    "click",
-    (event) => {
-      if (
-        event.target === taskModal
-      ) {
-        closeTaskModal();
-      }
-    }
-  );
-
-
-/* =========================================================
-   PERSON STATS
-========================================================= */
-
-async function getPersonRecord(
+async function createAdminNotification(
+  taskKey,
   task
 ) {
-  const path =
-    task.type === "member"
-      ? `members/${task.personKey}`
-      : `volunteers/${task.personKey}`;
 
-  const snapshot =
-    await get(
-      ref(db, path)
+  try {
+
+    const notificationRef =
+      push(
+        ref(
+          db,
+          "adminNotifications"
+        )
+      );
+
+
+    await withTimeout(
+      set(
+        notificationRef,
+        {
+          type:
+            "task_submitted",
+
+          title:
+            "Task Submitted",
+
+          message:
+            `${getVolunteerName()} (${getVolunteerId()}) submitted "${clean(task.title) || "Task"}" for approval.`,
+
+          taskKey,
+
+          volunteerKey,
+
+          volunteerId:
+            getVolunteerId(),
+
+          read:
+            false,
+
+          createdAt:
+            Date.now()
+        }
+      ),
+      10000,
+      "Notification timed out."
     );
 
-  if (!snapshot.exists()) {
-    return null;
+
+  } catch (error) {
+
+    /*
+      Task is already submitted,
+      so notification error must not
+      turn it into a failed task.
+    */
+
+    console.warn(
+      "Admin notification error:",
+      error
+    );
+
   }
 
-  return {
-    path,
-    data: snapshot.val() || {}
-  };
 }
 
 
 /* =========================================================
-   APPROVE TASK
+   LOGOUT HELPER
 ========================================================= */
 
-$("taskManagerApprove")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedTask) {
-        return;
-      }
+function logoutVolunteer() {
 
-      const message =
-        $("taskManagerMessage");
+  [
+    "aePortalSession",
+    "aeLoggedIn",
+    "aeRole",
+    "aeUserId",
+    "aeRecordKey"
+  ].forEach(
+    (key) => {
 
-      clearMessage(message);
+      sessionStorage.removeItem(
+        key
+      );
 
-      const finalPoints =
-        Math.max(
-          0,
-          Number(
-            $("taskManagerPoints")
-              ?.value || 0
-          )
-        );
-
-      const finalRating =
-        Math.min(
-          5,
-          Math.max(
-            0,
-            Number(
-              $("taskManagerRating")
-                ?.value || 0
-            )
-          )
-        );
-
-      const remark =
-        clean(
-          $("taskManagerRemark")
-            ?.value
-        );
-
-      const taskPath =
-        selectedTask.type ===
-        "member"
-          ? `memberTasks/${selectedTask.personKey}/${selectedTask.taskKey}`
-          : `volunteerTasks/${selectedTask.personKey}/${selectedTask.taskKey}`;
-
-      const button =
-        $("taskManagerApprove");
-
-      try {
-        if (button) {
-          button.disabled = true;
-          button.textContent =
-            "Approving...";
-        }
-
-        /*
-          Important:
-          Points/rating are added only
-          when task is NOT already completed.
-          This prevents basic double credit.
-        */
-
-        if (
-          normalizeTaskStatus(
-            selectedTask.status
-          ) !== "completed"
-        ) {
-          const record =
-            await getPersonRecord(
-              selectedTask
-            );
-
-          if (record) {
-            const person =
-              record.data;
-
-            const currentPoints =
-              Number(
-                person.points || 0
-              );
-
-            const currentRating =
-              Number(
-                person.rating || 0
-              );
-
-            const ratingCount =
-              Number(
-                person.ratingCount || 0
-              );
-
-            const personUpdate = {
-              points:
-                currentPoints +
-                finalPoints,
-
-              updatedAt:
-                Date.now()
-            };
-
-            if (finalRating > 0) {
-              const newCount =
-                ratingCount + 1;
-
-              personUpdate.rating =
-                (
-                  (
-                    currentRating *
-                    ratingCount
-                  ) +
-                  finalRating
-                ) / newCount;
-
-              personUpdate.ratingCount =
-                newCount;
-            }
-
-            await update(
-              ref(
-                db,
-                record.path
-              ),
-              personUpdate
-            );
-          }
-        }
-
-        await update(
-          ref(db, taskPath),
-          {
-            points:
-              finalPoints,
-
-            rating:
-              finalRating,
-
-            adminRemark:
-              remark,
-
-            status:
-              "completed",
-
-            reviewedAt:
-              Date.now(),
-
-            completedAt:
-              Date.now(),
-
-            updatedAt:
-              Date.now()
-          }
-        );
-
-        showMessage(
-          message,
-          "Task approved successfully. Points and rating updated.",
-          "success"
-        );
-
-        /*
-          Keep local selected state
-          consistent until listener refresh.
-        */
-
-        selectedTask.status =
-          "completed";
-
-        selectedTask.points =
-          finalPoints;
-
-        selectedTask.rating =
-          finalRating;
-
-        selectedTask.adminRemark =
-          remark;
-
-      } catch (error) {
-        console.error(
-          "Task approval error:",
-          error
-        );
-
-        showMessage(
-          message,
-          "Unable to approve task.",
-          "error"
-        );
-
-      } finally {
-        if (button) {
-          button.disabled = false;
-          button.textContent =
-            "✓ Approve & Complete";
-        }
-      }
     }
   );
 
 
-/* =========================================================
-   REJECT TASK
-========================================================= */
+  setTimeout(
+    () => {
 
-$("taskManagerReject")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedTask) {
-        return;
-      }
+      window.location.replace(
+        "login.html"
+      );
 
-      const message =
-        $("taskManagerMessage");
-
-      const remark =
-        clean(
-          $("taskManagerRemark")
-            ?.value
-        );
-
-      const taskPath =
-        selectedTask.type ===
-        "member"
-          ? `memberTasks/${selectedTask.personKey}/${selectedTask.taskKey}`
-          : `volunteerTasks/${selectedTask.personKey}/${selectedTask.taskKey}`;
-
-      try {
-        await update(
-          ref(db, taskPath),
-          {
-            status:
-              "rejected",
-
-            adminRemark:
-              remark ||
-              "Please correct the work and submit again.",
-
-            rejectionReason:
-              remark ||
-              "Please correct the work and submit again.",
-
-            reviewedAt:
-              Date.now(),
-
-            updatedAt:
-              Date.now()
-          }
-        );
-
-        showMessage(
-          message,
-          "Task rejected. Member/Volunteer can resubmit it.",
-          "success"
-        );
-
-        selectedTask.status =
-          "rejected";
-
-      } catch (error) {
-        console.error(
-          "Task reject error:",
-          error
-        );
-
-        showMessage(
-          message,
-          "Unable to reject task.",
-          "error"
-        );
-      }
-    }
+    },
+    250
   );
 
-
-/* =========================================================
-   DELETE TASK
-========================================================= */
-
-$("taskManagerDelete")
-  ?.addEventListener(
-    "click",
-    async () => {
-      if (!selectedTask) {
-        return;
-      }
-
-      const confirmed =
-        window.confirm(
-          "Are you sure you want to permanently delete this task?"
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
-      const taskPath =
-        selectedTask.type ===
-        "member"
-          ? `memberTasks/${selectedTask.personKey}/${selectedTask.taskKey}`
-          : `volunteerTasks/${selectedTask.personKey}/${selectedTask.taskKey}`;
-
-      try {
-        await remove(
-          ref(db, taskPath)
-        );
-
-        closeTaskModal();
-
-      } catch (error) {
-        console.error(
-          "Task delete error:",
-          error
-        );
-
-        showMessage(
-          $("taskManagerMessage"),
-          "Unable to delete task.",
-          "error"
-        );
-      }
-    }
-  );
-
-
-/* =========================================================
-   RENDER EVERYTHING
-========================================================= */
-
-function renderEverything() {
-  renderStats();
-
-  renderPendingTasks();
-
-  renderAllTasks();
-
-  renderCompletedTasks();
-
-  renderRejectedTasks();
 }
 
 
 /* =========================================================
-   ESC
-========================================================= */
-
-document.addEventListener(
-  "keydown",
-  (event) => {
-    if (
-      event.key === "Escape"
-    ) {
-      closeTaskModal();
-    }
-  }
-);
-
-
-/* =========================================================
-   START
+   READY
 ========================================================= */
 
 console.log(
-  "AAKASH EARTH Task Management connected."
+  "AAKASH EARTH Task Management ready."
 );

@@ -8,27 +8,27 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>
-    Task Management | AAKASH EARTH
-  </title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
+  <meta
+    name="theme-color"
+    content="#071c2a"
   >
+
+  <title>My Tasks | AAKASH EARTH</title>
+
+  <link rel="stylesheet" href="style.css">
 
   <style>
     :root {
-      --task-navy: #061725;
-      --task-blue: #123b63;
-      --task-gold: #d7ad4a;
-      --task-gold-light: #f2d78b;
-      --task-cream: #f8f1df;
-      --task-ivory: #fffaf0;
-      --task-green: #147d64;
-      --task-maroon: #7a2430;
-      --task-muted: #72808a;
-      --task-border: rgba(7, 26, 43, .10);
+      --navy: #071c2a;
+      --navy2: #0b2638;
+      --blue: #103b5a;
+      --gold: #d6a536;
+      --gold2: #e4b84c;
+      --champagne: #f0d17e;
+      --cream: #f7f4ec;
+      --white: #ffffff;
+      --muted: #697780;
+      --border: #dfd5bd;
     }
 
     * {
@@ -37,900 +37,614 @@
 
     body {
       margin: 0;
-
-      background:
-        radial-gradient(
-          circle at 95% 0%,
-          rgba(215, 173, 74, .12),
-          transparent 25%
-        ),
-        #f5efe2;
-
-      color: var(--task-navy);
+      min-height: 100vh;
+      background: var(--cream);
+      color: var(--navy);
     }
 
     button,
     input,
-    select,
-    textarea {
+    textarea,
+    select {
       font: inherit;
     }
 
-    .task-page {
-      min-height: 100vh;
+    button {
+      cursor: pointer;
     }
 
-    /* =========================
-       HEADER
-    ========================= */
-
-    .task-header {
-      min-height: 74px;
-
-      padding: 0 4%;
-
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      gap: 20px;
-
-      position: sticky;
-      top: 0;
-
-      z-index: 1000;
-
-      background:
-        rgba(6, 23, 37, .97);
-
-      border-bottom:
-        1px solid rgba(215, 173, 74, .22);
-
-      box-shadow:
-        0 10px 30px rgba(0, 0, 0, .12);
-    }
-
-    .task-brand {
-      display: flex;
-      align-items: center;
-
-      gap: 11px;
-
-      color: white;
-
+    a {
+      color: inherit;
       text-decoration: none;
     }
 
-    .task-logo {
-      width: 44px;
-      height: 44px;
+    /* SUPPORT */
 
+    .support-bar {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 7px max(4vw, 18px);
+      background: linear-gradient(
+        90deg,
+        #a97a1b,
+        #d6a536,
+        #f0d17e,
+        #d6a536,
+        #a97a1b
+      );
+      color: var(--navy);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+    }
+
+    /* HEADER */
+
+    .task-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 0 max(4vw, 18px);
+      background: #142633;
+      border-bottom: 1px solid rgba(214,165,54,.25);
+      box-shadow: 0 8px 25px rgba(0,0,0,.1);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .logo {
+      position: relative;
+      width: 46px;
+      height: 46px;
       display: grid;
       place-items: center;
-
-      border:
-        1px solid var(--task-gold);
-
+      border: 1px solid var(--gold);
       border-radius: 50%;
-
-      color: var(--task-gold-light);
-
-      font-family: "Cinzel", serif;
-      font-size: 11px;
-      font-weight: 800;
+      background: var(--navy2);
+      color: var(--champagne);
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 700;
     }
 
-    .task-brand-text strong {
-      display: block;
-
-      font-family: "Cinzel", serif;
-
-      font-size: 13px;
-
-      letter-spacing: .8px;
+    .logo::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(240,209,126,.5);
+      border-radius: 50%;
     }
 
-    .task-brand-text span {
+    .brand strong {
       display: block;
+      color: white;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 15px;
+      letter-spacing: 1.2px;
+    }
 
+    .brand small {
+      display: block;
       margin-top: 2px;
-
-      color: var(--task-gold-light);
-
+      color: var(--gold);
       font-size: 7px;
-      font-weight: 800;
-
-      letter-spacing: 1.5px;
+      font-weight: 900;
+      letter-spacing: 1.1px;
     }
 
-    .task-header-actions {
+    .header-actions {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .task-header-link {
+    .header-btn {
       min-height: 39px;
-
-      padding: 0 13px;
-
       display: inline-flex;
       align-items: center;
       justify-content: center;
-
-      border:
-        1px solid rgba(215, 173, 74, .24);
-
+      padding: 0 13px;
+      border: 1px solid rgba(240,209,126,.28);
       border-radius: 9px;
-
+      background: rgba(255,255,255,.04);
       color: white;
-
-      text-decoration: none;
-
       font-size: 8px;
-      font-weight: 800;
+      font-weight: 900;
     }
 
-    .task-header-link.primary {
+    .logout-btn {
       border: 0;
-
-      color: var(--task-navy);
-
-      background:
-        linear-gradient(
-          135deg,
-          #f2d78b,
-          #c99531
-        );
+      background: linear-gradient(
+        135deg,
+        var(--champagne),
+        var(--gold)
+      );
+      color: var(--navy);
     }
 
-    /* =========================
-       HERO
-    ========================= */
+    /* HERO */
 
     .task-hero {
-      padding: 55px 4% 80px;
-
       position: relative;
       overflow: hidden;
-
+      padding: 52px max(5vw,20px) 82px;
+      background: linear-gradient(
+        135deg,
+        #071c2a,
+        #0b2638 58%,
+        #103b5a
+      );
       color: white;
-
-      background:
-        radial-gradient(
-          circle at 85% 15%,
-          rgba(215, 173, 74, .23),
-          transparent 25%
-        ),
-        linear-gradient(
-          135deg,
-          #061725,
-          #123b63 70%,
-          #7a2430
-        );
     }
 
     .task-hero::after {
       content: "";
-
-      width: 360px;
-      height: 360px;
-
       position: absolute;
-
-      right: -120px;
-      bottom: -250px;
-
-      border:
-        1px solid rgba(215, 173, 74, .2);
-
+      width: 350px;
+      height: 350px;
+      right: -110px;
+      top: -150px;
+      border: 1px solid rgba(240,209,126,.2);
       border-radius: 50%;
     }
 
-    .task-hero-inner {
-      width: min(1200px, 100%);
-      margin: auto;
-
+    .hero-content {
       position: relative;
       z-index: 2;
+      max-width: 1180px;
+      margin: auto;
     }
 
-    .task-hero small {
-      color: var(--task-gold-light);
-
-      font-size: 8px;
-      font-weight: 800;
-
-      letter-spacing: 2px;
-    }
-
-    .task-hero h1 {
-      max-width: 760px;
-
-      margin: 10px 0 0;
-
-      font-family: "Cinzel", serif;
-
-      font-size:
-        clamp(30px, 5vw, 52px);
-
-      line-height: 1.08;
-    }
-
-    .task-hero p {
-      max-width: 690px;
-
-      margin: 13px 0 0;
-
-      color: rgba(255, 255, 255, .67);
-
-      font-size: 10px;
-      line-height: 1.8;
-    }
-
-    /* =========================
-       WRAPPER
-    ========================= */
-
-    .task-wrapper {
-      width: min(1200px, 92%);
-
-      margin: -38px auto 60px;
-
-      position: relative;
-      z-index: 10;
-    }
-
-    /* =========================
-       STATS
-    ========================= */
-
-    .task-stats {
-      display: grid;
-
-      grid-template-columns:
-        repeat(5, 1fr);
-
-      gap: 12px;
-    }
-
-    .task-stat {
-      min-height: 125px;
-
-      padding: 19px;
-
-      border:
-        1px solid var(--task-border);
-
-      border-radius: 17px;
-
-      background: white;
-
-      box-shadow:
-        0 13px 35px rgba(7, 26, 43, .08);
-    }
-
-    .task-stat-icon {
-      width: 38px;
-      height: 38px;
-
-      margin-bottom: 13px;
-
-      display: grid;
-      place-items: center;
-
-      border-radius: 10px;
-
-      background:
-        rgba(215, 173, 74, .12);
-
-      font-size: 17px;
-    }
-
-    .task-stat strong {
-      display: block;
-
-      font-family: "Cinzel", serif;
-
-      font-size: 23px;
-    }
-
-    .task-stat span {
-      display: block;
-
-      margin-top: 5px;
-
-      color: var(--task-muted);
-
-      font-size: 8px;
-      font-weight: 700;
-    }
-
-    /* =========================
-       TABS
-    ========================= */
-
-    .task-tabs {
-      margin-top: 20px;
-      padding: 7px;
-
-      display: flex;
-      flex-wrap: wrap;
-
-      gap: 7px;
-
-      border:
-        1px solid var(--task-border);
-
-      border-radius: 15px;
-
-      background: white;
-
-      box-shadow:
-        0 10px 30px rgba(7, 26, 43, .05);
-    }
-
-    .task-tab {
-      min-height: 42px;
-
-      padding: 0 16px;
-
-      border: 0;
-      border-radius: 10px;
-
-      background: transparent;
-
-      color: #65737c;
-
-      font-size: 8px;
-      font-weight: 800;
-
-      cursor: pointer;
-    }
-
-    .task-tab.active {
-      color: var(--task-navy);
-
-      background:
-        linear-gradient(
-          135deg,
-          #f2d78b,
-          #d0a13d
-        );
-    }
-
-    /* =========================
-       PANELS
-    ========================= */
-
-    .task-panel {
-      display: none;
-
-      margin-top: 18px;
-    }
-
-    .task-panel.active {
-      display: block;
-
-      animation:
-        taskPanelIn .3s ease both;
-    }
-
-    @keyframes taskPanelIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .task-card {
-      padding: 24px;
-
-      border:
-        1px solid var(--task-border);
-
-      border-radius: 19px;
-
-      background: var(--task-ivory);
-
-      box-shadow:
-        0 12px 35px rgba(7, 26, 43, .06);
-    }
-
-    .task-heading {
-      margin-bottom: 20px;
-    }
-
-    .task-heading small {
-      color: #a77a20;
-
-      font-size: 8px;
-      font-weight: 800;
-
+    .hero-label {
+      display: inline-flex;
+      padding: 7px 12px;
+      border: 1px solid rgba(214,165,54,.45);
+      border-radius: 30px;
+      color: var(--champagne);
+      font-size: 7px;
+      font-weight: 900;
       letter-spacing: 1.5px;
     }
 
-    .task-heading h2 {
-      margin: 6px 0 0;
-
-      font-family: "Cinzel", serif;
-
-      font-size: 25px;
+    .task-hero h1 {
+      margin: 15px 0 8px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(36px,5vw,58px);
+      font-weight: 500;
     }
 
-    .task-heading p {
-      margin: 7px 0 0;
-
-      color: var(--task-muted);
-
-      font-size: 9px;
-      line-height: 1.6;
+    .task-hero p {
+      max-width: 650px;
+      margin: 0;
+      color: #b8c3c9;
+      font-size: 10px;
+      line-height: 1.7;
     }
 
-    /* =========================
-       FORM
-    ========================= */
+    .volunteer-line {
+      margin-top: 15px !important;
+      color: var(--champagne) !important;
+      font-weight: 800;
+    }
 
-    .task-form-grid {
+    /* MAIN */
+
+    .task-main {
+      position: relative;
+      z-index: 5;
+      max-width: 1180px;
+      margin: -42px auto 0;
+      padding: 0 18px 70px;
+    }
+
+    /* STATS */
+
+    .task-stats {
       display: grid;
-
-      grid-template-columns:
-        repeat(2, 1fr);
-
-      gap: 14px;
+      grid-template-columns: repeat(4,1fr);
+      gap: 12px;
     }
 
-    .task-field.full {
-      grid-column: 1 / -1;
+    .stat-card {
+      min-height: 112px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: white;
+      box-shadow: 0 12px 28px rgba(7,28,42,.08);
     }
 
-    .task-field label {
+    .stat-card span {
       display: block;
+      color: #906a18;
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
 
-      margin-bottom: 6px;
+    .stat-card strong {
+      display: block;
+      margin-top: 13px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 29px;
+      font-weight: 500;
+    }
 
+    /* FILTER */
+
+    .task-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: white;
+    }
+
+    .toolbar-title span {
+      display: block;
+      color: #997017;
+      font-size: 6px;
+      font-weight: 900;
+      letter-spacing: 1.3px;
+    }
+
+    .toolbar-title h2 {
+      margin: 4px 0 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    .filter-select {
+      min-width: 180px;
+      min-height: 42px;
+      padding: 0 11px;
+      border: 1px solid #d8cdb4;
+      border-radius: 9px;
+      outline: none;
+      background: #fbfaf6;
+      color: var(--navy);
       font-size: 8px;
       font-weight: 800;
     }
 
-    .task-input,
-    .task-select,
-    .task-textarea {
-      width: 100%;
-      min-height: 44px;
+    /* TASK GRID */
 
-      padding: 11px 12px;
+    .task-grid {
+      display: grid;
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
 
-      outline: none;
-
-      border:
-        1px solid rgba(7, 26, 43, .14);
-
-      border-radius: 10px;
-
+    .task-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 15px;
       background: white;
-
-      color: var(--task-navy);
-
-      font-size: 9px;
+      box-shadow: 0 10px 28px rgba(7,28,42,.05);
     }
 
-    .task-textarea {
-      min-height: 120px;
-
-      resize: vertical;
+    .task-card-top {
+      padding: 19px;
+      border-bottom: 1px solid #ebe3d1;
     }
 
-    .task-input:focus,
-    .task-select:focus,
-    .task-textarea:focus {
-      border-color: var(--task-gold);
-
-      box-shadow:
-        0 0 0 3px rgba(215, 173, 74, .09);
+    .task-number {
+      display: block;
+      margin-bottom: 7px;
+      color: #9b7219;
+      font-size: 6px;
+      font-weight: 900;
+      letter-spacing: 1.3px;
     }
 
-    .task-btn {
-      min-height: 43px;
+    .task-card h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 22px;
+      font-weight: 500;
+    }
 
-      padding: 0 17px;
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+    }
 
+    .tag {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
+      min-height: 25px;
+      padding: 0 9px;
+      border: 1px solid #dccb97;
+      border-radius: 30px;
+      background: #f5ecd2;
+      color: #755812;
+      font-size: 6px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
 
-      gap: 7px;
+    .task-body {
+      padding: 19px;
+    }
 
-      border: 0;
-      border-radius: 10px;
-
-      color: var(--task-navy);
-
-      background:
-        linear-gradient(
-          135deg,
-          #f2d78b,
-          #c99531
-        );
-
+    .task-description {
+      margin: 0;
+      color: #637179;
       font-size: 9px;
-      font-weight: 800;
-
-      cursor: pointer;
+      line-height: 1.75;
     }
 
-    .task-btn.green {
-      color: white;
-
-      background:
-        linear-gradient(
-          135deg,
-          #147d64,
-          #0b4e40
-        );
+    .task-info {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 8px;
+      margin-top: 15px;
     }
 
-    .task-btn.red {
-      color: white;
-
-      background:
-        linear-gradient(
-          135deg,
-          #922f40,
-          #641e2b
-        );
+    .info-box {
+      padding: 11px;
+      border: 1px solid #e6decb;
+      border-radius: 9px;
+      background: #fbfaf6;
     }
 
-    .task-btn.navy {
-      color: white;
-
-      background:
-        linear-gradient(
-          135deg,
-          #123b63,
-          #061725
-        );
+    .info-box span {
+      display: block;
+      color: #8b979d;
+      font-size: 6px;
+      font-weight: 900;
     }
 
-    .task-btn:disabled {
-      opacity: .55;
-      cursor: not-allowed;
-    }
-
-    .task-message {
-      display: none;
-
-      margin-top: 14px;
-      padding: 11px 13px;
-
-      border-radius: 10px;
-
+    .info-box strong {
+      display: block;
+      margin-top: 5px;
       font-size: 9px;
-      font-weight: 700;
+    }
+
+    /* PROOF */
+
+    .proof-section {
+      margin-top: 16px;
+      padding-top: 15px;
+      border-top: 1px solid #e6decb;
+    }
+
+    .proof-section label {
+      display: block;
+      margin-bottom: 7px;
+      color: #4d5b63;
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .proof-section input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d9cfb8;
+      border-radius: 8px;
+      background: #fbfaf6;
+      font-size: 8px;
+    }
+
+    .proof-help {
+      display: block;
+      margin-top: 7px;
+      color: #7a878d;
+      font-size: 7px;
       line-height: 1.5;
     }
 
-    .task-message.show {
-      display: block;
+    .proof-preview {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 9px;
+      border: 1px solid #e2d8bf;
+      border-radius: 9px;
+      background: #fbfaf6;
     }
 
-    .task-message.success {
-      color: #08624d;
-      background: rgba(20, 125, 100, .1);
-    }
-
-    .task-message.error {
-      color: #8b2638;
-      background: rgba(122, 36, 48, .1);
-    }
-
-    /* =========================
-       FILTER
-    ========================= */
-
-    .task-toolbar {
-      margin-bottom: 15px;
-
+    .proof-preview.show {
       display: flex;
-      flex-wrap: wrap;
-
-      gap: 9px;
     }
 
-    .task-search {
-      min-width: 260px;
-      flex: 1;
-    }
-
-    /* =========================
-       TABLE
-    ========================= */
-
-    .task-table-wrap {
-      overflow-x: auto;
-    }
-
-    .task-table {
-      width: 100%;
-      min-width: 900px;
-
-      border-collapse: collapse;
-    }
-
-    .task-table th {
-      padding: 12px;
-
-      background: #f2ead8;
-
-      text-align: left;
-
-      font-size: 8px;
-
-      letter-spacing: .4px;
-    }
-
-    .task-table td {
-      padding: 12px;
-
-      border-bottom:
-        1px solid rgba(7, 26, 43, .07);
-
-      color: #62717a;
-
-      font-size: 9px;
-
-      vertical-align: middle;
-    }
-
-    .task-table td strong {
-      color: var(--task-navy);
-    }
-
-    .task-actions {
-      display: flex;
-      flex-wrap: wrap;
-
-      gap: 6px;
-    }
-
-    .task-mini-btn {
-      min-height: 31px;
-
-      padding: 0 10px;
-
-      border: 0;
+    .proof-preview img {
+      width: 55px;
+      height: 55px;
+      object-fit: cover;
       border-radius: 8px;
+    }
 
-      background: #e9eef1;
+    .proof-preview span {
+      color: #66757d;
+      font-size: 7px;
+      word-break: break-word;
+    }
 
-      color: var(--task-navy);
-
+    .submit-btn {
+      width: 100%;
+      min-height: 43px;
+      margin-top: 12px;
+      border: 0;
+      border-radius: 9px;
+      background: linear-gradient(
+        135deg,
+        var(--champagne),
+        var(--gold)
+      );
+      color: var(--navy);
       font-size: 8px;
-      font-weight: 800;
-
-      cursor: pointer;
+      font-weight: 950;
     }
 
-    .task-mini-btn.gold {
-      color: #755412;
-
-      background:
-        rgba(215, 173, 74, .16);
+    .submit-btn:disabled {
+      cursor: not-allowed;
+      opacity: .6;
     }
 
-    .task-mini-btn.red {
-      color: #8a2939;
-
-      background:
-        rgba(122, 36, 48, .1);
-    }
-
-    /* =========================
-       STATUS
-    ========================= */
-
-    .task-status {
-      padding: 5px 9px;
-
-      display: inline-flex;
-
-      border-radius: 999px;
-
+    .task-message {
+      min-height: 16px;
+      margin: 9px 0 0;
+      color: #795c18;
+      text-align: center;
       font-size: 7px;
       font-weight: 800;
     }
 
-    .task-status.assigned {
-      color: #194c76;
-
-      background:
-        rgba(30, 101, 149, .11);
-    }
-
-    .task-status.pending_review {
-      color: #79580e;
-
-      background:
-        rgba(215, 173, 74, .16);
-    }
-
-    .task-status.completed {
-      color: #08705a;
-
-      background:
-        rgba(20, 125, 100, .11);
-    }
-
-    .task-status.rejected {
-      color: #8b2638;
-
-      background:
-        rgba(122, 36, 48, .11);
-    }
-
-    /* =========================
-       MODAL
-    ========================= */
-
-    .task-modal {
-      display: none;
-
-      position: fixed;
-      inset: 0;
-
-      z-index: 5000;
-
-      padding: 20px;
-
-      align-items: center;
-      justify-content: center;
-
-      background:
-        rgba(2, 12, 20, .78);
-
-      backdrop-filter: blur(8px);
-    }
-
-    .task-modal.open {
-      display: flex;
-    }
-
-    .task-modal-card {
-      width: min(650px, 100%);
-      max-height: 90vh;
-
-      overflow-y: auto;
-
-      padding: 25px;
-
-      border:
-        1px solid rgba(215, 173, 74, .27);
-
-      border-radius: 21px;
-
-      background: var(--task-ivory);
-
-      box-shadow:
-        0 30px 90px rgba(0, 0, 0, .35);
-    }
-
-    .task-modal-header {
-      margin-bottom: 20px;
-
-      display: flex;
-      justify-content: space-between;
-
-      gap: 15px;
-    }
-
-    .task-modal-header small {
-      color: #a77a20;
-
-      font-size: 8px;
-      font-weight: 800;
-
-      letter-spacing: 1.4px;
-    }
-
-    .task-modal-header h3 {
-      margin: 5px 0 0;
-
-      font-family: "Cinzel", serif;
-
-      font-size: 21px;
-    }
-
-    .task-modal-close {
-      width: 37px;
-      height: 37px;
-
-      border: 0;
+    .submitted-box {
+      margin-top: 15px;
+      padding: 13px;
+      border: 1px solid #d8c58d;
       border-radius: 9px;
-
-      background: var(--task-navy);
-
-      color: white;
-
-      cursor: pointer;
+      background: #f7efd8;
     }
 
-    .task-detail-box {
-      padding: 16px;
+    .submitted-box strong {
+      display: block;
+      color: #71520f;
+      font-size: 8px;
+    }
 
-      border:
-        1px solid var(--task-border);
+    .submitted-box p {
+      margin: 5px 0 0;
+      color: #796a45;
+      font-size: 7px;
+      line-height: 1.5;
+    }
 
-      border-radius: 13px;
+    .proof-link {
+      display: inline-flex;
+      margin-top: 8px;
+      color: #7a5911;
+      font-size: 7px;
+      font-weight: 900;
+      text-decoration: underline;
+    }
 
+    /* EMPTY */
+
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 45px 20px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
       background: white;
-    }
-
-    .task-detail-box p {
-      margin: 7px 0;
-
-      color: #65737c;
-
+      color: #7c888e;
+      text-align: center;
       font-size: 9px;
-      line-height: 1.6;
     }
 
-    .task-detail-box strong {
-      color: var(--task-navy);
+    /* FOOTER */
+
+    .task-footer {
+      padding: 21px;
+      background: #10232f;
+      color: #87959d;
+      text-align: center;
+      font-size: 7px;
+      letter-spacing: .8px;
     }
 
-    /* =========================
-       RESPONSIVE
-    ========================= */
+    .task-footer strong {
+      color: var(--gold);
+    }
 
-    @media (max-width: 1000px) {
+    /* MOBILE */
+
+    @media (max-width: 850px) {
       .task-stats {
-        grid-template-columns:
-          repeat(3, 1fr);
+        grid-template-columns: repeat(2,1fr);
+      }
+
+      .task-grid {
+        grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 700px) {
-      .task-header {
-        padding: 0 3%;
+    @media (max-width: 600px) {
+      .support-bar {
+        justify-content: center;
+        text-align: center;
       }
 
-      .task-brand-text {
+      .support-bar span:last-child {
         display: none;
       }
 
-      .task-header-link:not(.primary) {
+      .task-header {
+        padding: 0 10px;
+      }
+
+      .brand strong {
+        font-size: 11px;
+      }
+
+      .brand small {
+        display: none;
+      }
+
+      .logo {
+        width: 40px;
+        height: 40px;
+      }
+
+      .dashboard-btn {
         display: none;
       }
 
       .task-hero {
-        padding:
-          45px 5% 70px;
+        padding: 40px 16px 78px;
       }
 
-      .task-wrapper {
-        width: 94%;
+      .task-main {
+        padding-left: 12px;
+        padding-right: 12px;
       }
 
       .task-stats {
-        grid-template-columns:
-          repeat(2, 1fr);
+        gap: 8px;
       }
 
-      .task-form-grid {
+      .stat-card {
+        min-height: 96px;
+        padding: 13px;
+      }
+
+      .stat-card strong {
+        font-size: 23px;
+      }
+
+      .task-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .filter-select {
+        width: 100%;
+      }
+
+      .task-info {
         grid-template-columns: 1fr;
-      }
-
-      .task-field.full {
-        grid-column: auto;
-      }
-
-      .task-search {
-        min-width: 100%;
       }
     }
   </style>
@@ -938,7 +652,20 @@
 
 <body>
 
-<div class="task-page">
+  <!-- TOP SUPPORT -->
+
+  <div class="support-bar">
+
+    <span>
+      ✦ TECHNICAL SUPPORT BY BROTHER HOOD
+    </span>
+
+    <span>
+      AAKASH EARTH • TASK MANAGEMENT
+    </span>
+
+  </div>
+
 
   <!-- HEADER -->
 
@@ -946,39 +673,42 @@
 
     <a
       href="index.html"
-      class="task-brand"
+      class="brand"
     >
-      <div class="task-logo">
+
+      <div class="logo">
         AE
       </div>
 
-      <div class="task-brand-text">
+      <div>
         <strong>
           AAKASH EARTH
         </strong>
 
-        <span>
-          YUWA MANDAL
-        </span>
+        <small>
+          VOLUNTEER TASKS
+        </small>
       </div>
+
     </a>
 
 
-    <div class="task-header-actions">
+    <div class="header-actions">
 
       <a
-        href="index.html"
-        class="task-header-link"
+        href="volunteer.html"
+        class="header-btn dashboard-btn"
       >
-        Website
+        DASHBOARD
       </a>
 
-      <a
-        href="admin.html"
-        class="task-header-link primary"
+      <button
+        type="button"
+        class="header-btn logout-btn"
+        id="taskLogoutBtn"
       >
-        ← Admin Panel
-      </a>
+        LOGOUT
+      </button>
 
     </div>
 
@@ -989,21 +719,31 @@
 
   <section class="task-hero">
 
-    <div class="task-hero-inner">
+    <div class="hero-content">
 
-      <small>
-        ✦ ADMIN TASK CENTER
-      </small>
+      <span class="hero-label">
+        VOLUNTEER WORKSPACE
+      </span>
 
       <h1>
-        Task Management
+        My Assigned Tasks
       </h1>
 
       <p>
-        Assign work to Members and Volunteers,
-        monitor submissions, review completed work,
-        give points and ratings, and maintain a
-        complete task history.
+        View your assigned work, submit completed tasks
+        and track Admin approval from one place.
+      </p>
+
+      <p class="volunteer-line">
+        <span id="taskVolunteerName">
+          Volunteer
+        </span>
+
+        &nbsp; • &nbsp;
+
+        <span id="taskVolunteerId">
+          —
+        </span>
       </p>
 
     </div>
@@ -1011,832 +751,130 @@
   </section>
 
 
-  <main class="task-wrapper">
+  <!-- MAIN -->
+
+  <main class="task-main">
+
 
     <!-- STATS -->
 
     <section class="task-stats">
 
-      <article class="task-stat">
-        <div class="task-stat-icon">
-          ✓
-        </div>
-
+      <article class="stat-card">
+        <span>TOTAL TASKS</span>
         <strong id="taskTotalCount">
           0
         </strong>
-
-        <span>
-          Total Tasks
-        </span>
       </article>
 
-
-      <article class="task-stat">
-        <div class="task-stat-icon">
-          📌
-        </div>
-
+      <article class="stat-card">
+        <span>ASSIGNED</span>
         <strong id="taskAssignedCount">
           0
         </strong>
+      </article>
+
+      <article class="stat-card">
+        <span>WAITING APPROVAL</span>
+        <strong id="taskSubmittedCount">
+          0
+        </strong>
+      </article>
+
+      <article class="stat-card">
+        <span>APPROVED</span>
+        <strong id="taskApprovedCount">
+          0
+        </strong>
+      </article>
+
+    </section>
+
+
+    <!-- FILTER -->
+
+    <section class="task-toolbar">
+
+      <div class="toolbar-title">
 
         <span>
+          TASK MANAGEMENT
+        </span>
+
+        <h2>
+          Your Tasks
+        </h2>
+
+      </div>
+
+
+      <select
+        id="taskStatusFilter"
+        class="filter-select"
+        aria-label="Filter tasks"
+      >
+        <option value="all">
+          All Tasks
+        </option>
+
+        <option value="assigned">
           Assigned
-        </span>
-      </article>
+        </option>
 
+        <option value="submitted">
+          Waiting Approval
+        </option>
 
-      <article class="task-stat">
-        <div class="task-stat-icon">
-          ◷
-        </div>
+        <option value="approved">
+          Approved
+        </option>
 
-        <strong id="taskPendingReviewCount">
-          0
-        </strong>
-
-        <span>
-          Pending Review
-        </span>
-      </article>
-
-
-      <article class="task-stat">
-        <div class="task-stat-icon">
-          ★
-        </div>
-
-        <strong id="taskCompletedCount">
-          0
-        </strong>
-
-        <span>
-          Completed
-        </span>
-      </article>
-
-
-      <article class="task-stat">
-        <div class="task-stat-icon">
-          ×
-        </div>
-
-        <strong id="taskRejectedCount">
-          0
-        </strong>
-
-        <span>
+        <option value="rejected">
           Rejected
-        </span>
-      </article>
+        </option>
+      </select>
 
     </section>
 
 
-    <!-- TABS -->
-
-    <div class="task-tabs">
-
-      <button
-        type="button"
-        class="task-tab active"
-        data-task-panel="assign"
-      >
-        + Assign Task
-      </button>
-
-      <button
-        type="button"
-        class="task-tab"
-        data-task-panel="review"
-      >
-        Pending Review
-      </button>
-
-      <button
-        type="button"
-        class="task-tab"
-        data-task-panel="all"
-      >
-        All Tasks
-      </button>
-
-      <button
-        type="button"
-        class="task-tab"
-        data-task-panel="completed"
-      >
-        Completed
-      </button>
-
-      <button
-        type="button"
-        class="task-tab"
-        data-task-panel="rejected"
-      >
-        Rejected
-      </button>
-
-    </div>
-
-
-    <!-- =============================
-         ASSIGN
-    ============================== -->
+    <!-- TASK LIST -->
 
     <section
-      class="task-panel active"
-      data-task-panel-content="assign"
+      class="task-grid"
+      id="taskPageList"
     >
 
-      <div class="task-card">
-
-        <div class="task-heading">
-
-          <small>
-            NEW WORK ASSIGNMENT
-          </small>
-
-          <h2>
-            Assign New Task
-          </h2>
-
-          <p>
-            Select a Member or approved Volunteer
-            and assign work with deadline and points.
-          </p>
-
-        </div>
-
-
-        <form id="taskAssignForm">
-
-          <div class="task-form-grid">
-
-            <div class="task-field">
-
-              <label for="taskPersonType">
-                ASSIGN TO
-              </label>
-
-              <select
-                id="taskPersonType"
-                class="task-select"
-                required
-              >
-                <option value="">
-                  Select type
-                </option>
-
-                <option value="member">
-                  Member
-                </option>
-
-                <option value="volunteer">
-                  Volunteer
-                </option>
-              </select>
-
-            </div>
-
-
-            <div class="task-field">
-
-              <label for="taskPerson">
-                SELECT PERSON
-              </label>
-
-              <select
-                id="taskPerson"
-                class="task-select"
-                required
-              >
-                <option value="">
-                  Select type first
-                </option>
-              </select>
-
-            </div>
-
-
-            <div class="task-field full">
-
-              <label for="taskTitle">
-                TASK TITLE
-              </label>
-
-              <input
-                type="text"
-                id="taskTitle"
-                class="task-input"
-                maxlength="120"
-                required
-                placeholder="Example: Check festival decoration"
-              >
-
-            </div>
-
-
-            <div class="task-field full">
-
-              <label for="taskDescription">
-                TASK DESCRIPTION
-              </label>
-
-              <textarea
-                id="taskDescription"
-                class="task-textarea"
-                maxlength="1000"
-                required
-                placeholder="Explain exactly what work needs to be completed..."
-              ></textarea>
-
-            </div>
-
-
-            <div class="task-field">
-
-              <label for="taskDeadline">
-                DEADLINE
-              </label>
-
-              <input
-                type="date"
-                id="taskDeadline"
-                class="task-input"
-              >
-
-            </div>
-
-
-            <div class="task-field">
-
-              <label for="taskPoints">
-                POINTS
-              </label>
-
-              <input
-                type="number"
-                id="taskPoints"
-                class="task-input"
-                min="0"
-                max="10000"
-                value="10"
-                required
-              >
-
-            </div>
-
-          </div>
-
-
-          <div
-            id="taskAssignMessage"
-            class="task-message"
-          ></div>
-
-
-          <button
-            type="submit"
-            id="taskAssignButton"
-            class="task-btn"
-            style="margin-top:16px;"
-          >
-            Assign Task →
-          </button>
-
-        </form>
-
-      </div>
-
-    </section>
-
-
-    <!-- =============================
-         PENDING REVIEW
-    ============================== -->
-
-    <section
-      class="task-panel"
-      data-task-panel-content="review"
-    >
-
-      <div class="task-card">
-
-        <div class="task-heading">
-
-          <small>
-            ADMIN REVIEW
-          </small>
-
-          <h2>
-            Pending Review
-          </h2>
-
-          <p>
-            Work submitted by Members and Volunteers
-            appears here for approval.
-          </p>
-
-        </div>
-
-
-        <div class="task-toolbar">
-
-          <select
-            id="pendingTypeFilter"
-            class="task-select"
-            style="width:auto;"
-          >
-            <option value="all">
-              All
-            </option>
-
-            <option value="member">
-              Members
-            </option>
-
-            <option value="volunteer">
-              Volunteers
-            </option>
-          </select>
-
-        </div>
-
-
-        <div class="task-table-wrap">
-
-          <table class="task-table">
-
-            <thead>
-              <tr>
-                <th>Person</th>
-                <th>Type</th>
-                <th>Task</th>
-                <th>Deadline</th>
-                <th>Proof</th>
-                <th>Points</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody id="pendingTaskList">
-
-              <tr>
-                <td colspan="7">
-                  Loading task submissions...
-                </td>
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =============================
-         ALL TASKS
-    ============================== -->
-
-    <section
-      class="task-panel"
-      data-task-panel-content="all"
-    >
-
-      <div class="task-card">
-
-        <div class="task-heading">
-
-          <small>
-            COMPLETE RECORD
-          </small>
-
-          <h2>
-            All Tasks
-          </h2>
-
-        </div>
-
-
-        <div class="task-toolbar">
-
-          <input
-            type="search"
-            id="allTaskSearch"
-            class="task-input task-search"
-            placeholder="Search task, Member, Volunteer or ID..."
-          >
-
-
-          <select
-            id="allTaskTypeFilter"
-            class="task-select"
-            style="width:auto;"
-          >
-            <option value="all">
-              All People
-            </option>
-
-            <option value="member">
-              Members
-            </option>
-
-            <option value="volunteer">
-              Volunteers
-            </option>
-          </select>
-
-
-          <select
-            id="allTaskStatusFilter"
-            class="task-select"
-            style="width:auto;"
-          >
-            <option value="all">
-              All Status
-            </option>
-
-            <option value="assigned">
-              Assigned
-            </option>
-
-            <option value="pending_review">
-              Pending Review
-            </option>
-
-            <option value="completed">
-              Completed
-            </option>
-
-            <option value="rejected">
-              Rejected
-            </option>
-          </select>
-
-        </div>
-
-
-        <div class="task-table-wrap">
-
-          <table class="task-table">
-
-            <thead>
-              <tr>
-                <th>Person</th>
-                <th>Type</th>
-                <th>Task</th>
-                <th>Deadline</th>
-                <th>Points</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody id="allTaskList">
-
-              <tr>
-                <td colspan="7">
-                  Loading tasks...
-                </td>
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =============================
-         COMPLETED
-    ============================== -->
-
-    <section
-      class="task-panel"
-      data-task-panel-content="completed"
-    >
-
-      <div class="task-card">
-
-        <div class="task-heading">
-
-          <small>
-            APPROVED WORK
-          </small>
-
-          <h2>
-            Completed Tasks
-          </h2>
-
-          <p>
-            Approved work with final points and rating.
-          </p>
-
-        </div>
-
-
-        <div class="task-table-wrap">
-
-          <table class="task-table">
-
-            <thead>
-              <tr>
-                <th>Person</th>
-                <th>Type</th>
-                <th>Task</th>
-                <th>Points</th>
-                <th>Rating</th>
-                <th>Completed</th>
-                <th>View</th>
-              </tr>
-            </thead>
-
-            <tbody id="completedTaskList">
-
-              <tr>
-                <td colspan="7">
-                  Loading completed tasks...
-                </td>
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =============================
-         REJECTED
-    ============================== -->
-
-    <section
-      class="task-panel"
-      data-task-panel-content="rejected"
-    >
-
-      <div class="task-card">
-
-        <div class="task-heading">
-
-          <small>
-            RESUBMISSION
-          </small>
-
-          <h2>
-            Rejected Tasks
-          </h2>
-
-          <p>
-            Tasks rejected by Admin and waiting
-            for correction or resubmission.
-          </p>
-
-        </div>
-
-
-        <div class="task-table-wrap">
-
-          <table class="task-table">
-
-            <thead>
-              <tr>
-                <th>Person</th>
-                <th>Type</th>
-                <th>Task</th>
-                <th>Admin Remark</th>
-                <th>Deadline</th>
-                <th>Points</th>
-                <th>View</th>
-              </tr>
-            </thead>
-
-            <tbody id="rejectedTaskList">
-
-              <tr>
-                <td colspan="7">
-                  Loading rejected tasks...
-                </td>
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
+      <div class="empty-state">
+        Loading your tasks...
       </div>
 
     </section>
 
   </main>
 
-</div>
+
+  <!-- FOOTER -->
+
+  <footer class="task-footer">
+
+    ©
+    <span id="taskCurrentYear"></span>
+    AAKASH EARTH
+
+    &nbsp; • &nbsp;
+
+    TECHNICAL SUPPORT BY
+    <strong>
+      BROTHER HOOD
+    </strong>
+
+  </footer>
 
 
-<!-- ==========================================
-     TASK DETAILS / REVIEW MODAL
-=========================================== -->
-
-<div
-  class="task-modal"
-  id="taskManagerModal"
->
-
-  <div class="task-modal-card">
-
-    <div class="task-modal-header">
-
-      <div>
-
-        <small>
-          TASK DETAILS
-        </small>
-
-        <h3 id="taskManagerModalTitle">
-          Task
-        </h3>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="task-modal-close"
-        id="closeTaskManagerModal"
-      >
-        ×
-      </button>
-
-    </div>
-
-
-    <div
-      id="taskManagerDetails"
-      class="task-detail-box"
-    >
-      Task details
-    </div>
-
-
-    <!-- REVIEW CONTROLS -->
-
-    <div
-      id="taskManagerReviewControls"
-      style="margin-top:18px;"
-    >
-
-      <div class="task-form-grid">
-
-        <div class="task-field">
-
-          <label for="taskManagerPoints">
-            FINAL POINTS
-          </label>
-
-          <input
-            type="number"
-            id="taskManagerPoints"
-            class="task-input"
-            min="0"
-            max="10000"
-          >
-
-        </div>
-
-
-        <div class="task-field">
-
-          <label for="taskManagerRating">
-            RATING
-          </label>
-
-          <select
-            id="taskManagerRating"
-            class="task-select"
-          >
-            <option value="">
-              No Rating
-            </option>
-
-            <option value="1">
-              ★
-            </option>
-
-            <option value="2">
-              ★★
-            </option>
-
-            <option value="3">
-              ★★★
-            </option>
-
-            <option value="4">
-              ★★★★
-            </option>
-
-            <option value="5">
-              ★★★★★
-            </option>
-          </select>
-
-        </div>
-
-
-        <div class="task-field full">
-
-          <label for="taskManagerRemark">
-            ADMIN REMARK
-          </label>
-
-          <textarea
-            id="taskManagerRemark"
-            class="task-textarea"
-            maxlength="500"
-            placeholder="Write review or correction..."
-          ></textarea>
-
-        </div>
-
-      </div>
-
-
-      <div
-        id="taskManagerMessage"
-        class="task-message"
-      ></div>
-
-
-      <div
-        class="task-actions"
-        style="margin-top:16px;"
-      >
-
-        <button
-          type="button"
-          id="taskManagerApprove"
-          class="task-btn green"
-        >
-          ✓ Approve & Complete
-        </button>
-
-
-        <button
-          type="button"
-          id="taskManagerReject"
-          class="task-btn red"
-        >
-          Reject / Resubmit
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <!-- DELETE -->
-
-    <div
-      style="
-        margin-top:22px;
-        padding-top:17px;
-        border-top:1px solid rgba(7,26,43,.08);
-      "
-    >
-
-      <button
-        type="button"
-        id="taskManagerDelete"
-        class="task-btn red"
-      >
-        Delete Task
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<script
-  type="module"
-  src="tasks.js"
-></script>
+  <script
+    type="module"
+    src="tasks.js"
+  ></script>
 
 </body>
 </html>

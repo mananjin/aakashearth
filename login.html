@@ -8,1230 +8,1728 @@
     content="width=device-width, initial-scale=1.0"
   >
 
+  <meta
+    name="theme-color"
+    content="#071c2a"
+  >
+
   <title>Portal Login | AAKASH EARTH</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 
   <style>
-    /* =====================================================
+    /* ==========================================
        LOGIN PAGE
-    ====================================================== */
+       Uses only AAKASH EARTH Navy + Gold palette
+    ========================================== */
 
     body.login-page {
       min-height: 100vh;
-
-      background:
-        radial-gradient(
-          circle at 15% 20%,
-          rgba(215, 173, 74, 0.16),
-          transparent 28%
-        ),
-        radial-gradient(
-          circle at 90% 80%,
-          rgba(25, 105, 145, 0.24),
-          transparent 32%
-        ),
-        linear-gradient(
-          135deg,
-          #04131f,
-          #092942 55%,
-          #0b3857
-        );
-
-      color: white;
+      background: #f7f4ec;
+      color: #071c2a;
     }
 
-    .login-shell {
-      min-height: 100vh;
-
-      display: grid;
-      grid-template-columns:
-        minmax(0, 1fr)
-        minmax(430px, 0.72fr);
-    }
-
-
-    /* =====================================================
-       LEFT SIDE
-    ====================================================== */
-
-    .login-showcase {
-      min-height: 100vh;
-
-      position: relative;
-      overflow: hidden;
-
-      padding: 55px 7%;
-
+    .login-official-bar {
+      min-height: 38px;
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-
-      border-right:
-        1px solid rgba(215, 173, 74, 0.17);
-    }
-
-    .login-showcase::before {
-      content: "";
-
-      position: absolute;
-
-      width: 520px;
-      height: 520px;
-
-      top: 50%;
-      left: 50%;
-
-      transform:
-        translate(-50%, -50%);
-
-      border:
-        1px solid rgba(215, 173, 74, 0.08);
-
-      border-radius: 50%;
-    }
-
-    .login-showcase::after {
-      content: "";
-
-      position: absolute;
-
-      width: 380px;
-      height: 380px;
-
-      top: 50%;
-      left: 50%;
-
-      transform:
-        translate(-50%, -50%);
-
-      border:
-        1px solid rgba(215, 173, 74, 0.1);
-
-      border-radius: 50%;
-    }
-
-    .login-brand {
-      position: relative;
-      z-index: 5;
-    }
-
-    .login-brand .brand {
-      width: fit-content;
-    }
-
-    .login-home-link {
-      margin-top: 25px;
-
-      display: inline-flex;
       align-items: center;
-
-      gap: 9px;
-
-      color:
-        rgba(255, 255, 255, 0.65);
-
-      font-size: 11px;
-      font-weight: 700;
-
-      transition: 0.2s;
-    }
-
-    .login-home-link:hover {
-      color: var(--gold-light);
-    }
-
-
-    /* =====================================================
-       SHOWCASE CENTER
-    ====================================================== */
-
-    .showcase-center {
-      position: relative;
-      z-index: 5;
-
-      max-width: 690px;
-
-      padding: 60px 0;
-    }
-
-    .showcase-badge {
-      display: inline-flex;
-
-      padding: 8px 14px;
-
-      border:
-        1px solid rgba(215, 173, 74, 0.3);
-
-      border-radius: 50px;
-
-      background:
-        rgba(215, 173, 74, 0.07);
-
-      color: var(--gold-light);
-
-      font-size: 9px;
-      font-weight: 800;
-
-      letter-spacing: 2px;
-    }
-
-    .showcase-center h1 {
-      margin-top: 22px;
-
-      font-family: "Cinzel", serif;
-
-      font-size:
-        clamp(40px, 5vw, 68px);
-
-      line-height: 1.08;
-    }
-
-    .showcase-center h1 span {
-      display: block;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 8px max(7vw, 20px);
 
       background:
         linear-gradient(
           90deg,
-          #f4df9e,
-          #c99431
+          #a97a1b,
+          #d2a339 25%,
+          #efd177 50%,
+          #d2a339 75%,
+          #a97a1b
         );
 
-      -webkit-background-clip: text;
-      background-clip: text;
-
-      color: transparent;
+      color: #071c2a;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 1.3px;
     }
 
-    .showcase-center > p {
-      max-width: 620px;
-
-      margin-top: 20px;
-
-      color:
-        rgba(255, 255, 255, 0.58);
-
-      font-size: 13px;
-      line-height: 1.8;
+    .login-official-bar span:last-child {
+      text-align: right;
     }
 
+    .login-header {
+      min-height: 82px;
 
-    /* =====================================================
-       PORTAL TYPE CARDS
-    ====================================================== */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
 
-    .showcase-portals {
-      margin-top: 35px;
+      padding: 0 max(7vw, 20px);
+
+      background: #142633;
+
+      border-bottom:
+        1px solid rgba(214, 165, 54, 0.28);
+    }
+
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .login-brand-logo {
+      position: relative;
+
+      width: 52px;
+      height: 52px;
 
       display: grid;
-      grid-template-columns:
-        repeat(3, 1fr);
-
-      gap: 12px;
-    }
-
-    .showcase-portal {
-      min-height: 125px;
-
-      padding: 18px;
-
-      position: relative;
-      overflow: hidden;
+      place-items: center;
 
       border:
-        1px solid rgba(255, 255, 255, 0.1);
+        1px solid #d6a536;
 
-      border-radius: 18px;
+      border-radius: 50%;
 
-      background:
-        rgba(255, 255, 255, 0.05);
+      background: #102a3d;
 
-      backdrop-filter: blur(10px);
+      color: #f0d17e;
+
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+      font-size: 18px;
+      font-weight: 700;
+
+      box-shadow:
+        0 0 0 5px
+        rgba(214, 165, 54, 0.08);
     }
 
-    .showcase-portal::after {
+    .login-brand-logo::after {
       content: "";
 
-      width: 80px;
-      height: 80px;
-
       position: absolute;
-
-      top: -35px;
-      right: -35px;
+      inset: 5px;
 
       border:
-        1px solid rgba(215, 173, 74, 0.15);
+        1px solid
+        rgba(228, 184, 76, 0.55);
 
       border-radius: 50%;
     }
 
-    .showcase-portal-icon {
-      margin-bottom: 17px;
-
-      font-size: 23px;
-    }
-
-    .showcase-portal strong {
+    .login-brand-text strong {
       display: block;
 
-      color: white;
+      color: #ffffff;
 
-      font-family: "Cinzel", serif;
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-      font-size: 12px;
+      font-size: 17px;
+      letter-spacing: 1.5px;
     }
 
-    .showcase-portal span {
+    .login-brand-text small {
+      display: block;
+
+      margin-top: 3px;
+
+      color: #d6a536;
+
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+    }
+
+    .back-home-btn {
+      min-height: 42px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      padding: 0 17px;
+
+      border:
+        1px solid
+        rgba(240, 209, 126, 0.30);
+
+      border-radius: 11px;
+
+      color: #ffffff;
+
+      background:
+        rgba(255, 255, 255, 0.04);
+
+      font-size: 9px;
+      font-weight: 800;
+
+      transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .back-home-btn:hover {
+      background:
+        rgba(214, 165, 54, 0.10);
+
+      transform:
+        translateY(-2px);
+    }
+
+
+    /* ==========================================
+       MAIN LOGIN AREA
+    ========================================== */
+
+    .login-main {
+      min-height:
+        calc(100vh - 120px);
+
+      display: grid;
+
+      grid-template-columns:
+        minmax(0, 1.05fr)
+        minmax(430px, 0.95fr);
+
+      background: #f7f4ec;
+    }
+
+
+    /* ==========================================
+       LEFT HERO
+    ========================================== */
+
+    .login-hero {
+      position: relative;
+
+      min-height: 690px;
+
+      overflow: hidden;
+
+      display: flex;
+      align-items: center;
+
+      padding:
+        70px max(7vw, 45px);
+
+      background:
+        radial-gradient(
+          circle at 95% 40%,
+          rgba(25, 81, 117, 0.52),
+          transparent 42%
+        ),
+        linear-gradient(
+          120deg,
+          #071c2a,
+          #082b42 58%,
+          #0e3d5c
+        );
+
+      color: #ffffff;
+    }
+
+    .login-hero::before {
+      content: "";
+
+      position: absolute;
+
+      width: 340px;
+      height: 340px;
+
+      right: -160px;
+      top: -160px;
+
+      border:
+        1px solid
+        rgba(214, 165, 54, 0.18);
+
+      border-radius: 50%;
+    }
+
+    .login-hero::after {
+      content: "";
+
+      position: absolute;
+
+      width: 260px;
+      height: 260px;
+
+      left: -160px;
+      bottom: -160px;
+
+      border:
+        1px solid
+        rgba(214, 165, 54, 0.18);
+
+      border-radius: 50%;
+    }
+
+    .login-hero-content {
+      position: relative;
+      z-index: 2;
+
+      max-width: 650px;
+    }
+
+    .login-hero-badge {
+      width: max-content;
+
+      display: flex;
+      align-items: center;
+      gap: 7px;
+
+      margin-bottom: 25px;
+
+      padding:
+        9px 13px;
+
+      border:
+        1px solid
+        rgba(214, 165, 54, 0.42);
+
+      border-radius: 30px;
+
+      background:
+        rgba(214, 165, 54, 0.08);
+
+      color: #f0d17e;
+
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 1.6px;
+    }
+
+    .login-hero-badge::before {
+      content: "✦";
+
+      color: #d6a536;
+    }
+
+    .login-hero h1 {
+      margin: 0;
+
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+      font-size:
+        clamp(52px, 6vw, 82px);
+
+      font-weight: 500;
+      line-height: 0.98;
+
+      letter-spacing: -3px;
+    }
+
+    .login-hero h1 span {
+      display: block;
+
+      margin-top: 12px;
+
+      color: #f0d17e;
+    }
+
+    .login-hero-description {
+      max-width: 590px;
+
+      margin:
+        28px 0 0;
+
+      color: #cbd5db;
+
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .portal-points {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 10px;
+
+      margin-top: 36px;
+    }
+
+    .portal-point {
+      padding: 16px;
+
+      border:
+        1px solid
+        rgba(214, 165, 54, 0.20);
+
+      border-radius: 12px;
+
+      background:
+        rgba(7, 28, 42, 0.48);
+    }
+
+    .portal-point strong {
+      display: block;
+
+      color: #f0d17e;
+
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+      font-size: 18px;
+    }
+
+    .portal-point span {
       display: block;
 
       margin-top: 5px;
 
-      color:
-        rgba(255, 255, 255, 0.45);
+      color: #9fadb5;
 
-      font-size: 9px;
+      font-size: 8px;
+      line-height: 1.5;
     }
 
-    .showcase-portal.member {
-      border-bottom:
-        3px solid #2a7eae;
+    .technical-credit {
+      margin-top: 35px;
+
+      color: #9eabb3;
+
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 1.3px;
     }
 
-    .showcase-portal.volunteer {
-      border-bottom:
-        3px solid var(--emerald);
-    }
-
-    .showcase-portal.admin {
-      border-bottom:
-        3px solid var(--gold);
+    .technical-credit strong {
+      color: #d6a536;
     }
 
 
-    /* =====================================================
-       LEFT FOOTER
-    ====================================================== */
+    /* ==========================================
+       LOGIN PANEL SIDE
+    ========================================== */
 
-    .showcase-footer {
-      position: relative;
-      z-index: 5;
-
+    .login-panel-side {
       display: flex;
-      justify-content: space-between;
+      align-items: center;
+      justify-content: center;
 
-      gap: 20px;
+      padding: 55px 35px;
 
-      color:
-        rgba(255, 255, 255, 0.34);
-
-      font-size: 9px;
-
-      letter-spacing: 0.5px;
+      background: #f7f4ec;
     }
-
-
-    /* =====================================================
-       LOGIN PANEL
-    ====================================================== */
 
     .login-panel {
-      min-height: 100vh;
-
-      padding: 45px;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      background:
-        linear-gradient(
-          180deg,
-          rgba(255, 250, 240, 0.99),
-          rgba(247, 239, 221, 0.99)
-        );
-
-      color: var(--text);
+      width: min(470px, 100%);
     }
 
-    .login-card {
-      width: min(100%, 490px);
+    .login-panel-heading {
+      margin-bottom: 25px;
+    }
 
-      padding: 36px;
+    .login-panel-heading > span {
+      display: block;
 
-      position: relative;
-      overflow: hidden;
+      margin-bottom: 8px;
+
+      color: #9c7119;
+
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 2px;
+    }
+
+    .login-panel-heading h2 {
+      margin: 0;
+
+      color: #071c2a;
+
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+      font-size: 42px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .login-panel-heading h2 em {
+      color: #a87a1b;
+      font-style: normal;
+    }
+
+    .login-panel-heading p {
+      margin:
+        11px 0 0;
+
+      color: #697780;
+
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+
+    /* ==========================================
+       ROLE SELECTOR
+    ========================================== */
+
+    .role-selector {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 7px;
+
+      margin-bottom: 18px;
+
+      padding: 6px;
 
       border:
-        1px solid rgba(215, 173, 74, 0.25);
+        1px solid #ded3b8;
 
-      border-radius: 28px;
+      border-radius: 14px;
 
-      background:
-        rgba(255, 255, 255, 0.92);
+      background: #eee8da;
+    }
+
+    .role-btn {
+      min-height: 54px;
+
+      border: 0;
+      border-radius: 10px;
+
+      background: transparent;
+
+      color: #68767f;
+
+      font-size: 9px;
+      font-weight: 900;
+
+      transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
+    }
+
+    .role-btn small {
+      display: block;
+
+      margin-top: 3px;
+
+      color: inherit;
+
+      opacity: 0.75;
+
+      font-size: 6px;
+      letter-spacing: 0.7px;
+    }
+
+    .role-btn.active {
+      background: #071c2a;
+
+      color: #f0d17e;
 
       box-shadow:
-        0 28px 70px
-        rgba(4, 20, 32, 0.15);
+        0 8px 18px
+        rgba(7, 28, 42, 0.16);
+    }
+
+
+    /* ==========================================
+       LOGIN CARD
+    ========================================== */
+
+    .login-card {
+      position: relative;
+
+      overflow: hidden;
+
+      padding: 27px;
+
+      border:
+        1px solid #ddd1b4;
+
+      border-radius: 18px;
+
+      background: #ffffff;
+
+      box-shadow:
+        0 18px 45px
+        rgba(7, 28, 42, 0.09);
     }
 
     .login-card::before {
       content: "";
 
-      width: 150px;
-      height: 150px;
-
       position: absolute;
 
-      top: -80px;
-      right: -70px;
+      left: 0;
+      right: 0;
+      top: 0;
 
-      border:
-        1px solid rgba(215, 173, 74, 0.15);
+      height: 4px;
 
-      border-radius: 50%;
+      background:
+        linear-gradient(
+          90deg,
+          #9e7319,
+          #d6a536,
+          #f0d17e,
+          #d6a536,
+          #9e7319
+        );
     }
 
+    .selected-role {
+      display: flex;
+      align-items: center;
+      gap: 13px;
 
-    /* =====================================================
-       LOGIN CARD HEADER
-    ====================================================== */
+      margin-bottom: 24px;
 
-    .login-card-header {
-      position: relative;
-      z-index: 2;
+      padding-bottom: 19px;
+
+      border-bottom:
+        1px solid #ebe3d2;
     }
 
-    .login-card-label {
-      color: var(--gold-dark);
-
-      font-size: 9px;
-      font-weight: 800;
-
-      letter-spacing: 2px;
-    }
-
-    .login-card-header h2 {
-      margin-top: 8px;
-
-      color: var(--navy);
-
-      font-family: "Cinzel", serif;
-
-      font-size: 29px;
-    }
-
-    .login-card-header p {
-      margin-top: 9px;
-
-      color: var(--muted);
-
-      font-size: 11px;
-      line-height: 1.65;
-    }
-
-
-    /* =====================================================
-       ROLE TABS
-    ====================================================== */
-
-    .login-tabs {
-      margin-top: 27px;
-      margin-bottom: 26px;
-
-      padding: 5px;
+    .selected-role-icon {
+      width: 46px;
+      height: 46px;
 
       display: grid;
-      grid-template-columns:
-        repeat(3, 1fr);
+      place-items: center;
 
-      gap: 5px;
+      flex: 0 0 auto;
 
-      border-radius: 14px;
+      border:
+        1px solid #d6bd7b;
 
-      background: #f1eadc;
+      border-radius: 50%;
+
+      background: #f3e5bc;
+
+      color: #79580f;
+
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+      font-size: 16px;
+      font-weight: 700;
     }
 
-    .login-tab {
-      min-height: 43px;
+    .selected-role strong {
+      display: block;
 
-      padding: 8px;
+      color: #071c2a;
 
-      border-radius: 10px;
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
 
-      background: transparent;
-
-      color: #68737b;
-
-      font-size: 10px;
-      font-weight: 800;
-
-      cursor: pointer;
-
-      transition: 0.25s;
+      font-size: 18px;
     }
 
-    .login-tab:hover {
-      color: var(--navy);
-    }
+    .selected-role span {
+      display: block;
 
-    .login-tab.active {
-      color: white;
+      margin-top: 3px;
 
-      background:
-        linear-gradient(
-          135deg,
-          #123f68,
-          #071b2c
-        );
+      color: #7b878e;
 
-      box-shadow:
-        0 7px 18px
-        rgba(7, 27, 44, 0.18);
-    }
-
-    .login-tab[data-role="member"].active {
-      background:
-        linear-gradient(
-          135deg,
-          #1e6595,
-          #0c3655
-        );
-    }
-
-    .login-tab[data-role="volunteer"].active {
-      background:
-        linear-gradient(
-          135deg,
-          #168069,
-          #0a4c40
-        );
+      font-size: 8px;
     }
 
 
-    /* =====================================================
-       LOGIN FORM
-    ====================================================== */
+    /* ==========================================
+       FORM
+    ========================================== */
 
     .login-form {
-      position: relative;
-      z-index: 2;
+      display: grid;
+      gap: 15px;
     }
 
     .login-field {
-      margin-bottom: 17px;
+      display: grid;
+      gap: 7px;
     }
 
     .login-field label {
-      display: block;
+      color: #40515c;
 
-      margin-bottom: 7px;
-
-      color: var(--navy);
-
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 800;
     }
 
-    .login-input-wrap {
+    .login-field label span {
+      color: #9c7119;
+    }
+
+    .input-wrap {
       position: relative;
     }
 
-    .login-input {
+    .input-wrap input {
       width: 100%;
       min-height: 50px;
 
-      padding: 13px 15px;
+      padding:
+        0 46px 0 14px;
+
+      border:
+        1px solid #d9d0bb;
+
+      border-radius: 11px;
 
       outline: none;
 
-      border:
-        1px solid rgba(8, 36, 58, 0.14);
+      background: #fbfaf6;
 
-      border-radius: 12px;
-
-      background: #fffdfa;
-
-      color: var(--navy);
+      color: #071c2a;
 
       font-size: 12px;
 
       transition:
-        border-color 0.2s,
-        box-shadow 0.2s,
-        background 0.2s;
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
     }
 
-    .login-input:focus {
-      border-color: var(--gold);
+    .input-wrap input:focus {
+      border-color: #d6a536;
 
-      background: white;
+      background: #ffffff;
 
       box-shadow:
         0 0 0 3px
-        rgba(215, 173, 74, 0.1);
+        rgba(214, 165, 54, 0.12);
     }
 
-    .login-input::placeholder {
-      color: #a0a7ab;
+    .input-wrap input::placeholder {
+      color: #9aa3a8;
     }
 
-    .password-input {
-      padding-right: 55px;
+    .field-symbol {
+      position: absolute;
+
+      right: 14px;
+      top: 50%;
+
+      transform:
+        translateY(-50%);
+
+      color: #a77a1c;
+
+      font-size: 13px;
+      pointer-events: none;
     }
 
     .password-toggle {
-      width: 45px;
-      height: 40px;
-
       position: absolute;
 
-      top: 5px;
-      right: 5px;
+      right: 8px;
+      top: 50%;
 
-      display: grid;
-      place-items: center;
+      width: 35px;
+      height: 35px;
 
-      border-radius: 9px;
+      transform:
+        translateY(-50%);
+
+      border: 0;
+      border-radius: 8px;
 
       background: transparent;
 
-      color: var(--muted);
+      color: #876312;
 
-      font-size: 15px;
-
-      cursor: pointer;
+      font-size: 9px;
+      font-weight: 900;
     }
 
     .password-toggle:hover {
-      background: var(--cream);
+      background: #f1e6c8;
     }
 
+    .login-help-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
 
-    /* =====================================================
-       LOGIN MESSAGE
-    ====================================================== */
+      color: #7c878e;
 
-    .login-message {
-      display: none;
-
-      margin-bottom: 15px;
-
-      padding: 11px 13px;
-
-      border-radius: 10px;
-
-      font-size: 10px;
-      font-weight: 700;
-
-      line-height: 1.5;
+      font-size: 8px;
     }
 
-    .login-message.show {
-      display: block;
+    .login-help-row strong {
+      color: #8d6613;
     }
-
-    .login-message.error {
-      color: #8c2535;
-
-      border:
-        1px solid rgba(140, 37, 53, 0.17);
-
-      background:
-        rgba(140, 37, 53, 0.07);
-    }
-
-    .login-message.success {
-      color: #0b6b54;
-
-      border:
-        1px solid rgba(11, 107, 84, 0.17);
-
-      background:
-        rgba(11, 107, 84, 0.07);
-    }
-
-    .login-message.info {
-      color: #15577c;
-
-      border:
-        1px solid rgba(21, 87, 124, 0.17);
-
-      background:
-        rgba(21, 87, 124, 0.07);
-    }
-
-
-    /* =====================================================
-       LOGIN BUTTON
-    ====================================================== */
 
     .login-submit {
-      width: 100%;
-      min-height: 51px;
+      min-height: 52px;
 
       margin-top: 3px;
 
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      gap: 11px;
-
-      border-radius: 12px;
-
-      color: var(--navy);
+      border: 0;
+      border-radius: 11px;
 
       background:
         linear-gradient(
           135deg,
-          #f1d783,
-          #c6932d
+          #f0d17e,
+          #d5a438
         );
 
-      font-size: 11px;
-      font-weight: 800;
-
-      cursor: pointer;
+      color: #071c2a;
 
       box-shadow:
-        0 12px 30px
-        rgba(198, 147, 45, 0.19);
+        0 10px 24px
+        rgba(7, 28, 42, 0.12);
+
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: 0.5px;
 
       transition:
-        transform 0.25s,
-        box-shadow 0.25s,
-        opacity 0.25s;
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
     }
 
     .login-submit:hover {
-      transform: translateY(-2px);
+      transform:
+        translateY(-2px);
 
       box-shadow:
-        0 16px 35px
-        rgba(198, 147, 45, 0.28);
+        0 14px 28px
+        rgba(7, 28, 42, 0.17);
     }
 
     .login-submit:disabled {
       opacity: 0.6;
-
-      cursor: not-allowed;
-
+      cursor: wait;
       transform: none;
     }
 
+    .login-message {
+      min-height: 18px;
 
-    /* =====================================================
-       VOLUNTEER REGISTER
-    ====================================================== */
+      margin: 0;
 
-    .volunteer-register-box {
-      display: none;
-
-      margin-top: 20px;
-      padding: 17px;
-
-      border:
-        1px solid rgba(19, 116, 95, 0.16);
-
-      border-radius: 14px;
-
-      background:
-        rgba(19, 116, 95, 0.06);
+      color: #8c6410;
 
       text-align: center;
-    }
 
-    .volunteer-register-box.show {
-      display: block;
-    }
-
-    .volunteer-register-box p {
-      color: var(--muted);
-
-      font-size: 10px;
+      font-size: 9px;
+      font-weight: 700;
       line-height: 1.5;
     }
 
-    .volunteer-register-box a {
-      display: inline-block;
+    .login-message.error {
+      color: #8d3c35;
+    }
 
-      margin-top: 8px;
-
-      color: var(--emerald);
-
-      font-size: 10px;
-      font-weight: 800;
+    .login-message.success {
+      color: #49604d;
     }
 
 
-    /* =====================================================
-       SECURITY NOTE
-    ====================================================== */
+    /* ==========================================
+       PORTAL NOTICE
+    ========================================== */
 
-    .login-security {
-      margin-top: 21px;
-      padding-top: 18px;
-
-      border-top:
-        1px solid rgba(8, 36, 58, 0.08);
-
+    .portal-notice {
       display: flex;
       align-items: flex-start;
-
       gap: 10px;
 
-      color: #7b858b;
+      margin-top: 16px;
 
-      font-size: 9px;
-      line-height: 1.55;
+      padding: 13px;
+
+      border:
+        1px solid #dcc994;
+
+      border-radius: 11px;
+
+      background: #f2e6c5;
     }
 
-    .security-icon {
-      width: 28px;
-      height: 28px;
+    .portal-notice strong {
+      flex: 0 0 auto;
 
-      flex-shrink: 0;
+      width: 25px;
+      height: 25px;
 
       display: grid;
       place-items: center;
 
-      border-radius: 8px;
+      border-radius: 50%;
 
-      background: var(--cream);
+      background: #071c2a;
+
+      color: #f0d17e;
+
+      font-size: 9px;
+    }
+
+    .portal-notice p {
+      margin: 0;
+
+      color: #596871;
+
+      font-size: 8px;
+      line-height: 1.6;
     }
 
 
-    /* =====================================================
-       MOBILE
-    ====================================================== */
+    /* ==========================================
+       FOOTER
+    ========================================== */
 
-    @media (max-width: 950px) {
+    .login-footer {
+      min-height: 58px;
 
-      .login-shell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+
+      padding:
+        12px max(7vw, 20px);
+
+      border-top:
+        1px solid
+        rgba(255, 255, 255, 0.07);
+
+      background: #10232f;
+
+      color: #87959e;
+
+      font-size: 8px;
+      letter-spacing: 0.8px;
+    }
+
+    .login-footer strong {
+      color: #d6a536;
+    }
+
+
+    /* ==========================================
+       RESPONSIVE
+    ========================================== */
+
+    @media (max-width: 1000px) {
+
+      .login-main {
         grid-template-columns: 1fr;
       }
 
-      .login-showcase {
+      .login-hero {
         min-height: auto;
 
-        padding: 35px 6% 45px;
-
-        border-right: 0;
-
-        border-bottom:
-          1px solid rgba(215, 173, 74, 0.15);
+        padding:
+          70px 35px;
       }
 
-      .showcase-center {
-        padding: 60px 0 35px;
+      .login-hero-content {
+        margin-inline: auto;
 
         text-align: center;
-
-        margin: auto;
       }
 
-      .showcase-center > p {
+      .login-hero-badge {
         margin-left: auto;
         margin-right: auto;
       }
 
-      .showcase-portals {
-        max-width: 600px;
+      .portal-points {
+        max-width: 650px;
 
-        margin:
-          30px auto 0;
+        margin-left: auto;
+        margin-right: auto;
       }
 
-      .showcase-footer {
+      .login-panel-side {
+        padding:
+          60px 25px;
+      }
+
+      .login-panel {
+        width: min(560px, 100%);
+      }
+    }
+
+
+    @media (max-width: 650px) {
+
+      .login-official-bar {
+        justify-content: center;
+
+        text-align: center;
+      }
+
+      .login-official-bar span:last-child {
         display: none;
       }
 
-      .login-panel {
-        min-height: auto;
+      .login-header {
+        min-height: 70px;
 
-        padding: 55px 6%;
+        padding:
+          0 14px;
       }
 
-    }
+      .login-brand-logo {
+        width: 43px;
+        height: 43px;
 
-
-    @media (max-width: 600px) {
-
-      .login-showcase {
-        padding: 25px 5% 35px;
+        font-size: 15px;
       }
 
-      .login-brand .brand {
-        margin: auto;
+      .login-brand-text strong {
+        font-size: 12px;
       }
 
-      .login-home-link {
-        width: 100%;
-
-        justify-content: center;
+      .login-brand-text small {
+        display: none;
       }
 
-      .showcase-center {
-        padding: 45px 0 20px;
+      .back-home-btn {
+        min-height: 39px;
+
+        padding:
+          0 12px;
+
+        font-size: 8px;
       }
 
-      .showcase-center h1 {
-        font-size: 37px;
+      .login-hero {
+        padding:
+          55px 20px;
       }
 
-      .showcase-center > p {
-        font-size: 11px;
+      .login-hero h1 {
+        font-size:
+          clamp(43px, 14vw, 62px);
+
+        letter-spacing: -2px;
       }
 
-      .showcase-portals {
+      .login-hero-description {
+        font-size: 12px;
+      }
+
+      .portal-points {
         grid-template-columns: 1fr;
       }
 
-      .showcase-portal {
-        min-height: 90px;
-
-        text-align: left;
+      .login-panel-side {
+        padding:
+          45px 14px;
       }
 
-      .showcase-portal-icon {
-        margin-bottom: 8px;
+      .login-panel-heading h2 {
+        font-size: 37px;
       }
 
-      .login-panel {
-        padding: 40px 4%;
+      .role-selector {
+        gap: 4px;
+      }
+
+      .role-btn {
+        min-height: 50px;
+
+        padding: 5px;
+
+        font-size: 8px;
       }
 
       .login-card {
-        padding: 27px 20px;
-
-        border-radius: 22px;
+        padding:
+          24px 17px;
       }
 
-      .login-card-header h2 {
-        font-size: 25px;
+      .login-help-row {
+        flex-direction: column;
+        gap: 6px;
       }
 
-      .login-tab {
-        padding: 7px 3px;
+      .login-footer {
+        flex-direction: column;
 
-        font-size: 9px;
+        justify-content: center;
+
+        text-align: center;
       }
-
     }
 
+
+    @media (
+      prefers-reduced-motion: reduce
+    ) {
+
+      *,
+      *::before,
+      *::after {
+        transition-duration:
+          0.01ms !important;
+      }
+    }
   </style>
 </head>
 
 
 <body class="login-page">
 
-  <div class="login-shell">
-
-
-    <!-- ===================================================
-         LEFT SHOWCASE
-    ==================================================== -->
-    <section class="login-showcase">
-
-      <div class="login-brand">
-
-        <a href="index.html" class="brand">
-
-          <div class="brand-emblem">
-            <span>AE</span>
-          </div>
-
-          <div class="brand-text">
-            <strong>AAKASH EARTH</strong>
-            <span>YUWA MANDAL</span>
-          </div>
-
-        </a>
-
-        <a
-          href="index.html"
-          class="login-home-link"
-        >
-          ← Back to Official Website
-        </a>
-
-      </div>
-
-
-      <div class="showcase-center">
-
-        <span class="showcase-badge">
-          ✦ OFFICIAL DIGITAL PORTAL
-        </span>
-
-        <h1>
-          Our Community.
-          <span>Connected.</span>
-        </h1>
-
-        <p>
-          A single digital platform for Aakash Earth members,
-          volunteers and administrators — built for community
-          activities, seva, events, tasks and communication.
-        </p>
-
-
-        <div class="showcase-portals">
-
-          <div class="showcase-portal admin">
-
-            <div class="showcase-portal-icon">
-              👑
-            </div>
-
-            <strong>Admin Portal</strong>
-
-            <span>
-              Community management
-            </span>
-
-          </div>
-
-
-          <div class="showcase-portal member">
-
-            <div class="showcase-portal-icon">
-              👤
-            </div>
-
-            <strong>Member Portal</strong>
-
-            <span>
-              Activities & tasks
-            </span>
-
-          </div>
-
-
-          <div class="showcase-portal volunteer">
-
-            <div class="showcase-portal-icon">
-              🤝
-            </div>
-
-            <strong>Volunteer Portal</strong>
-
-            <span>
-              Seva & contribution
-            </span>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="showcase-footer">
-
-        <span>
-          Unity • Seva • Sanskar
-        </span>
-
-        <span>
-          AAKASH EARTH Yuwa Mandal
-        </span>
-
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         RIGHT LOGIN PANEL
-    ==================================================== -->
-    <section class="login-panel">
-
-      <div class="login-card">
-
-
-        <!-- HEADER -->
-        <div class="login-card-header">
-
-          <span class="login-card-label">
-            SECURE PORTAL ACCESS
-          </span>
-
-          <h2>
-            Welcome Back
-          </h2>
-
-          <p id="loginDescription">
-            Sign in to the Admin Portal.
-          </p>
-
-        </div>
-
-
-        <!-- ROLE TABS -->
-        <div class="login-tabs">
-
-          <button
-            type="button"
-            class="login-tab active"
-            data-role="admin"
-          >
-            👑 Admin
-          </button>
-
-          <button
-            type="button"
-            class="login-tab"
-            data-role="member"
-          >
-            👤 Member
-          </button>
-
-          <button
-            type="button"
-            class="login-tab"
-            data-role="volunteer"
-          >
-            🤝 Volunteer
-          </button>
-
-        </div>
-
-
-        <!-- LOGIN FORM -->
-        <form
-          id="loginForm"
-          class="login-form"
-          autocomplete="off"
-        >
-
-          <!-- USERNAME / ID -->
-          <div class="login-field">
-
-            <label
-              id="usernameLabel"
-              for="loginUsername"
-            >
-              Admin Username
-            </label>
-
-            <div class="login-input-wrap">
-
-              <input
-                type="text"
-                id="loginUsername"
-                class="login-input"
-                placeholder="Enter admin username"
-                autocomplete="username"
-                required
-              >
-
-            </div>
-
-          </div>
-
-
-          <!-- PASSWORD / MOBILE -->
-          <div class="login-field">
-
-            <label
-              id="passwordLabel"
-              for="loginPassword"
-            >
-              Password
-            </label>
-
-            <div class="login-input-wrap">
-
-              <input
-                type="password"
-                id="loginPassword"
-                class="login-input password-input"
-                placeholder="Enter password"
-                autocomplete="current-password"
-                required
-              >
-
-              <button
-                type="button"
-                id="togglePassword"
-                class="password-toggle"
-                aria-label="Show or hide password"
-              >
-                👁
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <!-- MESSAGE -->
-          <div
-            id="loginMessage"
-            class="login-message"
-            role="alert"
-          ></div>
-
-
-          <!-- LOGIN BUTTON -->
-          <button
-            type="submit"
-            id="loginButton"
-            class="login-submit"
-          >
-            <span id="loginButtonText">
-              Login to Admin Portal
-            </span>
-
-            <span>
-              →
-            </span>
-          </button>
-
-        </form>
-
-
-        <!-- VOLUNTEER REGISTRATION -->
-        <div
-          id="volunteerRegisterBox"
-          class="volunteer-register-box"
-        >
-
-          <p>
-            Not registered as a volunteer yet?
-          </p>
-
-          <a href="volunteer.html">
-            Register as Volunteer →
-          </a>
-
-        </div>
-
-
-        <!-- NOTE -->
-        <div class="login-security">
-
-          <div class="security-icon">
-            🔒
-          </div>
-
-          <div>
-            This portal is intended for authorized Aakash Earth
-            administrators, members and approved volunteers.
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
+  <!-- ========================================
+       OFFICIAL TOP BAR
+  ========================================= -->
+
+  <div class="login-official-bar">
+
+    <span>
+      ✦ OFFICIAL COMMUNITY PORTAL
+    </span>
+
+    <span>
+      Welcome to AAKASH EARTH •
+      Unity • Seva • Sanskar • Celebration
+    </span>
 
   </div>
 
 
-  <!-- EXISTING LOGIN JAVASCRIPT -->
+  <!-- ========================================
+       HEADER
+  ========================================= -->
+
+  <header class="login-header">
+
+    <a
+      href="index.html"
+      class="login-brand"
+      aria-label="AAKASH EARTH Home"
+    >
+
+      <div class="login-brand-logo">
+        AE
+      </div>
+
+      <div class="login-brand-text">
+
+        <strong>
+          AAKASH EARTH
+        </strong>
+
+        <small>
+          OFFICIAL DIGITAL PORTAL
+        </small>
+
+      </div>
+
+    </a>
+
+
+    <a
+      href="index.html"
+      class="back-home-btn"
+    >
+      ← Back to Home
+    </a>
+
+  </header>
+
+
+  <!-- ========================================
+       MAIN
+  ========================================= -->
+
+  <main class="login-main">
+
+
+    <!-- LEFT SIDE -->
+
+    <section class="login-hero">
+
+      <div class="login-hero-content">
+
+        <div class="login-hero-badge">
+          SECURE PORTAL ACCESS
+        </div>
+
+
+        <h1>
+          WELCOME
+          <span>
+            BACK TO AE
+          </span>
+        </h1>
+
+
+        <p class="login-hero-description">
+          Access your AAKASH EARTH portal to
+          view your profile, activities,
+          tasks, ranking, digital ID card
+          and community information.
+        </p>
+
+
+        <div class="portal-points">
+
+          <div class="portal-point">
+
+            <strong>
+              MEMBER
+            </strong>
+
+            <span>
+              Profile, activities and
+              digital ID card
+            </span>
+
+          </div>
+
+
+          <div class="portal-point">
+
+            <strong>
+              VOLUNTEER
+            </strong>
+
+            <span>
+              Tasks, points, ranking and
+              digital ID card
+            </span>
+
+          </div>
+
+
+          <div class="portal-point">
+
+            <strong>
+              ADMIN
+            </strong>
+
+            <span>
+              Management and activity
+              control panel
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="technical-credit">
+          TECHNICAL SUPPORT BY
+          <strong>
+            BROTHER HOOD
+          </strong>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- LOGIN SIDE -->
+
+    <section class="login-panel-side">
+
+      <div class="login-panel">
+
+
+        <div class="login-panel-heading">
+
+          <span>
+            PORTAL LOGIN
+          </span>
+
+          <h2>
+            Select Your
+            <em>Role</em>
+          </h2>
+
+          <p>
+            Select your portal type and
+            enter your assigned credentials.
+          </p>
+
+        </div>
+
+
+        <!-- ROLE SELECTOR -->
+
+        <div
+          class="role-selector"
+          id="roleSelector"
+        >
+
+          <button
+            type="button"
+            class="role-btn active"
+            data-role="member"
+          >
+            MEMBER
+
+            <small>
+              MEMBER ID
+            </small>
+          </button>
+
+
+          <button
+            type="button"
+            class="role-btn"
+            data-role="volunteer"
+          >
+            VOLUNTEER
+
+            <small>
+              VOLUNTEER ID
+            </small>
+          </button>
+
+
+          <button
+            type="button"
+            class="role-btn"
+            data-role="admin"
+          >
+            ADMIN
+
+            <small>
+              ADMIN ID
+            </small>
+          </button>
+
+        </div>
+
+
+        <!-- LOGIN CARD -->
+
+        <div class="login-card">
+
+
+          <div class="selected-role">
+
+            <div
+              class="selected-role-icon"
+              id="selectedRoleIcon"
+            >
+              M
+            </div>
+
+            <div>
+
+              <strong id="selectedRoleTitle">
+                Member Login
+              </strong>
+
+              <span id="selectedRoleDescription">
+                Enter your Member ID and password
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- FORM -->
+
+          <form
+            id="loginForm"
+            class="login-form"
+            autocomplete="off"
+          >
+
+            <input
+              type="hidden"
+              id="loginRole"
+              value="member"
+            >
+
+
+            <!-- ID -->
+
+            <div class="login-field">
+
+              <label
+                for="loginUserId"
+                id="loginIdLabel"
+              >
+                Member ID
+                <span>*</span>
+              </label>
+
+              <div class="input-wrap">
+
+                <input
+                  type="text"
+                  id="loginUserId"
+                  placeholder="Example: AE-M-0001"
+                  autocomplete="username"
+                  required
+                >
+
+                <span
+                  class="field-symbol"
+                  aria-hidden="true"
+                >
+                  ID
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- PASSWORD -->
+
+            <div class="login-field">
+
+              <label for="loginPassword">
+                Password
+                <span>*</span>
+              </label>
+
+              <div class="input-wrap">
+
+                <input
+                  type="password"
+                  id="loginPassword"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                >
+
+                <button
+                  type="button"
+                  class="password-toggle"
+                  id="togglePassword"
+                  aria-label="Show or hide password"
+                >
+                  SHOW
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div class="login-help-row">
+
+              <span id="loginIdHelp">
+                Use the Member ID assigned
+                to you.
+              </span>
+
+              <span>
+                <strong>
+                  AAKASH EARTH
+                </strong>
+                Portal
+              </span>
+
+            </div>
+
+
+            <button
+              type="submit"
+              class="login-submit"
+              id="loginSubmit"
+            >
+              LOGIN TO MEMBER PORTAL →
+            </button>
+
+
+            <p
+              class="login-message"
+              id="loginMessage"
+              aria-live="polite"
+            ></p>
+
+          </form>
+
+        </div>
+
+
+        <!-- NOTICE -->
+
+        <div class="portal-notice">
+
+          <strong>
+            i
+          </strong>
+
+          <p>
+            Use only your assigned portal
+            credentials. Your password should
+            never be shared with another person.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ========================================
+       FOOTER
+  ========================================= -->
+
+  <footer class="login-footer">
+
+    <span>
+      © <span id="loginCurrentYear"></span>
+      AAKASH EARTH
+    </span>
+
+    <span>
+      TECHNICAL SUPPORT BY
+      <strong>
+        BROTHER HOOD
+      </strong>
+    </span>
+
+  </footer>
+
+
+  <!-- ========================================
+       BASIC UI SCRIPT
+       Actual Firebase login = login.js
+  ========================================= -->
+
+  <script>
+    (() => {
+      "use strict";
+
+      const roleButtons =
+        document.querySelectorAll(
+          ".role-btn"
+        );
+
+      const roleInput =
+        document.getElementById(
+          "loginRole"
+        );
+
+      const roleIcon =
+        document.getElementById(
+          "selectedRoleIcon"
+        );
+
+      const roleTitle =
+        document.getElementById(
+          "selectedRoleTitle"
+        );
+
+      const roleDescription =
+        document.getElementById(
+          "selectedRoleDescription"
+        );
+
+      const idLabel =
+        document.getElementById(
+          "loginIdLabel"
+        );
+
+      const userId =
+        document.getElementById(
+          "loginUserId"
+        );
+
+      const idHelp =
+        document.getElementById(
+          "loginIdHelp"
+        );
+
+      const submitButton =
+        document.getElementById(
+          "loginSubmit"
+        );
+
+      const password =
+        document.getElementById(
+          "loginPassword"
+        );
+
+      const togglePassword =
+        document.getElementById(
+          "togglePassword"
+        );
+
+
+      const roleData = {
+
+        member: {
+          icon: "M",
+          title: "Member Login",
+          description:
+            "Enter your Member ID and password",
+          label: "Member ID",
+          placeholder:
+            "Example: AE-M-0001",
+          help:
+            "Use the Member ID assigned to you.",
+          button:
+            "LOGIN TO MEMBER PORTAL →"
+        },
+
+        volunteer: {
+          icon: "V",
+          title: "Volunteer Login",
+          description:
+            "Enter your Volunteer ID and password",
+          label: "Volunteer ID",
+          placeholder:
+            "Example: AE-V-0001",
+          help:
+            "Use the Volunteer ID assigned to you.",
+          button:
+            "LOGIN TO VOLUNTEER PORTAL →"
+        },
+
+        admin: {
+          icon: "A",
+          title: "Admin Login",
+          description:
+            "Enter Admin User ID and password",
+          label: "Admin User ID",
+          placeholder:
+            "Enter Admin User ID",
+          help:
+            "Authorized administrator access only.",
+          button:
+            "LOGIN TO ADMIN PANEL →"
+        }
+
+      };
+
+
+      function selectRole(role) {
+
+        const data =
+          roleData[role];
+
+        if (!data) {
+          return;
+        }
+
+        roleButtons.forEach(
+          (button) => {
+
+            button.classList.toggle(
+              "active",
+              button.dataset.role === role
+            );
+
+          }
+        );
+
+        roleInput.value =
+          role;
+
+        roleIcon.textContent =
+          data.icon;
+
+        roleTitle.textContent =
+          data.title;
+
+        roleDescription.textContent =
+          data.description;
+
+        idLabel.innerHTML =
+          `${data.label} <span>*</span>`;
+
+        userId.placeholder =
+          data.placeholder;
+
+        idHelp.textContent =
+          data.help;
+
+        submitButton.textContent =
+          data.button;
+
+        userId.value = "";
+        password.value = "";
+
+        userId.focus();
+      }
+
+
+      roleButtons.forEach(
+        (button) => {
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              selectRole(
+                button.dataset.role
+              );
+
+            }
+          );
+
+        }
+      );
+
+
+      togglePassword.addEventListener(
+        "click",
+        () => {
+
+          const hidden =
+            password.type ===
+            "password";
+
+          password.type =
+            hidden
+              ? "text"
+              : "password";
+
+          togglePassword.textContent =
+            hidden
+              ? "HIDE"
+              : "SHOW";
+
+        }
+      );
+
+
+      document.getElementById(
+        "loginCurrentYear"
+      ).textContent =
+        new Date().getFullYear();
+
+    })();
+  </script>
+
+
+  <!-- Firebase login logic -->
   <script
     type="module"
     src="login.js"

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta name="theme-color" content="#071c2a">
+
+  <title>Volunteer Ranking | AAKASH EARTH</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    :root {
+      --navy: #071c2a;
+      --navy2: #0b2638;
+      --blue: #103b5a;
+      --gold: #d6a536;
+      --gold2: #e4b84c;
+      --champagne: #f0d17e;
+      --cream: #f7f4ec;
+      --white: #ffffff;
+      --muted: #697780;
+      --border: #ded3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--cream);
+      color: var(--navy);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .support-bar {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 7px max(4vw, 18px);
+      background: linear-gradient(
+        90deg,
+        #a97a1b,
+        #d6a536,
+        #f0d17e,
+        #d6a536,
+        #a97a1b
+      );
+      color: var(--navy);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 0 max(4vw, 18px);
+      background: #142633;
+      border-bottom: 1px solid rgba(214,165,54,.25);
+      box-shadow: 0 8px 25px rgba(0,0,0,.1);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .logo {
+      position: relative;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      background: var(--navy2);
+      color: var(--champagne);
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 700;
+    }
+
+    .logo::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(240,209,126,.5);
+      border-radius: 50%;
+    }
+
+    .brand strong {
+      display: block;
+      color: white;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 15px;
+      letter-spacing: 1.2px;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 2px;
+      color: var(--gold);
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1.1px;
+    }
+
+    .home-btn {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      border: 1px solid rgba(240,209,126,.35);
+      border-radius: 9px;
+      color: white;
+      font-size: 8px;
+      font-weight: 900;
+    }
+
+    .ranking-hero {
+      position: relative;
+      overflow: hidden;
+      padding: 65px 20px 110px;
+      background: linear-gradient(
+        135deg,
+        #071c2a,
+        #0b2638 58%,
+        #103b5a
+      );
+      color: white;
+      text-align: center;
+    }
+
+    .ranking-hero::before,
+    .ranking-hero::after {
+      content: "";
+      position: absolute;
+      border: 1px solid rgba(240,209,126,.15);
+      border-radius: 50%;
+    }
+
+    .ranking-hero::before {
+      width: 320px;
+      height: 320px;
+      left: -170px;
+      top: -150px;
+    }
+
+    .ranking-hero::after {
+      width: 420px;
+      height: 420px;
+      right: -210px;
+      bottom: -280px;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 850px;
+      margin: auto;
+    }
+
+    .hero-label {
+      display: inline-flex;
+      padding: 7px 13px;
+      border: 1px solid rgba(214,165,54,.45);
+      border-radius: 30px;
+      color: var(--champagne);
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+    }
+
+    .ranking-hero h1 {
+      margin: 16px 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(38px,6vw,66px);
+      font-weight: 500;
+    }
+
+    .ranking-hero h1 span {
+      color: var(--champagne);
+    }
+
+    .ranking-hero p {
+      max-width: 650px;
+      margin: auto;
+      color: #b5c1c8;
+      font-size: 10px;
+      line-height: 1.7;
+    }
+
+    .ranking-main {
+      position: relative;
+      z-index: 5;
+      max-width: 1100px;
+      margin: -58px auto 0;
+      padding: 0 18px 70px;
+    }
+
+    .ranking-panel {
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 15px 38px rgba(7,28,42,.1);
+    }
+
+    .ranking-title {
+      text-align: center;
+    }
+
+    .ranking-title span {
+      color: #956d16;
+      font-size: 7px;
+      font-weight: 900;
+      letter-spacing: 1.4px;
+    }
+
+    .ranking-title h2 {
+      margin: 7px 0 5px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 30px;
+      font-weight: 500;
+    }
+
+    .ranking-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 8px;
+    }
+
+    .podium {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      align-items: end;
+      gap: 14px;
+      max-width: 850px;
+      margin: 35px auto 0;
+    }
+
+    .podium-card {
+      position: relative;
+      overflow: hidden;
+      padding: 24px 15px;
+      border: 1px solid #dfd5bd;
+      border-radius: 15px;
+      background: #fbfaf6;
+      text-align: center;
+    }
+
+    .podium-card.rank-one {
+      min-height: 285px;
+      padding-top: 31px;
+      border-color: var(--gold);
+      background: linear-gradient(
+        145deg,
+        #071c2a,
+        #103b5a
+      );
+      color: white;
+      transform: translateY(-18px);
+    }
+
+    .rank-medal {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 31px;
+    }
+
+    .rank-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+      min-height: 28px;
+      padding: 0 12px;
+      border: 1px solid #dbc88f;
+      border-radius: 30px;
+      background: #f5ecd2;
+      color: #765812;
+      font-size: 8px;
+      font-weight: 950;
+    }
+
+    .rank-one .rank-number {
+      border-color: rgba(240,209,126,.4);
+      background: rgba(240,209,126,.1);
+      color: var(--champagne);
+    }
+
+    .volunteer-photo {
+      position: relative;
+      width: 78px;
+      height: 78px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      margin: 15px auto 11px;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      background: var(--navy);
+      color: var(--champagne);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 28px;
+    }
+
+    .volunteer-photo img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .podium-card h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .volunteer-id {
+      display: block;
+      margin-top: 5px;
+      color: #79868d;
+      font-size: 7px;
+      font-weight: 850;
+    }
+
+    .rank-one .volunteer-id {
+      color: #afbdc4;
+    }
+
+    .list-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-top: 25px;
+      padding: 15px 5px;
+      border-bottom: 1px solid #e8e0cf;
+    }
+
+    .list-heading strong {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 21px;
+      font-weight: 500;
+    }
+
+    .list-heading span {
+      color: #8a969c;
+      font-size: 7px;
+    }
+
+    .ranking-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .ranking-row {
+      display: grid;
+      grid-template-columns: 75px 55px 1fr;
+      align-items: center;
+      gap: 13px;
+      padding: 12px 16px;
+      border: 1px solid #e4dcc9;
+      border-radius: 11px;
+      background: #fbfaf6;
+      transition:
+        transform .18s ease,
+        border-color .18s ease;
+    }
+
+    .ranking-row:hover {
+      transform: translateY(-2px);
+      border-color: #d5bd78;
+    }
+
+    .row-rank {
+      color: #8a6516;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .row-photo {
+      width: 48px;
+      height: 48px;
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .row-info h3 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .row-info span {
+      display: block;
+      margin-top: 4px;
+      color: #7c898f;
+      font-size: 7px;
+      font-weight: 800;
+    }
+
+    .loading,
+    .empty {
+      padding: 45px 20px;
+      color: #77858c;
+      text-align: center;
+      font-size: 9px;
+    }
+
+    .privacy-note {
+      max-width: 720px;
+      margin: 25px auto 0;
+      padding: 13px 16px;
+      border: 1px solid #e0d5b9;
+      border-radius: 10px;
+      background: #f9f4e6;
+      color: #766b51;
+      text-align: center;
+      font-size: 7px;
+      line-height: 1.6;
+    }
+
+    .ranking-footer {
+      padding: 21px;
+      background: #10232f;
+      color: #87959d;
+      text-align: center;
+      font-size: 7px;
+      letter-spacing: .8px;
+    }
+
+    .ranking-footer strong {
+      color: var(--gold);
+    }
+
+    @media (max-width: 720px) {
+      .support-bar {
+        justify-content: center;
+      }
+
+      .support-bar span:last-child {
+        display: none;
+      }
+
+      .site-header {
+        padding: 0 11px;
+      }
+
+      .brand strong {
+        font-size: 11px;
+      }
+
+      .brand small {
+        display: none;
+      }
+
+      .logo {
+        width: 40px;
+        height: 40px;
+      }
+
+      .ranking-hero {
+        padding: 50px 16px 100px;
+      }
+
+      .ranking-main {
+        padding-left: 11px;
+        padding-right: 11px;
+      }
+
+      .ranking-panel {
+        padding: 16px 11px;
+      }
+
+      .podium {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .podium-card,
+      .podium-card.rank-one {
+        min-height: auto;
+        transform: none;
+      }
+
+      .podium-card.rank-one {
+        order: -1;
+      }
+
+      .ranking-row {
+        grid-template-columns: 55px 48px 1fr;
+        padding: 10px;
+        gap: 9px;
+      }
+
+      .row-photo {
+        width: 42px;
+        height: 42px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ranking-row {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="support-bar">
+
+    <span>
+      ✦ TECHNICAL SUPPORT BY BROTHER HOOD
+    </span>
+
+    <span>
+      AAKASH EARTH • OFFICIAL VOLUNTEER RANKING
+    </span>
+
+  </div>
+
+
+  <header class="site-header">
+
+    <a href="index.html" class="brand">
+
+      <div class="logo">
+        AE
+      </div>
+
+      <div>
+        <strong>
+          AAKASH EARTH
+        </strong>
+
+        <small>
+          OFFICIAL RANKING
+        </small>
+      </div>
+
+    </a>
+
+
+    <a
+      href="index.html"
+      class="home-btn"
+    >
+      BACK TO HOME
+    </a>
+
+  </header>
+
+
+  <section class="ranking-hero">
+
+    <div class="hero-content">
+
+      <span class="hero-label">
+        ★ VOLUNTEER LEADERBOARD
+      </span>
+
+      <h1>
+        Our Top
+        <span>Volunteers</span>
+      </h1>
+
+      <p>
+        Recognising volunteers for their contribution,
+        participation and completed responsibilities.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <main class="ranking-main">
+
+    <section class="ranking-panel">
+
+      <div class="ranking-title">
+
+        <span>
+          OFFICIAL LEADERBOARD
+        </span>
+
+        <h2>
+          Volunteer Ranking
+        </h2>
+
+        <p>
+          Ranking updates automatically.
+        </p>
+
+      </div>
+
+
+      <!-- TOP 3 -->
+
+      <div
+        class="podium"
+        id="rankingPodium"
+      >
+
+        <div class="loading">
+          Loading top volunteers...
+        </div>
+
+      </div>
+
+
+      <!-- ALL RANKS -->
+
+      <div class="list-heading">
+
+        <strong>
+          All Volunteer Ranks
+        </strong>
+
+        <span id="publicVolunteerRankingCount">
+          0 Volunteers
+        </span>
+
+      </div>
+
+
+      <div
+        class="ranking-list"
+        id="publicRankingList"
+      >
+
+        <div class="loading">
+          Loading ranking...
+        </div>
+
+      </div>
+
+
+      <div class="privacy-note">
+        Public ranking displays only volunteer
+        rank and basic public identification.
+        Points, mobile number, email and account
+        information are not displayed.
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <footer class="ranking-footer">
+
+    ©
+    <span id="rankingCurrentYear"></span>
+    AAKASH EARTH
+
+    &nbsp; • &nbsp;
+
+    TECHNICAL SUPPORT BY
+    <strong>BROTHER HOOD</strong>
+
+  </footer>
+
+
+  <script
+    type="module"
+    src="ranking.js"
+  ></script>
+
+</body>
+</html>

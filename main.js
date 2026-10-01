@@ -1,918 +1,741 @@
 /* =========================================================
    AAKASH EARTH
-   PUBLIC WEBSITE - MAIN JAVASCRIPT
-   firebase.js KO TOUCH NAHI KARNA
+   PUBLIC WEBSITE ENGINE
+   main.js
 ========================================================= */
 
 import {
   db,
   ref,
-  onValue
+  set,
+  push,
+  onValue,
+  storage,
+  storageRef,
+  uploadBytes,
+  getDownloadURL
 } from "./firebase.js";
 
 
 /* =========================================================
-   BASIC HELPERS
+   HELPERS
 ========================================================= */
 
-const $ = (selector) => document.querySelector(selector);
-const $$ = (selector) => [...document.querySelectorAll(selector)];
+const $ = (selector, parent = document) =>
+  parent.querySelector(selector);
 
-function escapeHTML(value = "") {
-  return String(value)
+const $$ = (selector, parent = document) =>
+  [...parent.querySelectorAll(selector)];
+
+const clean = (value) =>
+  String(value ?? "").trim();
+
+const lower = (value) =>
+  clean(value).toLowerCase();
+
+const escapeHTML = (value) =>
+  clean(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
 
-function safeImage(url = "") {
-  const value = String(url || "").trim();
+const safeImage = (item = {}) =>
+  clean(
+    item.photoURL ||
+    item.photoUrl ||
+    item.imageURL ||
+    item.imageUrl ||
+    item.url ||
+    ""
+  );
 
-  if (
-    value.startsWith("https://") ||
-    value.startsWith("http://") ||
-    value.startsWith("data:image/")
-  ) {
-    return value;
+const toArray = (snapshotValue) => {
+  if (!snapshotValue) return [];
+
+  return Object.entries(snapshotValue).map(
+    ([key, value]) => ({
+      key,
+      ...(value || {})
+    })
+  );
+};
+
+const setText = (id, value) => {
+  const element =
+    document.getElementById(id);
+
+  if (element) {
+    element.textContent = value;
   }
+};
 
-  return "";
-}
+const formatDate = (value) => {
+  if (!value) return "—";
 
-function formatDate(value) {
-  if (!value) return "";
-
-  let date;
-
-  if (typeof value === "number") {
-    date = new Date(value);
-  } else {
-    date = new Date(String(value));
-  }
+  const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
-    return escapeHTML(value);
+    return clean(value) || "—";
   }
 
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  }).format(date);
-}
+  return date.toLocaleDateString(
+    "en-IN",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }
+  );
+};
 
-function objectToArray(data) {
-  if (!data || typeof data !== "object") {
-    return [];
+const formatMoney = (value) => {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
+    return clean(value) || "Free";
   }
 
-  return Object.entries(data).map(([key, value]) => ({
-    key,
-    ...(value || {})
-  }));
-}
+  if (amount <= 0) return "Free";
 
-function normalizeStatus(value = "") {
-  return String(value).trim().toLowerCase();
-}
+  return `₹${amount.toLocaleString("en-IN")}`;
+};
 
-function normalizeYear(value = "") {
-  return String(value || "").trim();
-}
+const withTimeout = (
+  promise,
+  milliseconds,
+  message
+) => {
+  return Promise.race([
+    promise,
+
+    new Promise((_, reject) => {
+      setTimeout(
+        () => reject(
+          new Error(message)
+        ),
+        milliseconds
+      );
+    })
+  ]);
+};
+
+const emptyCard = (text) => `
+  <div class="empty-card">
+    ${escapeHTML(text)}
+  </div>
+`;
 
 
 /* =========================================================
-   PAGE LOADER
+   STATE
 ========================================================= */
 
-const pageLoader = $("#pageLoader");
+let members = [];
+let volunteers = [];
+let festivals = [];
+let sports = [];
+let updates = [];
+let gallery = [];
+let committee = [];
 
-window.addEventListener("load", () => {
-  setTimeout(() => {
-    pageLoader?.classList.add("hidden");
-  }, 450);
-});
-
-// Safety: loader kabhi stuck na rahe.
-setTimeout(() => {
-  pageLoader?.classList.add("hidden");
-}, 2500);
+let selectedSports = null;
 
 
 /* =========================================================
-   CURRENT YEAR
+   YEAR
 ========================================================= */
 
-const currentYear = $("#currentYear");
-
-if (currentYear) {
-  currentYear.textContent = new Date().getFullYear();
-}
+setText(
+  "currentYear",
+  new Date().getFullYear()
+);
 
 
 /* =========================================================
    MOBILE MENU
 ========================================================= */
 
-const mobileMenuBtn = $("#mobileMenuBtn");
-const mobileNav = $("#mobileNav");
+const mobileMenuBtn =
+  $("#mobileMenuBtn");
 
-mobileMenuBtn?.addEventListener("click", () => {
-  const isOpen = mobileNav?.classList.toggle("open");
+const mobileNav =
+  $("#mobileNav");
 
-  document.body.classList.toggle(
-    "menu-open",
-    Boolean(isOpen)
+if (mobileMenuBtn && mobileNav) {
+
+  mobileMenuBtn.addEventListener(
+    "click",
+    () => {
+      mobileNav.classList.toggle(
+        "active"
+      );
+    }
   );
-});
 
-$$(".mobile-nav-link, .mobile-nav-special").forEach((link) => {
-  link.addEventListener("click", () => {
-    mobileNav?.classList.remove("open");
-    document.body.classList.remove("menu-open");
-  });
-});
-
-
-/* =========================================================
-   ACTIVE NAVIGATION ON SCROLL
-========================================================= */
-
-const navLinks = $$(".desktop-nav .nav-link");
-
-const sectionIds = [
-  "home",
-  "members",
-  "festivals",
-  "volunteers",
-  "committee",
-  "sports",
-  "updates",
-  "gallery"
-];
-
-const sections = sectionIds
-  .map((id) => document.getElementById(id))
-  .filter(Boolean);
-
-function updateActiveNav() {
-  const scrollPosition = window.scrollY + 160;
-
-  let currentSection = "home";
-
-  sections.forEach((section) => {
-    if (scrollPosition >= section.offsetTop) {
-      currentSection = section.id;
+  $$("a", mobileNav).forEach(
+    (link) => {
+      link.addEventListener(
+        "click",
+        () => {
+          mobileNav.classList.remove(
+            "active"
+          );
+        }
+      );
     }
-  });
-
-  navLinks.forEach((link) => {
-    const href = link.getAttribute("href");
-
-    link.classList.toggle(
-      "active",
-      href === `#${currentSection}`
-    );
-  });
+  );
 }
-
-window.addEventListener("scroll", updateActiveNav, {
-  passive: true
-});
-
-updateActiveNav();
-
-
-/* =========================================================
-   HERO SLIDER
-========================================================= */
-
-const heroSlides = $$(".hero-slide");
-const heroDots = $$(".hero-dot");
-const heroPrev = $("#heroPrev");
-const heroNext = $("#heroNext");
-
-let heroIndex = 0;
-let heroTimer = null;
-
-function showHeroSlide(index) {
-  if (!heroSlides.length) return;
-
-  if (index < 0) {
-    index = heroSlides.length - 1;
-  }
-
-  if (index >= heroSlides.length) {
-    index = 0;
-  }
-
-  heroIndex = index;
-
-  heroSlides.forEach((slide, slideIndex) => {
-    slide.classList.toggle(
-      "active",
-      slideIndex === heroIndex
-    );
-  });
-
-  heroDots.forEach((dot, dotIndex) => {
-    dot.classList.toggle(
-      "active",
-      dotIndex === heroIndex
-    );
-  });
-}
-
-function nextHeroSlide() {
-  showHeroSlide(heroIndex + 1);
-}
-
-function previousHeroSlide() {
-  showHeroSlide(heroIndex - 1);
-}
-
-function startHeroSlider() {
-  stopHeroSlider();
-
-  heroTimer = setInterval(() => {
-    nextHeroSlide();
-  }, 6000);
-}
-
-function stopHeroSlider() {
-  if (heroTimer) {
-    clearInterval(heroTimer);
-    heroTimer = null;
-  }
-}
-
-heroNext?.addEventListener("click", () => {
-  nextHeroSlide();
-  startHeroSlider();
-});
-
-heroPrev?.addEventListener("click", () => {
-  previousHeroSlide();
-  startHeroSlider();
-});
-
-heroDots.forEach((dot) => {
-  dot.addEventListener("click", () => {
-    const index = Number(dot.dataset.heroSlide);
-
-    if (Number.isFinite(index)) {
-      showHeroSlide(index);
-      startHeroSlider();
-    }
-  });
-});
-
-const heroSection = $("#home");
-
-heroSection?.addEventListener("mouseenter", stopHeroSlider);
-heroSection?.addEventListener("mouseleave", startHeroSlider);
-
-showHeroSlide(0);
-startHeroSlider();
 
 
 /* =========================================================
    BACK TO TOP
 ========================================================= */
 
-const backToTop = $("#backToTop");
+const backToTop =
+  $("#backToTop");
 
-window.addEventListener(
-  "scroll",
-  () => {
-    backToTop?.classList.toggle(
-      "show",
-      window.scrollY > 500
-    );
-  },
-  { passive: true }
-);
+if (backToTop) {
 
-backToTop?.addEventListener("click", () => {
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-});
+  backToTop.addEventListener(
+    "click",
+    () => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+  );
+
+  let scrollTicking = false;
+
+  window.addEventListener(
+    "scroll",
+    () => {
+
+      if (scrollTicking) return;
+
+      scrollTicking = true;
+
+      requestAnimationFrame(() => {
+
+        const visible =
+          window.scrollY > 450;
+
+        backToTop.style.opacity =
+          visible ? "1" : "0";
+
+        backToTop.style.pointerEvents =
+          visible ? "auto" : "none";
+
+        $("#mainHeader")
+          ?.classList.toggle(
+            "scrolled",
+            window.scrollY > 30
+          );
+
+        scrollTicking = false;
+      });
+
+    },
+    { passive: true }
+  );
+}
 
 
 /* =========================================================
-   DATABASE STATE
+   SIMPLE SLIDER
 ========================================================= */
 
-let allMembers = [];
-let allVolunteers = [];
-let allFestivals = [];
-let allCommittee = [];
-let allSports = [];
-let allUpdates = [];
-let allGallery = [];
+function setupSlider(
+  previousId,
+  nextId,
+  sliderId
+) {
 
-let selectedMemberYear = "all";
-let selectedVolunteerYear = "all";
+  const previous =
+    document.getElementById(
+      previousId
+    );
+
+  const next =
+    document.getElementById(
+      nextId
+    );
+
+  const slider =
+    document.getElementById(
+      sliderId
+    );
+
+  if (!slider) return;
+
+  const move = (direction) => {
+
+    const distance =
+      Math.min(
+        slider.clientWidth * 0.8,
+        620
+      );
+
+    slider.scrollBy({
+      left:
+        direction * distance,
+
+      behavior:
+        "smooth"
+    });
+  };
+
+  previous?.addEventListener(
+    "click",
+    () => move(-1)
+  );
+
+  next?.addEventListener(
+    "click",
+    () => move(1)
+  );
+}
+
+
+setupSlider(
+  "memberPrev",
+  "memberNext",
+  "memberSlider"
+);
+
+setupSlider(
+  "festivalPrev",
+  "festivalNext",
+  "festivalSlider"
+);
+
+setupSlider(
+  "volunteerPrev",
+  "volunteerNext",
+  "volunteerSlider"
+);
+
+setupSlider(
+  "committeePrev",
+  "committeeNext",
+  "committeeSlider"
+);
+
+setupSlider(
+  "sportsPrev",
+  "sportsNext",
+  "sportsSlider"
+);
+
+setupSlider(
+  "galleryPrev",
+  "galleryNext",
+  "gallerySlider"
+);
+
+
+/* =========================================================
+   MEMBER YEAR FILTER
+========================================================= */
+
+const memberYearSelect =
+  $("#memberYearSelect");
+
+memberYearSelect?.addEventListener(
+  "change",
+  renderMembers
+);
+
+
+/* =========================================================
+   VOLUNTEER YEAR FILTER
+========================================================= */
+
+const volunteerYearSelect =
+  $("#volunteerYearSelect");
+
+volunteerYearSelect?.addEventListener(
+  "change",
+  renderVolunteers
+);
+
+
+/* =========================================================
+   YEAR SELECT OPTIONS
+========================================================= */
+
+function updateYearOptions(
+  select,
+  data
+) {
+
+  if (!select) return;
+
+  const current =
+    select.value || "all";
+
+  const years = [
+    ...new Set(
+      data
+        .map((item) =>
+          clean(
+            item.year ||
+            item.memberYear ||
+            item.volunteerYear
+          )
+        )
+        .filter(Boolean)
+    )
+  ].sort(
+    (a, b) =>
+      String(b).localeCompare(
+        String(a),
+        undefined,
+        { numeric: true }
+      )
+  );
+
+  select.innerHTML = `
+    <option value="all">
+      All Years
+    </option>
+
+    ${years.map(
+      (year) => `
+        <option value="${escapeHTML(year)}">
+          ${escapeHTML(year)}
+        </option>
+      `
+    ).join("")}
+  `;
+
+  if (
+    current === "all" ||
+    years.includes(current)
+  ) {
+    select.value = current;
+  }
+}
 
 
 /* =========================================================
    MEMBERS
 ========================================================= */
 
-const memberGrid = $("#memberGrid");
-const memberCount = $("#memberCount");
-const publicMemberCount = $("#publicMemberCount");
-const memberYearSelect = $("#memberYearSelect");
+function renderMembers() {
 
-function getPublicMembers() {
-  return allMembers
-    .filter((member) => {
-      return normalizeStatus(member.status) === "active";
-    })
-    .filter((member) => {
-      if (selectedMemberYear === "all") {
+  const grid =
+    $("#memberGrid");
+
+  if (!grid) return;
+
+  const selectedYear =
+    clean(
+      memberYearSelect?.value ||
+      "all"
+    );
+
+  const visible =
+    members.filter((member) => {
+
+      const status =
+        lower(member.status);
+
+      if (
+        status === "rejected" ||
+        status === "disabled" ||
+        status === "inactive"
+      ) {
+        return false;
+      }
+
+      if (selectedYear === "all") {
         return true;
       }
 
-      return normalizeYear(member.year) === selectedMemberYear;
-    })
-    .sort((a, b) => {
-      const yearA = Number(a.year) || 0;
-      const yearB = Number(b.year) || 0;
+      const year =
+        clean(
+          member.year ||
+          member.memberYear
+        );
 
-      if (yearA !== yearB) {
-        return yearB - yearA;
-      }
-
-      return String(a.name || "")
-        .localeCompare(String(b.name || ""));
+      return year === selectedYear;
     });
-}
 
-function createMemberCard(member) {
-  const name = escapeHTML(member.name || "Member");
-  const position = escapeHTML(
-    member.position || "Member"
+  setText(
+    "publicMemberCount",
+    visible.length
   );
 
-  const year = escapeHTML(member.year || "");
-  const memberId = escapeHTML(member.memberId || "");
-  const photo = safeImage(member.photoURL);
+  setText(
+    "memberCount",
+    members.filter(
+      (member) =>
+        ![
+          "rejected",
+          "disabled",
+          "inactive"
+        ].includes(
+          lower(member.status)
+        )
+    ).length
+  );
 
-  const verificationURL = member.memberId
-    ? `verify.html?id=${encodeURIComponent(member.memberId)}`
-    : "#";
+  if (!visible.length) {
+    grid.innerHTML =
+      emptyCard(
+        "No members available."
+      );
 
-  return `
-    <a
-      class="member-card"
-      href="${verificationURL}"
-      ${member.memberId ? "" : 'onclick="return false;"'}
-      aria-label="View ${name}"
-    >
-      <div class="member-card-photo">
-        ${
-          photo
-            ? `
-              <img
-                src="${photo}"
-                alt="${name}"
-                loading="lazy"
-                onerror="
-                  this.style.display='none';
-                  this.nextElementSibling.style.display='grid';
-                "
-              >
-              <div
-                class="member-photo-fallback"
-                style="display:none;"
-              >
-                👤
-              </div>
-            `
-            : `
-              <div class="member-photo-fallback">
-                👤
-              </div>
-            `
-        }
-      </div>
+    return;
+  }
 
-      <div class="member-card-content">
-        <strong>${name}</strong>
+  grid.innerHTML =
+    visible.map((member) => {
 
-        <span>${position}</span>
+      const name =
+        clean(
+          member.name ||
+          member.fullName ||
+          member.memberName
+        ) || "Member";
 
-        <small>
-          ${year ? `Year ${year}` : ""}
+      const position =
+        clean(
+          member.position ||
+          member.role ||
+          member.designation
+        );
+
+      const year =
+        clean(
+          member.year ||
+          member.memberYear
+        );
+
+      const photo =
+        safeImage(member);
+
+      return `
+        <article class="member-card">
+
           ${
-            year && memberId
-              ? " • "
+            photo
+              ? `
+                <img
+                  src="${escapeHTML(photo)}"
+                  alt="${escapeHTML(name)}"
+                  loading="lazy"
+                  decoding="async"
+                >
+              `
               : ""
           }
-          ${memberId}
-        </small>
-      </div>
-    </a>
-  `;
-}
 
-function renderMembers() {
-  const members = getPublicMembers();
+          <div class="card-content">
 
-  if (publicMemberCount) {
-    publicMemberCount.textContent = members.length;
-  }
+            <span class="card-badge">
+              MEMBER
+            </span>
 
-  if (!memberGrid) return;
+            <h3>
+              ${escapeHTML(name)}
+            </h3>
 
-  if (!members.length) {
-    memberGrid.innerHTML = `
-      <div class="slider-empty">
-        No members available for this year.
-      </div>
-    `;
+            ${
+              position
+                ? `
+                  <p>
+                    ${escapeHTML(position)}
+                  </p>
+                `
+                : ""
+            }
 
-    stopMemberAutoSlide();
-    return;
-  }
+            ${
+              year
+                ? `
+                  <p>
+                    Year:
+                    ${escapeHTML(year)}
+                  </p>
+                `
+                : ""
+            }
 
-  memberGrid.innerHTML = members
-    .map(createMemberCard)
-    .join("");
+          </div>
 
-  resetMemberSlider();
-  startMemberAutoSlide();
-}
-
-memberYearSelect?.addEventListener("change", () => {
-  selectedMemberYear =
-    memberYearSelect.value || "all";
-
-  renderMembers();
-});
-
-onValue(
-  ref(db, "members"),
-
-  (snapshot) => {
-    allMembers = objectToArray(snapshot.val());
-
-    const activeMembers = allMembers.filter(
-      (member) =>
-        normalizeStatus(member.status) === "active"
-    );
-
-    if (memberCount) {
-      memberCount.textContent = activeMembers.length;
-    }
-
-    renderMembers();
-  },
-
-  (error) => {
-    console.error("Members load error:", error);
-
-    if (memberGrid) {
-      memberGrid.innerHTML = `
-        <div class="slider-empty">
-          Unable to load members.
-        </div>
+        </article>
       `;
-    }
-  }
-);
 
-
-/* =========================================================
-   FLOATING MEMBER AUTO SLIDER
-========================================================= */
-
-const memberSlider = $("#memberSlider");
-const memberPrev = $("#memberPrev");
-const memberNext = $("#memberNext");
-
-let memberAutoTimer = null;
-let memberScrollPosition = 0;
-
-function getMemberStep() {
-  const firstCard =
-    memberGrid?.querySelector(".member-card");
-
-  if (!firstCard) {
-    return 265;
-  }
-
-  return firstCard.getBoundingClientRect().width + 20;
+    }).join("");
 }
-
-function resetMemberSlider() {
-  memberScrollPosition = 0;
-
-  if (memberGrid) {
-    memberGrid.style.transform = "translateX(0px)";
-  }
-
-  if (memberSlider) {
-    memberSlider.scrollLeft = 0;
-  }
-}
-
-function moveMemberSlider(direction = 1) {
-  if (!memberGrid || !memberSlider) return;
-
-  // Mobile uses natural swipe/scroll.
-  if (window.innerWidth <= 600) {
-    memberSlider.scrollBy({
-      left: getMemberStep() * direction,
-      behavior: "smooth"
-    });
-
-    return;
-  }
-
-  const cards =
-    memberGrid.querySelectorAll(".member-card");
-
-  if (!cards.length) return;
-
-  const step = getMemberStep();
-
-  const totalWidth =
-    memberGrid.scrollWidth;
-
-  const visibleWidth =
-    memberSlider.clientWidth;
-
-  const maxScroll =
-    Math.max(0, totalWidth - visibleWidth);
-
-  memberScrollPosition += step * direction;
-
-  if (memberScrollPosition > maxScroll) {
-    memberScrollPosition = 0;
-  }
-
-  if (memberScrollPosition < 0) {
-    memberScrollPosition = maxScroll;
-  }
-
-  memberGrid.style.transform =
-    `translateX(-${memberScrollPosition}px)`;
-}
-
-function startMemberAutoSlide() {
-  stopMemberAutoSlide();
-
-  const cardCount =
-    memberGrid?.querySelectorAll(".member-card").length || 0;
-
-  if (cardCount <= 1) {
-    return;
-  }
-
-  memberAutoTimer = setInterval(() => {
-    moveMemberSlider(1);
-  }, 2800);
-}
-
-function stopMemberAutoSlide() {
-  if (memberAutoTimer) {
-    clearInterval(memberAutoTimer);
-    memberAutoTimer = null;
-  }
-}
-
-memberNext?.addEventListener("click", () => {
-  moveMemberSlider(1);
-  startMemberAutoSlide();
-});
-
-memberPrev?.addEventListener("click", () => {
-  moveMemberSlider(-1);
-  startMemberAutoSlide();
-});
-
-memberSlider?.addEventListener(
-  "mouseenter",
-  stopMemberAutoSlide
-);
-
-memberSlider?.addEventListener(
-  "mouseleave",
-  startMemberAutoSlide
-);
-
-memberSlider?.addEventListener(
-  "touchstart",
-  stopMemberAutoSlide,
-  { passive: true }
-);
-
-memberSlider?.addEventListener(
-  "touchend",
-  () => {
-    setTimeout(startMemberAutoSlide, 1800);
-  },
-  { passive: true }
-);
 
 
 /* =========================================================
    VOLUNTEERS
 ========================================================= */
 
-const volunteerGrid = $("#volunteerGrid");
-const volunteerCount = $("#volunteerCount");
-const publicVolunteerCount =
-  $("#publicVolunteerCount");
-
-const volunteerYearSelect =
-  $("#volunteerYearSelect");
-
-function getPublicVolunteers() {
-  return allVolunteers
-    .filter((volunteer) => {
-      return normalizeStatus(volunteer.status) === "approved";
-    })
-    .filter((volunteer) => {
-      if (selectedVolunteerYear === "all") {
-        return true;
-      }
-
-      return normalizeYear(volunteer.year) ===
-        selectedVolunteerYear;
-    })
-    .sort((a, b) => {
-      const rankA = Number(a.rank) || 999999;
-      const rankB = Number(b.rank) || 999999;
-
-      if (rankA !== rankB) {
-        return rankA - rankB;
-      }
-
-      return String(a.name || "")
-        .localeCompare(String(b.name || ""));
-    });
-}
-
-function createVolunteerCard(volunteer) {
-  const name = escapeHTML(
-    volunteer.name || "Volunteer"
-  );
-
-  const volunteerId = escapeHTML(
-    volunteer.volunteerId || ""
-  );
-
-  const year = escapeHTML(
-    volunteer.year || ""
-  );
-
-  const photo = safeImage(
-    volunteer.photoURL
-  );
-
-  const points =
-    Number(volunteer.points) || 0;
-
-  const verificationURL =
-    volunteer.volunteerId
-      ? `verify.html?id=${encodeURIComponent(
-          volunteer.volunteerId
-        )}`
-      : "#";
-
-  return `
-    <a
-      class="volunteer-card"
-      href="${verificationURL}"
-      ${volunteer.volunteerId ? "" : 'onclick="return false;"'}
-    >
-      <div class="volunteer-photo">
-
-        ${
-          photo
-            ? `
-              <img
-                src="${photo}"
-                alt="${name}"
-                loading="lazy"
-              >
-            `
-            : `
-              <div class="member-photo-fallback">
-                🤝
-              </div>
-            `
-        }
-
-      </div>
-
-      <div class="volunteer-info">
-
-        <strong>${name}</strong>
-
-        <span>
-          Approved Volunteer
-        </span>
-
-        <small>
-          ${year ? `Year ${year}` : ""}
-          ${
-            year && volunteerId
-              ? " • "
-              : ""
-          }
-          ${volunteerId}
-        </small>
-
-        ${
-          points > 0
-            ? `
-              <small>
-                ⭐ ${points} Points
-              </small>
-            `
-            : ""
-        }
-
-      </div>
-    </a>
-  `;
-}
-
 function renderVolunteers() {
-  const volunteers = getPublicVolunteers();
 
-  if (publicVolunteerCount) {
-    publicVolunteerCount.textContent =
-      volunteers.length;
-  }
+  const grid =
+    $("#volunteerGrid");
 
-  if (!volunteerGrid) return;
+  if (!grid) return;
 
-  if (!volunteers.length) {
-    volunteerGrid.innerHTML = `
-      <div class="slider-empty">
-        No approved volunteers available.
-      </div>
-    `;
+  const selectedYear =
+    clean(
+      volunteerYearSelect?.value ||
+      "all"
+    );
+
+  const visible =
+    volunteers.filter(
+      (volunteer) => {
+
+        const status =
+          lower(volunteer.status);
+
+        /*
+          Approved or old records
+          without status are public.
+        */
+
+        if (
+          status &&
+          status !== "approved" &&
+          status !== "active"
+        ) {
+          return false;
+        }
+
+        if (
+          selectedYear === "all"
+        ) {
+          return true;
+        }
+
+        const year =
+          clean(
+            volunteer.year ||
+            volunteer.volunteerYear
+          );
+
+        return (
+          year === selectedYear
+        );
+      }
+    );
+
+  setText(
+    "publicVolunteerCount",
+    visible.length
+  );
+
+  setText(
+    "volunteerCount",
+    volunteers.filter(
+      (volunteer) => {
+
+        const status =
+          lower(volunteer.status);
+
+        return (
+          !status ||
+          status === "approved" ||
+          status === "active"
+        );
+      }
+    ).length
+  );
+
+  if (!visible.length) {
+
+    grid.innerHTML =
+      emptyCard(
+        "No volunteers available."
+      );
 
     return;
   }
 
-  volunteerGrid.innerHTML =
-    volunteers
-      .map(createVolunteerCard)
-      .join("");
-}
+  grid.innerHTML =
+    visible.map(
+      (volunteer) => {
 
-volunteerYearSelect?.addEventListener(
-  "change",
-  () => {
-    selectedVolunteerYear =
-      volunteerYearSelect.value || "all";
+        const name =
+          clean(
+            volunteer.name ||
+            volunteer.fullName
+          ) || "Volunteer";
 
-    renderVolunteers();
-  }
-);
+        const year =
+          clean(
+            volunteer.year ||
+            volunteer.volunteerYear
+          );
 
-onValue(
-  ref(db, "volunteers"),
+        const points =
+          Number(
+            volunteer.points || 0
+          );
 
-  (snapshot) => {
-    allVolunteers =
-      objectToArray(snapshot.val());
+        const photo =
+          safeImage(volunteer);
 
-    const approved =
-      allVolunteers.filter(
-        (volunteer) =>
-          normalizeStatus(volunteer.status) ===
-          "approved"
-      );
+        return `
+          <article class="volunteer-card">
 
-    if (volunteerCount) {
-      volunteerCount.textContent =
-        approved.length;
-    }
+            ${
+              photo
+                ? `
+                  <img
+                    src="${escapeHTML(photo)}"
+                    alt="${escapeHTML(name)}"
+                    loading="lazy"
+                    decoding="async"
+                  >
+                `
+                : ""
+            }
 
-    renderVolunteers();
-  },
+            <div class="card-content">
 
-  (error) => {
-    console.error(
-      "Volunteers load error:",
-      error
-    );
+              <span class="card-badge">
+                VOLUNTEER
+              </span>
 
-    if (volunteerGrid) {
-      volunteerGrid.innerHTML = `
-        <div class="slider-empty">
-          Unable to load volunteers.
-        </div>
-      `;
-    }
-  }
-);
+              <h3>
+                ${escapeHTML(name)}
+              </h3>
 
+              ${
+                year
+                  ? `
+                    <p>
+                      Year:
+                      ${escapeHTML(year)}
+                    </p>
+                  `
+                  : ""
+              }
 
-/* =========================================================
-   GENERIC CARD
-========================================================= */
-
-function createContentCard(
-  item,
-  options = {}
-) {
-  const title = escapeHTML(
-    item.title ||
-    item.name ||
-    options.defaultTitle ||
-    "AAKASH EARTH"
-  );
-
-  const description = escapeHTML(
-    item.description ||
-    item.details ||
-    item.message ||
-    ""
-  );
-
-  const imageURL = safeImage(
-    item.photoURL ||
-    item.imageURL ||
-    item.bannerURL ||
-    item.image ||
-    ""
-  );
-
-  const dateValue =
-    item.date ||
-    item.eventDate ||
-    item.createdAt ||
-    "";
-
-  const dateText =
-    dateValue
-      ? formatDate(dateValue)
-      : "";
-
-  return `
-    <article class="content-card">
-
-      <div class="content-card-image">
-
-        ${
-          imageURL
-            ? `
-              <img
-                src="${imageURL}"
-                alt="${title}"
-                loading="lazy"
-              >
-            `
-            : `
-              <div class="member-photo-fallback">
-                ${options.icon || "✦"}
-              </div>
-            `
-        }
-
-      </div>
-
-      <div class="content-card-body">
-
-        <strong>${title}</strong>
-
-        ${
-          dateText
-            ? `
               <p>
-                📅 ${dateText}
+                Points:
+                ${Number.isFinite(points)
+                  ? points
+                  : 0}
               </p>
-            `
-            : ""
-        }
 
-        ${
-          description
-            ? `
-              <p>
-                ${description}
-              </p>
-            `
-            : ""
-        }
+            </div>
 
-      </div>
-
-    </article>
-  `;
+          </article>
+        `;
+      }
+    ).join("");
 }
 
 
@@ -920,174 +743,115 @@ function createContentCard(
    FESTIVALS
 ========================================================= */
 
-const festivalGrid = $("#festivalGrid");
-const festivalCount = $("#festivalCount");
-
 function renderFestivals() {
-  if (!festivalGrid) return;
 
-  const visibleFestivals =
-    allFestivals
-      .filter((item) => {
-        const status =
-          normalizeStatus(item.status);
+  const grid =
+    $("#festivalGrid");
 
-        return (
-          !status ||
-          status === "active" ||
-          status === "approved" ||
-          status === "published" ||
-          status === "upcoming"
-        );
-      })
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
+  if (!grid) return;
+
+  setText(
+    "festivalCount",
+    festivals.length
+  );
+
+  if (!festivals.length) {
+
+    grid.innerHTML =
+      emptyCard(
+        "No festival or event available."
       );
 
-  if (festivalCount) {
-    festivalCount.textContent =
-      visibleFestivals.length;
-  }
-
-  if (!visibleFestivals.length) {
-    festivalGrid.innerHTML = `
-      <div class="slider-empty">
-        Festival information will appear here.
-      </div>
-    `;
     return;
   }
 
-  festivalGrid.innerHTML =
-    visibleFestivals
-      .map((item) =>
-        createContentCard(item, {
-          icon: "🪔",
-          defaultTitle: "Festival"
-        })
-      )
-      .join("");
-}
+  grid.innerHTML =
+    festivals.map(
+      (festival) => {
 
-onValue(
-  ref(db, "festivals"),
-  (snapshot) => {
-    allFestivals =
-      objectToArray(snapshot.val());
+        const title =
+          clean(
+            festival.title ||
+            festival.name ||
+            festival.festivalName
+          ) || "Festival";
 
-    renderFestivals();
-  },
-  (error) => {
-    console.error(
-      "Festivals load error:",
-      error
-    );
+        const date =
+          festival.date ||
+          festival.eventDate;
 
-    if (festivalCount) {
-      festivalCount.textContent = "0";
-    }
-  }
-);
+        const venue =
+          clean(
+            festival.venue ||
+            festival.location
+          );
 
+        const description =
+          clean(
+            festival.description ||
+            festival.details
+          );
 
-/* =========================================================
-   COMMITTEE
-   Supports "committee" database node
-========================================================= */
-
-const committeeGrid = $("#committeeGrid");
-
-function renderCommittee() {
-  if (!committeeGrid) return;
-
-  const committee =
-    allCommittee
-      .filter((item) => {
-        const status =
-          normalizeStatus(item.status);
-
-        return (
-          !status ||
-          status === "active" ||
-          status === "approved"
-        );
-      })
-      .sort((a, b) => {
-        const orderA =
-          Number(a.order) || 9999;
-
-        const orderB =
-          Number(b.order) || 9999;
-
-        return orderA - orderB;
-      });
-
-  if (!committee.length) {
-    committeeGrid.innerHTML = `
-      <div class="slider-empty light-empty">
-        Committee information will appear here.
-      </div>
-    `;
-
-    return;
-  }
-
-  committeeGrid.innerHTML =
-    committee
-      .map((person) => {
-        const name = escapeHTML(
-          person.name || "Committee Member"
-        );
-
-        const role = escapeHTML(
-          person.position ||
-          person.designation ||
-          person.role ||
-          "Committee"
-        );
-
-        const year = escapeHTML(
-          person.year || ""
-        );
-
-        const photo = safeImage(
-          person.photoURL
-        );
+        const photo =
+          safeImage(festival);
 
         return `
-          <article class="content-card">
+          <article class="festival-card">
 
-            <div class="content-card-image">
+            ${
+              photo
+                ? `
+                  <img
+                    src="${escapeHTML(photo)}"
+                    alt="${escapeHTML(title)}"
+                    loading="lazy"
+                    decoding="async"
+                  >
+                `
+                : ""
+            }
+
+            <div class="card-content">
+
+              <span class="card-badge">
+                EVENT
+              </span>
+
+              <h3>
+                ${escapeHTML(title)}
+              </h3>
 
               ${
-                photo
+                date
                   ? `
-                    <img
-                      src="${photo}"
-                      alt="${name}"
-                      loading="lazy"
-                    >
+                    <p>
+                      ${escapeHTML(
+                        formatDate(date)
+                      )}
+                    </p>
                   `
-                  : `
-                    <div class="member-photo-fallback">
-                      👑
-                    </div>
-                  `
+                  : ""
               }
 
-            </div>
-
-            <div class="content-card-body">
-
-              <strong>${name}</strong>
-
-              <p>${role}</p>
+              ${
+                venue
+                  ? `
+                    <p>
+                      ${escapeHTML(venue)}
+                    </p>
+                  `
+                  : ""
+              }
 
               ${
-                year
-                  ? `<p>Year ${year}</p>`
+                description
+                  ? `
+                    <p>
+                      ${escapeHTML(
+                        description
+                      )}
+                    </p>
+                  `
                   : ""
               }
 
@@ -1095,447 +859,1334 @@ function renderCommittee() {
 
           </article>
         `;
-      })
-      .join("");
+      }
+    ).join("");
 }
 
-onValue(
-  ref(db, "committee"),
-  (snapshot) => {
-    allCommittee =
-      objectToArray(snapshot.val());
 
-    renderCommittee();
-  },
-  (error) => {
-    console.error(
-      "Committee load error:",
-      error
-    );
+/* =========================================================
+   COMMITTEE
+========================================================= */
+
+function renderCommittee() {
+
+  const grid =
+    $("#committeeGrid");
+
+  if (!grid) return;
+
+  if (!committee.length) {
+
+    grid.innerHTML =
+      emptyCard(
+        "No committee records available."
+      );
+
+    return;
   }
-);
+
+  grid.innerHTML =
+    committee.map(
+      (person) => {
+
+        const name =
+          clean(
+            person.name ||
+            person.fullName
+          ) || "Committee Member";
+
+        const position =
+          clean(
+            person.position ||
+            person.role ||
+            person.designation
+          );
+
+        const photo =
+          safeImage(person);
+
+        return `
+          <article class="committee-card">
+
+            ${
+              photo
+                ? `
+                  <img
+                    src="${escapeHTML(photo)}"
+                    alt="${escapeHTML(name)}"
+                    loading="lazy"
+                    decoding="async"
+                  >
+                `
+                : ""
+            }
+
+            <div class="card-content">
+
+              <span class="card-badge">
+                COMMITTEE
+              </span>
+
+              <h3>
+                ${escapeHTML(name)}
+              </h3>
+
+              ${
+                position
+                  ? `
+                    <p>
+                      ${escapeHTML(position)}
+                    </p>
+                  `
+                  : ""
+              }
+
+            </div>
+
+          </article>
+        `;
+      }
+    ).join("");
+}
 
 
 /* =========================================================
    SPORTS
 ========================================================= */
 
-const sportsGrid = $("#sportsGrid");
-const sportsCount = $("#sportsCount");
+function sportsRegistrationEnabled(
+  sport
+) {
 
-function renderSports() {
-  if (!sportsGrid) return;
-
-  const sports =
-    allSports
-      .filter((item) => {
-        const status =
-          normalizeStatus(item.status);
-
-        return (
-          !status ||
-          status === "active" ||
-          status === "approved" ||
-          status === "published" ||
-          status === "upcoming"
-        );
-      })
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
-      );
-
-  if (sportsCount) {
-    sportsCount.textContent =
-      sports.length;
+  if (
+    sport.registrationEnabled === false ||
+    lower(
+      sport.registrationStatus
+    ) === "closed"
+  ) {
+    return false;
   }
 
+  return true;
+}
+
+
+function renderSports() {
+
+  const grid =
+    $("#sportsGrid");
+
+  if (!grid) return;
+
+  setText(
+    "sportsCount",
+    sports.length
+  );
+
   if (!sports.length) {
-    sportsGrid.innerHTML = `
-      <div class="slider-empty">
-        Sports activities will appear here.
-      </div>
-    `;
+
+    grid.innerHTML =
+      emptyCard(
+        "No sports events available."
+      );
+
     return;
   }
 
-  sportsGrid.innerHTML =
-    sports
-      .map((item) =>
-        createContentCard(item, {
-          icon: "🏆",
-          defaultTitle: "Sports Activity"
-        })
-      )
-      .join("");
+  grid.innerHTML =
+    sports.map(
+      (sport) => {
+
+        const title =
+          clean(
+            sport.name ||
+            sport.title ||
+            sport.sportsName
+          ) || "Sports Event";
+
+        const date =
+          sport.date ||
+          sport.eventDate;
+
+        const venue =
+          clean(
+            sport.venue ||
+            sport.location
+          );
+
+        const photo =
+          safeImage(sport);
+
+        const registration =
+          sportsRegistrationEnabled(
+            sport
+          );
+
+        return `
+          <article class="sports-card">
+
+            ${
+              photo
+                ? `
+                  <img
+                    src="${escapeHTML(photo)}"
+                    alt="${escapeHTML(title)}"
+                    loading="lazy"
+                    decoding="async"
+                  >
+                `
+                : ""
+            }
+
+            <div class="card-content">
+
+              <span class="card-badge">
+                SPORTS
+              </span>
+
+              <h3>
+                ${escapeHTML(title)}
+              </h3>
+
+              ${
+                date
+                  ? `
+                    <p>
+                      Date:
+                      ${escapeHTML(
+                        formatDate(date)
+                      )}
+                    </p>
+                  `
+                  : ""
+              }
+
+              ${
+                venue
+                  ? `
+                    <p>
+                      Venue:
+                      ${escapeHTML(venue)}
+                    </p>
+                  `
+                  : ""
+              }
+
+              ${
+                registration
+                  ? `
+                    <button
+                      type="button"
+                      class="sports-register-btn"
+                      data-sports-key="${escapeHTML(
+                        sport.key
+                      )}"
+                    >
+                      REGISTER NOW
+                    </button>
+                  `
+                  : `
+                    <span class="status-badge">
+                      REGISTRATION CLOSED
+                    </span>
+                  `
+              }
+
+            </div>
+
+          </article>
+        `;
+      }
+    ).join("");
+
+  $$(".sports-register-btn", grid)
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const key =
+            button.dataset.sportsKey;
+
+          const sport =
+            sports.find(
+              (item) =>
+                item.key === key
+            );
+
+          if (sport) {
+            openSportsModal(sport);
+          }
+        }
+      );
+    });
 }
-
-onValue(
-  ref(db, "sports"),
-  (snapshot) => {
-    allSports =
-      objectToArray(snapshot.val());
-
-    renderSports();
-  },
-  (error) => {
-    console.error(
-      "Sports load error:",
-      error
-    );
-
-    if (sportsCount) {
-      sportsCount.textContent = "0";
-    }
-  }
-);
 
 
 /* =========================================================
    UPDATES
 ========================================================= */
 
-const updatesGrid = $("#updatesGrid");
-
 function renderUpdates() {
-  if (!updatesGrid) return;
 
-  const updates =
-    allUpdates
-      .filter((item) => {
-        const status =
-          normalizeStatus(item.status);
+  const grid =
+    $("#updatesGrid");
 
-        return (
-          !status ||
-          status === "active" ||
-          status === "approved" ||
-          status === "published"
-        );
-      })
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
-      );
+  if (!grid) return;
 
   if (!updates.length) {
-    updatesGrid.innerHTML = `
-      <div class="slider-empty">
-        Community updates will appear here.
-      </div>
-    `;
+
+    grid.innerHTML =
+      emptyCard(
+        "No updates available."
+      );
+
     return;
   }
 
-  updatesGrid.innerHTML =
-    updates
-      .map((item) =>
-        createContentCard(item, {
-          icon: "📢",
-          defaultTitle: "Community Update"
-        })
-      )
-      .join("");
-}
-
-onValue(
-  ref(db, "updates"),
-  (snapshot) => {
-    allUpdates =
-      objectToArray(snapshot.val());
-
-    renderUpdates();
-  },
-  (error) => {
-    console.error(
-      "Updates load error:",
-      error
+  const sorted =
+    [...updates].sort(
+      (a, b) =>
+        Number(
+          b.createdAt || 0
+        ) -
+        Number(
+          a.createdAt || 0
+        )
     );
-  }
-);
+
+  grid.innerHTML =
+    sorted.map(
+      (update) => {
+
+        const title =
+          clean(
+            update.title ||
+            update.heading
+          ) || "Update";
+
+        const message =
+          clean(
+            update.message ||
+            update.description ||
+            update.details
+          );
+
+        return `
+          <article class="update-card">
+
+            <div class="card-content">
+
+              <span class="card-badge">
+                UPDATE
+              </span>
+
+              <h3>
+                ${escapeHTML(title)}
+              </h3>
+
+              ${
+                message
+                  ? `
+                    <p>
+                      ${escapeHTML(message)}
+                    </p>
+                  `
+                  : ""
+              }
+
+            </div>
+
+          </article>
+        `;
+      }
+    ).join("");
+}
 
 
 /* =========================================================
    GALLERY
 ========================================================= */
 
-const galleryGrid = $("#galleryGrid");
-
 function renderGallery() {
-  if (!galleryGrid) return;
 
-  const gallery =
-    allGallery
-      .filter((item) => {
-        const status =
-          normalizeStatus(item.status);
+  const grid =
+    $("#galleryGrid");
 
-        return (
-          !status ||
-          status === "active" ||
-          status === "approved" ||
-          status === "published"
-        );
-      })
-      .sort(
-        (a, b) =>
-          Number(b.createdAt || 0) -
-          Number(a.createdAt || 0)
-      );
+  if (!grid) return;
 
   if (!gallery.length) {
-    galleryGrid.innerHTML = `
-      <div class="slider-empty">
-        Gallery photos will appear here.
-      </div>
-    `;
+
+    grid.innerHTML =
+      emptyCard(
+        "No gallery photos available."
+      );
+
     return;
   }
 
-  galleryGrid.innerHTML =
-    gallery
-      .map((item) => {
-        const imageURL =
-          safeImage(
-            item.photoURL ||
-            item.imageURL ||
-            item.image
-          );
+  grid.innerHTML =
+    gallery.map(
+      (item) => {
 
         const title =
-          escapeHTML(
+          clean(
             item.title ||
             item.caption ||
-            "AAKASH EARTH"
-          );
+            item.name
+          ) || "Community Moment";
 
-        if (!imageURL) {
-          return "";
-        }
+        const photo =
+          safeImage(item);
+
+        if (!photo) return "";
 
         return `
-          <article class="gallery-item">
+          <article class="gallery-card">
 
             <img
-              src="${imageURL}"
-              alt="${title}"
+              src="${escapeHTML(photo)}"
+              alt="${escapeHTML(title)}"
               loading="lazy"
+              decoding="async"
             >
 
-            <div class="gallery-caption">
-              ${title}
+            <div class="card-content">
+
+              <span class="card-badge">
+                GALLERY
+              </span>
+
+              <h3>
+                ${escapeHTML(title)}
+              </h3>
+
             </div>
 
           </article>
         `;
-      })
-      .join("");
+      }
+    ).join("");
 
-  if (!galleryGrid.innerHTML.trim()) {
-    galleryGrid.innerHTML = `
-      <div class="slider-empty">
-        Gallery photos will appear here.
-      </div>
-    `;
+  if (!grid.innerHTML.trim()) {
+    grid.innerHTML =
+      emptyCard(
+        "No gallery photos available."
+      );
   }
 }
 
-onValue(
-  ref(db, "gallery"),
-  (snapshot) => {
-    allGallery =
-      objectToArray(snapshot.val());
 
-    renderGallery();
-  },
-  (error) => {
-    console.error(
-      "Gallery load error:",
-      error
-    );
+/* =========================================================
+   SPORTS MODAL
+========================================================= */
+
+const sportsModal =
+  $("#sportsRegistrationModal");
+
+const sportsForm =
+  $("#publicSportsRegistrationForm");
+
+const sportsSuccess =
+  $("#sportsRegistrationSuccess");
+
+const sportsFormArea =
+  $("#sportsRegistrationFormArea");
+
+
+function showElement(element) {
+  if (!element) return;
+
+  element.hidden = false;
+}
+
+
+function hideElement(element) {
+  if (!element) return;
+
+  element.hidden = true;
+}
+
+
+function openSportsModal(sport) {
+
+  selectedSports = sport;
+
+  setText(
+    "sportsRegistrationTitle",
+    clean(
+      sport.name ||
+      sport.title ||
+      sport.sportsName
+    ) || "Sports Registration"
+  );
+
+  setText(
+    "registrationSportsName",
+    clean(
+      sport.name ||
+      sport.title ||
+      sport.sportsName
+    ) || "—"
+  );
+
+  setText(
+    "registrationSportsDate",
+    formatDate(
+      sport.date ||
+      sport.eventDate
+    )
+  );
+
+  setText(
+    "registrationSportsVenue",
+    clean(
+      sport.venue ||
+      sport.location
+    ) || "—"
+  );
+
+  setText(
+    "registrationSportsLastDate",
+    formatDate(
+      sport.lastDate ||
+      sport.registrationLastDate
+    )
+  );
+
+  setText(
+    "registrationSportsFee",
+    formatMoney(
+      sport.fee ||
+      sport.registrationFee ||
+      0
+    )
+  );
+
+  setText(
+    "registrationSportsAge",
+    clean(
+      sport.age ||
+      sport.ageLimit ||
+      sport.ageGroup
+    ) || "—"
+  );
+
+  setText(
+    "sportsRulesText",
+    clean(
+      sport.rules ||
+      sport.description
+    ) || "Follow event instructions."
+  );
+
+  const keyInput =
+    $("#registrationSportsKey");
+
+  if (keyInput) {
+    keyInput.value =
+      sport.key || "";
+  }
+
+  sportsForm?.reset();
+
+  if (keyInput) {
+    keyInput.value =
+      sport.key || "";
+  }
+
+  resetSportsPhotoPreview();
+
+  showElement(sportsFormArea);
+
+  hideElement(sportsSuccess);
+
+  sportsSuccess?.classList.remove(
+    "active",
+    "show",
+    "open"
+  );
+
+  sportsModal?.classList.add(
+    "active"
+  );
+
+  sportsModal?.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+function closeSportsModal() {
+
+  sportsModal?.classList.remove(
+    "active",
+    "open"
+  );
+
+  sportsModal?.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  document.body.style.overflow =
+    "";
+
+  selectedSports = null;
+
+  sportsForm?.reset();
+
+  resetSportsPhotoPreview();
+}
+
+
+$("#closeSportsRegistrationModal")
+  ?.addEventListener(
+    "click",
+    closeSportsModal
+  );
+
+
+$("#closeSportsRegistrationSuccess")
+  ?.addEventListener(
+    "click",
+    closeSportsModal
+  );
+
+
+sportsModal?.addEventListener(
+  "click",
+  (event) => {
+
+    if (
+      event.target ===
+      sportsModal
+    ) {
+      closeSportsModal();
+    }
   }
 );
 
 
-/* =========================================================
-   GENERIC SLIDER BUTTONS
-========================================================= */
+document.addEventListener(
+  "keydown",
+  (event) => {
 
-function scrollSlider(sliderId, direction) {
-  const slider =
-    document.getElementById(sliderId);
-
-  if (!slider) return;
-
-  const track =
-    slider.querySelector(
-      ".content-slider-track, .gallery-track"
-    );
-
-  if (!track) return;
-
-  const amount =
-    Math.min(
-      680,
-      Math.max(
-        280,
-        track.clientWidth * 0.75
+    if (
+      event.key === "Escape" &&
+      sportsModal?.classList.contains(
+        "active"
       )
-    );
-
-  track.scrollBy({
-    left: amount * direction,
-    behavior: "smooth"
-  });
-}
-
-$$("[data-slider-prev]").forEach((button) => {
-  button.addEventListener("click", () => {
-    scrollSlider(
-      button.dataset.sliderPrev,
-      -1
-    );
-  });
-});
-
-$$("[data-slider-next]").forEach((button) => {
-  button.addEventListener("click", () => {
-    scrollSlider(
-      button.dataset.sliderNext,
-      1
-    );
-  });
-});
-
-
-/* =========================================================
-   VOLUNTEER SLIDER BUTTONS
-========================================================= */
-
-const volunteerPrev = $("#volunteerPrev");
-const volunteerNext = $("#volunteerNext");
-
-function moveVolunteerSlider(direction) {
-  if (!volunteerGrid) return;
-
-  volunteerGrid.scrollBy({
-    left: 540 * direction,
-    behavior: "smooth"
-  });
-}
-
-volunteerPrev?.addEventListener(
-  "click",
-  () => moveVolunteerSlider(-1)
-);
-
-volunteerNext?.addEventListener(
-  "click",
-  () => moveVolunteerSlider(1)
+    ) {
+      closeSportsModal();
+    }
+  }
 );
 
 
 /* =========================================================
-   REVEAL ON SCROLL
+   OPTIONAL PHOTO PREVIEW
 ========================================================= */
 
-function prepareRevealAnimations() {
-  const targets = [
-    ...$$(".section-heading"),
-    ...$$(".stat-card"),
-    ...$$(".portal-copy"),
-    ...$$(".mini-portal-card"),
-    ...$$(".complaint-container")
-  ];
+const sportsPhotoInput =
+  $("#sportsParticipantPhoto");
 
-  targets.forEach((element) => {
-    element.classList.add("reveal-item");
-  });
+const sportsPhotoPreviewBox =
+  $("#sportsParticipantPhotoPreviewBox");
 
-  if (!("IntersectionObserver" in window)) {
-    targets.forEach((element) => {
-      element.classList.add("revealed");
-    });
+const sportsPhotoPreview =
+  $("#sportsParticipantPhotoPreview");
 
-    return;
+const sportsPhotoName =
+  $("#sportsParticipantPhotoName");
+
+
+sportsPhotoInput?.addEventListener(
+  "change",
+  () => {
+
+    const file =
+      sportsPhotoInput.files?.[0];
+
+    if (!file) {
+      resetSportsPhotoPreview();
+      return;
+    }
+
+    if (
+      !file.type.startsWith(
+        "image/"
+      )
+    ) {
+      sportsPhotoInput.value = "";
+
+      setSportsMessage(
+        "Please select an image file."
+      );
+
+      resetSportsPhotoPreview();
+
+      return;
+    }
+
+    if (
+      file.size >
+      15 * 1024 * 1024
+    ) {
+      sportsPhotoInput.value = "";
+
+      setSportsMessage(
+        "Photo must be below 15 MB."
+      );
+
+      resetSportsPhotoPreview();
+
+      return;
+    }
+
+    const url =
+      URL.createObjectURL(file);
+
+    if (sportsPhotoPreview) {
+      sportsPhotoPreview.src = url;
+
+      sportsPhotoPreview.onload =
+        () => URL.revokeObjectURL(
+          url
+        );
+    }
+
+    if (sportsPhotoName) {
+      sportsPhotoName.textContent =
+        file.name;
+    }
+
+    showElement(
+      sportsPhotoPreviewBox
+    );
+
+    setSportsMessage("");
+  }
+);
+
+
+function resetSportsPhotoPreview() {
+
+  hideElement(
+    sportsPhotoPreviewBox
+  );
+
+  if (sportsPhotoPreview) {
+    sportsPhotoPreview.removeAttribute(
+      "src"
+    );
   }
 
-  const observer =
-    new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add(
-              "revealed"
-            );
+  if (sportsPhotoName) {
+    sportsPhotoName.textContent = "";
+  }
+}
 
-            observer.unobserve(
-              entry.target
-            );
-          }
-        });
-      },
+
+/* =========================================================
+   IMAGE COMPRESSION
+========================================================= */
+
+async function compressImage(file) {
+
+  if (!file) return null;
+
+  if (
+    !file.type.startsWith(
+      "image/"
+    )
+  ) {
+    throw new Error(
+      "Please select a valid image."
+    );
+  }
+
+  if (
+    file.size >
+    15 * 1024 * 1024
+  ) {
+    throw new Error(
+      "Photo must be below 15 MB."
+    );
+  }
+
+  const bitmap =
+    await createImageBitmap(file);
+
+  const maxSize = 1280;
+
+  let width =
+    bitmap.width;
+
+  let height =
+    bitmap.height;
+
+  if (
+    width > maxSize ||
+    height > maxSize
+  ) {
+
+    const ratio =
+      Math.min(
+        maxSize / width,
+        maxSize / height
+      );
+
+    width =
+      Math.round(
+        width * ratio
+      );
+
+    height =
+      Math.round(
+        height * ratio
+      );
+  }
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const context =
+    canvas.getContext(
+      "2d",
       {
-        threshold: 0.12
+        alpha: false
       }
     );
 
-  targets.forEach((element) => {
-    observer.observe(element);
-  });
+  context.drawImage(
+    bitmap,
+    0,
+    0,
+    width,
+    height
+  );
+
+  bitmap.close?.();
+
+  let quality = 0.78;
+  let blob = null;
+
+  const target =
+    700 * 1024;
+
+  while (quality >= 0.52) {
+
+    blob =
+      await new Promise(
+        (resolve) => {
+          canvas.toBlob(
+            resolve,
+            "image/jpeg",
+            quality
+          );
+        }
+      );
+
+    if (
+      !blob ||
+      blob.size <= target
+    ) {
+      break;
+    }
+
+    quality -= 0.07;
+  }
+
+  if (!blob) {
+    throw new Error(
+      "Unable to process photo."
+    );
+  }
+
+  return blob;
 }
 
-prepareRevealAnimations();
+
+/* =========================================================
+   OPTIONAL STORAGE UPLOAD
+========================================================= */
+
+async function uploadOptionalImage(
+  file,
+  path
+) {
+
+  /*
+    No file = no error.
+    Photos remain optional.
+  */
+
+  if (!file) {
+    return {
+      url: "",
+      path: ""
+    };
+  }
+
+  const compressed =
+    await compressImage(file);
+
+  const finalPath =
+    `${path}/${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}.jpg`;
+
+  const fileRef =
+    storageRef(
+      storage,
+      finalPath
+    );
+
+  await withTimeout(
+    uploadBytes(
+      fileRef,
+      compressed,
+      {
+        contentType:
+          "image/jpeg"
+      }
+    ),
+    45000,
+    "Photo upload timed out."
+  );
+
+  const url =
+    await withTimeout(
+      getDownloadURL(fileRef),
+      15000,
+      "Unable to get photo URL."
+    );
+
+  return {
+    url,
+    path: finalPath
+  };
+}
 
 
 /* =========================================================
-   WINDOW RESIZE
+   SPORTS REGISTRATION
 ========================================================= */
 
-let resizeTimer;
+function setSportsMessage(
+  message,
+  success = false
+) {
 
-window.addEventListener("resize", () => {
-  clearTimeout(resizeTimer);
+  const element =
+    $("#sportsRegistrationMessage");
 
-  resizeTimer = setTimeout(() => {
-    resetMemberSlider();
-    startMemberAutoSlide();
+  if (!element) return;
 
-    if (window.innerWidth > 1150) {
-      mobileNav?.classList.remove("open");
-      document.body.classList.remove(
-        "menu-open"
+  element.textContent =
+    message || "";
+
+  element.style.color =
+    success
+      ? "#75ffc0"
+      : "#ffb0bd";
+}
+
+
+sportsForm?.addEventListener(
+  "submit",
+  async (event) => {
+
+    event.preventDefault();
+
+    const submitButton =
+      $("#sportsRegistrationSubmit");
+
+    const originalText =
+      submitButton?.textContent ||
+      "SUBMIT REGISTRATION";
+
+    try {
+
+      setSportsMessage("");
+
+      if (!selectedSports) {
+        throw new Error(
+          "Sports event not selected."
+        );
+      }
+
+      const name =
+        clean(
+          $("#sportsParticipantName")
+            ?.value
+        );
+
+      const mobile =
+        clean(
+          $("#sportsParticipantMobile")
+            ?.value
+        ).replace(/\D/g, "");
+
+      if (!name) {
+        throw new Error(
+          "Please enter participant name."
+        );
+      }
+
+      if (
+        !/^[6-9]\d{9}$/.test(
+          mobile
+        )
+      ) {
+        throw new Error(
+          "Enter a valid 10 digit mobile number."
+        );
+      }
+
+      const file =
+        sportsPhotoInput
+          ?.files?.[0] ||
+        null;
+
+      if (submitButton) {
+        submitButton.disabled = true;
+
+        submitButton.textContent =
+          file
+            ? "UPLOADING..."
+            : "SAVING...";
+      }
+
+      /*
+        Photo is optional.
+        Upload only when selected.
+      */
+
+      const uploaded =
+        await uploadOptionalImage(
+          file,
+          `sportsRegistrations/${selectedSports.key}`
+        );
+
+      const registrationRef =
+        push(
+          ref(
+            db,
+            `sportsRegistrations/${selectedSports.key}`
+          )
+        );
+
+      const registrationId =
+        registrationRef.key;
+
+      const payload = {
+
+        registrationId,
+
+        sportsKey:
+          selectedSports.key,
+
+        sportsName:
+          clean(
+            selectedSports.name ||
+            selectedSports.title ||
+            selectedSports.sportsName
+          ),
+
+        participantType:
+          clean(
+            $("#sportsParticipantType")
+              ?.value
+          ) || "individual",
+
+        participantName:
+          name,
+
+        mobile,
+
+        age:
+          clean(
+            $("#sportsParticipantAge")
+              ?.value
+          ),
+
+        gender:
+          clean(
+            $("#sportsParticipantGender")
+              ?.value
+          ),
+
+        area:
+          clean(
+            $("#sportsParticipantArea")
+              ?.value
+          ),
+
+        teamName:
+          clean(
+            $("#sportsParticipantTeamName")
+              ?.value
+          ),
+
+        note:
+          clean(
+            $("#sportsParticipantNote")
+              ?.value
+          ),
+
+        photoURL:
+          uploaded.url,
+
+        photoUrl:
+          uploaded.url,
+
+        imageURL:
+          uploaded.url,
+
+        storagePath:
+          uploaded.path,
+
+        status:
+          "pending",
+
+        createdAt:
+          Date.now(),
+
+        createdDate:
+          new Date()
+            .toISOString()
+      };
+
+      await withTimeout(
+        set(
+          registrationRef,
+          payload
+        ),
+        15000,
+        "Registration save timed out."
       );
-    }
-  }, 180);
-});
 
+      setText(
+        "sportsRegistrationSuccessId",
+        registrationId
+      );
 
-/* =========================================================
-   VISIBILITY CONTROL
-   Browser tab hidden ho to unnecessary animations stop.
-========================================================= */
+      hideElement(
+        sportsFormArea
+      );
 
-document.addEventListener(
-  "visibilitychange",
-  () => {
-    if (document.hidden) {
-      stopHeroSlider();
-      stopMemberAutoSlide();
-    } else {
-      startHeroSlider();
-      startMemberAutoSlide();
+      showElement(
+        sportsSuccess
+      );
+
+      sportsSuccess?.classList.add(
+        "active"
+      );
+
+      sportsForm.reset();
+
+      resetSportsPhotoPreview();
+
+    } catch (error) {
+
+      console.error(
+        "Sports registration error:",
+        error
+      );
+
+      setSportsMessage(
+        error?.message ||
+        "Unable to submit registration."
+      );
+
+    } finally {
+
+      if (submitButton) {
+        submitButton.disabled = false;
+
+        submitButton.textContent =
+          originalText;
+      }
     }
   }
 );
 
 
 /* =========================================================
-   STARTUP
+   FIREBASE WATCHER
+========================================================= */
+
+function watchData(
+  path,
+  callback
+) {
+
+  const databaseRef =
+    ref(db, path);
+
+  onValue(
+    databaseRef,
+
+    (snapshot) => {
+
+      const value =
+        snapshot.val();
+
+      callback(
+        toArray(value)
+      );
+    },
+
+    (error) => {
+
+      console.error(
+        `Firebase read error (${path}):`,
+        error
+      );
+
+      callback([]);
+    }
+  );
+}
+
+
+/* =========================================================
+   LIVE FIREBASE DATA
+========================================================= */
+
+watchData(
+  "members",
+  (data) => {
+
+    members = data;
+
+    updateYearOptions(
+      memberYearSelect,
+      members
+    );
+
+    renderMembers();
+  }
+);
+
+
+watchData(
+  "volunteers",
+  (data) => {
+
+    volunteers = data;
+
+    updateYearOptions(
+      volunteerYearSelect,
+      volunteers
+    );
+
+    renderVolunteers();
+  }
+);
+
+
+watchData(
+  "festivals",
+  (data) => {
+
+    festivals = data;
+
+    renderFestivals();
+  }
+);
+
+
+watchData(
+  "sports",
+  (data) => {
+
+    sports = data;
+
+    renderSports();
+  }
+);
+
+
+watchData(
+  "updates",
+  (data) => {
+
+    updates = data;
+
+    renderUpdates();
+  }
+);
+
+
+watchData(
+  "gallery",
+  (data) => {
+
+    gallery = data;
+
+    renderGallery();
+  }
+);
+
+
+/*
+  Existing project database path kept
+  for committee records.
+*/
+
+watchData(
+  "yuwaMandal",
+  (data) => {
+
+    committee = data;
+
+    renderCommittee();
+  }
+);
+
+
+/* =========================================================
+   REVEAL FALLBACK
+   effects.js handles normal animation.
+========================================================= */
+
+setTimeout(() => {
+
+  $$(".reveal").forEach(
+    (element) => {
+
+      if (
+        !element.classList.contains(
+          "reveal-active"
+        )
+      ) {
+        element.classList.add(
+          "reveal-active"
+        );
+      }
+    }
+  );
+
+}, 1800);
+
+
+/* =========================================================
+   READY
 ========================================================= */
 
 console.log(
-  "AAKASH EARTH public portal loaded."
+  "AAKASH EARTH public portal ready."
 );
